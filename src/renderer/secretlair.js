@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-07-24 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-07-25 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 104 superdrops/standalones · 364 drops · 2561 printings (1940 drop-mapped, 106 foil-backfilled)
+// 104 superdrops/standalones · 364 drops · 2566 printings (1940 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -3324,6 +3324,7 @@ const SL_SCRYFALL_TO_NAME = {
   "5284b87f-d249-43c2-a198-dd03e961bedb": "Tamiyo, the Moon Sage",
   "52ac65dd-31d2-4f59-bf89-537d870bd6a9": "Serum Visions",
   "52e55b85-92c1-4b83-9a9d-4afb8e938e4f": "Sacred Foundry",
+  "52e60853-15b6-4247-9c34-b6fe8a9862c8": "Imp's Mischief",
   "52ea0f54-cf21-4d7d-af19-d6dc861e0b76": "Displacer Kitten",
   "52ea8286-225b-4990-981a-6b8c49748794": "Trinisphere",
   "530a26f1-cf7a-4e56-886b-6799b057c739": "The Fifteenth Doctor",
@@ -3911,6 +3912,7 @@ const SL_SCRYFALL_TO_NAME = {
   "8d974ae0-5d39-4b2d-8ca0-2ebed2657e25": "Masterwork of Ingenuity",
   "8db735ea-f9cf-4e3c-9200-4f180df55baa": "Fractured Identity",
   "8e462172-6efe-46ad-a97a-fa43ee52c831": "Tinybones, Trinket Thief",
+  "8e4e2bb2-a84b-4c45-9055-c5824c970215": "Cloudshift",
   "8e5173aa-1eca-46ae-81ea-0b1dfe5e12de": "Plains",
   "8e6a1cd0-4036-46d3-9708-42cbea2d3e55": "Batwing Brume",
   "8e883f62-57de-4005-a937-27d0809ca04a": "Soul Warden",
@@ -4452,6 +4454,7 @@ const SL_SCRYFALL_TO_NAME = {
   "c5fc9e54-8fc4-4de4-be74-e925a85187b4": "Lys Alana Huntmaster",
   "c605a09c-78f3-48e3-81f2-1d680af140d6": "Abundant Growth",
   "c60f7be2-1c0e-4529-9bf9-c97760e05950": "Black Market",
+  "c6348e42-9082-4c62-bd0e-0239b588533b": "Seize the Spoils",
   "c664a0f7-f1df-4c34-8755-a53afea7ddba": "Nahiri, Storm of Stone",
   "c66bda12-18da-43e2-a5e2-16d2c5e4d070": "Primeval Titan",
   "c68dd98c-8b89-4b5d-88fb-498c13d6a191": "Moldervine Reclamation",
@@ -4760,6 +4763,7 @@ const SL_SCRYFALL_TO_NAME = {
   "e652ea0d-1ac8-4287-b8d7-7c9a53e5a2d6": "Regrowth",
   "e65a0c1e-97f7-440c-be96-0adf5003bc52": "Heroic Intervention",
   "e6748788-496c-42b4-9f68-e0bd5692b511": "Serra the Benevolent",
+  "e697d90f-3553-4f2e-9b30-b04e6dcd6de4": "Stony Silence",
   "e69db7d6-80fd-4832-b9f4-47eb4aab54e6": "Mother of Runes",
   "e6a1b96a-ff75-4b4c-aea7-b41d9f9ac710": "Crystalline Sliver",
   "e6a2e7e0-9948-4c08-ad74-9a0c5cf054f3": "Silence",
@@ -4823,6 +4827,7 @@ const SL_SCRYFALL_TO_NAME = {
   "ebbaf2e2-b4af-4a84-ab27-d8a6b40c9552": "Island",
   "ebbfc1b2-2407-4079-a847-6bb6b9a2c9de": "Ajani, Mentor of Heroes",
   "ebca1926-6809-4924-a80c-f322266ac38e": "Massacre Girl",
+  "ebd20adc-4fb5-47aa-abdf-4278752581a3": "Tocasia's Welcome",
   "ebe83332-195e-4ac1-878f-f52eef62ce6a": "Wolverine, Best There Is",
   "ebf6550a-b01e-45b0-807c-5593ed419bac": "Collector Ouphe",
   "ec016236-fa38-49f3-8176-5a7734ca6821": "Rites of Flourishing",
@@ -5888,6 +5893,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "5284b87f-d249-43c2-a198-dd03e961bedb": "396",
   "52ac65dd-31d2-4f59-bf89-537d870bd6a9": "30",
   "52e55b85-92c1-4b83-9a9d-4afb8e938e4f": "131",
+  "52e60853-15b6-4247-9c34-b6fe8a9862c8": "2555",
   "52ea0f54-cf21-4d7d-af19-d6dc861e0b76": "2506",
   "52ea8286-225b-4990-981a-6b8c49748794": "1485",
   "530a26f1-cf7a-4e56-886b-6799b057c739": "1584",
@@ -6475,6 +6481,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "8d974ae0-5d39-4b2d-8ca0-2ebed2657e25": "863",
   "8db735ea-f9cf-4e3c-9200-4f180df55baa": "272",
   "8e462172-6efe-46ad-a97a-fa43ee52c831": "2458",
+  "8e4e2bb2-a84b-4c45-9055-c5824c970215": "2552",
   "8e5173aa-1eca-46ae-81ea-0b1dfe5e12de": "1348",
   "8e6a1cd0-4036-46d3-9708-42cbea2d3e55": "2469",
   "8e883f62-57de-4005-a937-27d0809ca04a": "1708",
@@ -7016,6 +7023,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "c5fc9e54-8fc4-4de4-be74-e925a85187b4": "772",
   "c605a09c-78f3-48e3-81f2-1d680af140d6": "870",
   "c60f7be2-1c0e-4529-9bf9-c97760e05950": "2485",
+  "c6348e42-9082-4c62-bd0e-0239b588533b": "2556",
   "c664a0f7-f1df-4c34-8755-a53afea7ddba": "533",
   "c66bda12-18da-43e2-a5e2-16d2c5e4d070": "494",
   "c68dd98c-8b89-4b5d-88fb-498c13d6a191": "1716",
@@ -7324,6 +7332,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "e652ea0d-1ac8-4287-b8d7-7c9a53e5a2d6": "7075",
   "e65a0c1e-97f7-440c-be96-0adf5003bc52": "1872",
   "e6748788-496c-42b4-9f68-e0bd5692b511": "1252",
+  "e697d90f-3553-4f2e-9b30-b04e6dcd6de4": "2554",
   "e69db7d6-80fd-4832-b9f4-47eb4aab54e6": "299",
   "e6a1b96a-ff75-4b4c-aea7-b41d9f9ac710": "661",
   "e6a2e7e0-9948-4c08-ad74-9a0c5cf054f3": "1816",
@@ -7387,6 +7396,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "ebbaf2e2-b4af-4a84-ab27-d8a6b40c9552": "240",
   "ebbfc1b2-2407-4079-a847-6bb6b9a2c9de": "397",
   "ebca1926-6809-4924-a80c-f322266ac38e": "1233",
+  "ebd20adc-4fb5-47aa-abdf-4278752581a3": "2553",
   "ebe83332-195e-4ac1-878f-f52eef62ce6a": "1737",
   "ebf6550a-b01e-45b0-807c-5593ed419bac": "1077",
   "ec016236-fa38-49f3-8176-5a7734ca6821": "2805",
