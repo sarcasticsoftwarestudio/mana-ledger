@@ -12,6 +12,9 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+### Fixed
+- **Upcoming Secret Lairs remain visible throughout their sale day.** Drops no longer disappear from the Explorer at midnight on their launch date, so same-day announcements and available card previews remain accessible.
+
 ## [1.7.0] - 2026-07-24
 
 ### Fixed
