@@ -12,6 +12,8 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+## [1.7.2] - 2026-07-27
+
 ### Fixed
 - **Upcoming card previews no longer fight their hover details.** Redundant browser tooltips have been removed from preview and reference cards, keeping the full card preview unobstructed.
 
