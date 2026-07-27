@@ -47,6 +47,26 @@ describe('upcoming Secret Lair source join', () => {
     expect(groups[0].unmatchedCards.map(card => card.name)).toEqual(['Food']);
   });
 
+  it('keeps announcements, exact cards, and wiki rows visible throughout their sale day', () => {
+    const wikiRows = [{
+      drop: 'Sale-Day Wiki Drop', superdrop: 'Sale-Day Superdrop', date: '2099-07-27',
+    }];
+    const groups = buildUpcomingLairs(cards, announcements, wikiRows, '2099-07-27');
+
+    expect(groups).toHaveLength(2);
+    expect(groups[0]).toMatchObject({
+      drop: 'Sale-Day Wiki Drop',
+      releaseDate: '2099-07-27',
+      status: 'announced',
+    });
+    expect(groups[1]).toMatchObject({
+      drop: 'Secret Lair x Stardew Valley: Welcome to Stardew Valley',
+      releaseDate: '2099-07-27',
+      matchedCount: 2,
+      status: 'partial',
+    });
+  });
+
   it('fills announced-name gaps with labeled reference printings without treating them as exact SLD previews', () => {
     const references = [
       { id: 'cccccccc-cccc-cccc-cccc-cccccccccccc', name: 'Wedding Ring', released_at: '2021-11-19', set: 'voc', collector_number: '32' },

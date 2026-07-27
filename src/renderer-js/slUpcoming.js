@@ -76,7 +76,7 @@ export async function refreshSlUpcomingData(opts = {}) {
     const announcedNames = [];
     const seenNames = new Set();
     for (const article of slAnnouncements()) {
-      if (!article?.saleDate || article.saleDate <= today()) continue;
+      if (!article?.saleDate || article.saleDate < today()) continue;
       for (const drop of (article.revealedDrops || [])) {
         for (const item of (drop.cards || [])) {
           const name = clean(item?.name, 180);
@@ -129,7 +129,7 @@ const articleGroupName = title => clean(title, 240).replace(/^Secret Lair\s*:\s*
 export function buildUpcomingLairs(cards, announcements = [], wikiRows = [], asOf = today(), referenceCards = []) {
   const futureCards = (Array.isArray(cards) ? cards : [])
     .map(compactUpcomingScryfallCard)
-    .filter(card => card.id && card.releasedAt > asOf);
+    .filter(card => card.id && card.releasedAt >= asOf);
   const references = (Array.isArray(referenceCards) ? referenceCards : [])
     .map(compactUpcomingScryfallCard)
     .filter(card => card.id && card.name);
@@ -138,7 +138,7 @@ export function buildUpcomingLairs(cards, announcements = [], wikiRows = [], asO
 
   for (const article of (Array.isArray(announcements) ? announcements : [])) {
     const releaseDate = clean(article?.saleDate, 10);
-    if (!releaseDate || releaseDate <= asOf) continue;
+    if (!releaseDate || releaseDate < asOf) continue;
     const announcedDrops = Array.isArray(article?.revealedDrops) ? article.revealedDrops : [];
     const dropRows = announcedDrops.length ? announcedDrops : [{ name: article.title, cards: [] }];
     for (const announced of dropRows) {
@@ -232,7 +232,7 @@ export function buildUpcomingLairs(cards, announcements = [], wikiRows = [], asO
     const releaseDate = clean(row?.date, 10);
     const drop = clean(row?.drop, 240);
     const key = `${norm(drop)}|${releaseDate}`;
-    if (!drop || !releaseDate || releaseDate <= asOf || seen.has(key)) continue;
+    if (!drop || !releaseDate || releaseDate < asOf || seen.has(key)) continue;
     groups.push({
       drop,
       superdrop: clean(row.superdrop, 240) || 'Standalone',
