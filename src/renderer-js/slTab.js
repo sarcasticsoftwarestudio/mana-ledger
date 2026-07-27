@@ -367,9 +367,12 @@ export function slCardTile(scryfallId, numLabel, requiredFinish, options = {}) {
   const reference = !!options.reference;
   const preview = !!options.preview && !owned && !reference;
   const sourcedPreview = preview || reference;
+  const tooltip = (options.preview || reference) ? '' : (owned
+    ? `Owned (qty: ${totalQty})`
+    : (wanted ? 'On your want list' : 'Not in collection')) + (numLabel ? ` · #${numLabel}` : '');
   return `
     <div class="gallery-card${owned ? ' sl-card-owned' : (sourcedPreview ? ' sl-card-preview' : ' sl-card-missing')}${wanted ? ' sl-card-wanted' : ''}" data-sl-card="${esc(scryfallId)}"
-      data-slact="card-modal" data-arg="${esc(scryfallId)}" title="${reference ? `Reference printing — final Secret Lair printing pending${owned ? ` · owned qty: ${totalQty}` : ''}` : (owned ? `Owned (qty: ${totalQty})` : (preview ? 'Exact upcoming Secret Lair preview' : (wanted ? 'On your want list' : 'Not in collection')))}${numLabel ? ` · #${esc(numLabel)}` : ''}">
+      data-slact="card-modal" data-arg="${esc(scryfallId)}"${tooltip ? ` title="${esc(tooltip)}"` : ''}>
       <img src="${esc(img)}" alt="" loading="lazy"
         data-imgerr="hide-card"
         style="${owned || sourcedPreview ? '' : 'filter:grayscale(60%) brightness(0.65)'}">
@@ -814,6 +817,31 @@ const slDropSinglesCache = new Map();  // drop -> { value, priced, names, at }
 const slDropPricing = new Set();        // drops with a fetch in flight
 const slUpcomingSinglesCache = new Map(); // announced drop -> cheapest-print estimate
 const slUpcomingPricing = new Set();      // announced drops with a lookup in flight
+
+export function renderUpcomingPriceBreakdown(estimate) {
+  const rows = Array.isArray(estimate?.rows) ? estimate.rows : [];
+  if (!rows.length) return '';
+  return `<div class="sl-upcoming-price-breakdown" aria-label="Announced card price breakdown">
+    ${rows.map(row => {
+      const quantity = Math.max(1, Number(row?.quantity) || 1);
+      const unitPrice = row?.unitPrice == null ? null : Number(row.unitPrice);
+      const priced = Number.isFinite(unitPrice);
+      const displayName = row?.displayName || row?.name || 'Unknown card';
+      const source = priced
+        ? `Cheapest available printing${row?.setName ? ` · ${row.setName}` : ''}`
+        : 'No priced printing found';
+      const amount = !priced
+        ? '<strong class="sl-upcoming-price-unavailable">Unavailable</strong>'
+        : quantity > 1
+          ? `<strong>${quantity} × ${fmt(unitPrice)}</strong><small>${fmt(unitPrice * quantity)} subtotal</small>`
+          : `<strong>${fmt(unitPrice)}</strong><small>per card</small>`;
+      return `<div class="sl-upcoming-price-row">
+        <span class="sl-upcoming-price-card"><strong>${esc(displayName)}</strong><small>${esc(source)}</small></span>
+        <span class="sl-upcoming-price-amount">${amount}</span>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
 
 export async function priceUpcomingSingles(drop) {
   if (slUpcomingPricing.has(drop)) return;
@@ -1311,7 +1339,7 @@ export function renderSlViewer() {
       const previewTiles = selected.cards.map(card => slCardTile(card.id, card.collectorNumber, undefined, { preview: true })).join('');
       const referenceTiles = selected.referenceCards.map(card => slCardTile(card.id, undefined, undefined, { reference: true })).join('');
       const placeholderTiles = pendingCards.map(card => `
-        <div class="sl-upcoming-card-placeholder" title="Scryfall has not published this Secret Lair printing yet">
+        <div class="sl-upcoming-card-placeholder">
           <div class="sl-upcoming-placeholder-mark">?</div>
           <strong>${esc(card.displayName || card.name)}</strong>
           <span>${card.quantity > 1 ? `${card.quantity} ${card.variantGroup ? 'additional variants' : 'copies'} · ` : ''}Card image and ID pending</span>
@@ -1325,12 +1353,17 @@ export function renderSlViewer() {
       const singlesEstimate = slUpcomingSinglesCache.get(selected.drop);
       const singlesPricing = slUpcomingPricing.has(selected.drop);
       const singlesPrice = singlesPricing
-        ? '<span class="sl-upcoming-price-working">⏳ Finding cheapest printings…</span>'
+        ? '<div class="sl-upcoming-price-head"><span class="sl-upcoming-price-working">⏳ Finding cheapest printings…</span></div>'
         : singlesEstimate
-          ? `<span><strong>≈ ${fmt(singlesEstimate.value)}</strong><small>${singlesEstimate.pricedCopies}/${singlesEstimate.totalCopies} announced card${singlesEstimate.totalCopies === 1 ? '' : 's'} priced${singlesEstimate.missingNames.length ? ` · unavailable: ${esc(singlesEstimate.missingNames.join(', '))}` : ''}</small></span>
-             <button class="btn btn-ghost" data-slact="price-upcoming-singles" data-arg="${esc(selected.drop)}">Refresh estimate</button>`
-          : `<span><strong>Cheapest-print singles estimate</strong><small>Uses each announced card name and quantity; unreleased artwork is not assigned a made-up price.</small></span>
-             <button class="btn btn-sm" data-slact="price-upcoming-singles" data-arg="${esc(selected.drop)}">💰 Price the singles</button>`;
+          ? `<div class="sl-upcoming-price-head">
+               <span><strong>≈ ${fmt(singlesEstimate.value)}</strong><small>${singlesEstimate.pricedCopies}/${singlesEstimate.totalCopies} announced card${singlesEstimate.totalCopies === 1 ? '' : 's'} priced${singlesEstimate.missingNames.length ? ` · unavailable: ${esc(singlesEstimate.missingNames.join(', '))}` : ''}</small></span>
+               <button class="btn btn-ghost" data-slact="price-upcoming-singles" data-arg="${esc(selected.drop)}">Refresh estimate</button>
+             </div>
+             ${renderUpcomingPriceBreakdown(singlesEstimate)}`
+          : `<div class="sl-upcoming-price-head">
+               <span><strong>Cheapest-print singles estimate</strong><small>Uses each announced card name and quantity; unreleased artwork is not assigned a made-up price.</small></span>
+               <button class="btn btn-sm" data-slact="price-upcoming-singles" data-arg="${esc(selected.drop)}">💰 Price the singles</button>
+             </div>`;
       return viewToggle() + refreshBtn + `
         <section class="sl-upcoming-page">
           <button class="btn btn-ghost sl-upcoming-back" data-act="ui-set" data-path="slViewer.upcomingDrop" data-val="">&larr; All upcoming drops</button>

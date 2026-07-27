@@ -264,6 +264,7 @@ export function sumUpcomingCheapest(expectedCards, cheapestByName = {}) {
     const unitPrice = hit?.price == null ? null : Number(hit.price);
     return {
       name,
+      displayName: clean(card?.displayName || card?.name, 220),
       quantity,
       unitPrice: Number.isFinite(unitPrice) ? unitPrice : null,
       setName: clean(hit?.set_name || hit?.setName, 180),

@@ -12,6 +12,12 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+### Fixed
+- **Upcoming card previews no longer fight their hover details.** Redundant browser tooltips have been removed from preview and reference cards, keeping the full card preview unobstructed.
+
+### Added
+- **Upcoming singles estimates now show their work.** After pricing a drop, the Explorer lists every announced card with its cheapest available printing, source set, unit price, quantity, subtotal, or an explicit unavailable state.
+
 ## [1.7.1] - 2026-07-27
 
 ### Fixed
