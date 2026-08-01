@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-07-31 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-08-01 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 104 superdrops/standalones · 364 drops · 2566 printings (1940 drop-mapped, 106 foil-backfilled)
+// 104 superdrops/standalones · 364 drops · 2572 printings (1940 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -2534,6 +2534,7 @@ const SL_SCRYFALL_TO_NAME = {
   "0563dcbc-59da-468a-97ed-37cd5e36d14a": "Island",
   "056f1559-cca9-4aae-810b-a7db56c214e9": "Blooming Marsh",
   "05712bcb-eb67-4e84-a640-7e507675756a": "Mountain",
+  "0596b5ac-0d95-430a-a747-332abdd30139": "Lightning Greaves",
   "05b50907-41e2-4613-b030-7c6556874bd2": "Zombify",
   "05c000fe-726f-4236-9317-c9dfeba4fb66": "Elesh Norn, Grand Cenobite",
   "05fab477-5e35-4a47-a972-441bbddc3302": "Reckoner Bankbuster // Reckoner Bankbuster",
@@ -2801,6 +2802,7 @@ const SL_SCRYFALL_TO_NAME = {
   "1e5e5f25-41c8-4626-bb14-a121167a9d79": "Narset, Parter of Veils",
   "1e5ef9cd-ee4d-4cbe-a07d-89f9322e5362": "Void Winnower",
   "1e6bd3fa-0d07-4519-b67f-67867ad13c89": "Acidic Slime",
+  "1e7fd748-fc8f-4553-91a9-a049e5db68e7": "Liquimetal Torque",
   "1e947092-c153-410c-bd81-30142c662459": "Command Tower",
   "1e9e13cf-4cb4-41f3-88e0-6836a16e905b": "Laboratory Maniac",
   "1ecc64b6-6f2c-4b20-aa80-54cc47382606": "Thoughtseize",
@@ -2832,6 +2834,7 @@ const SL_SCRYFALL_TO_NAME = {
   "214828eb-434c-47ed-b4af-faaa6c784fb4": "Reconnaissance",
   "214ed19f-65c4-4459-9bb9-65156a62e84d": "Command Beacon",
   "21562285-5fed-4227-be4b-3470972a5437": "Zulaport Cutthroat",
+  "21755311-ccad-4d86-ba47-0060a6c4cfff": "Fellwar Stone",
   "21775491-53e7-4654-8d23-54d0acd89299": "Light Up the Stage",
   "21c718f2-b7a2-4d3d-b5de-629347e6a45b": "Karador, Ghost Chieftain",
   "21d03913-c905-439c-a603-7d7fae6b9cd9": "Island",
@@ -2872,6 +2875,7 @@ const SL_SCRYFALL_TO_NAME = {
   "248add6e-bf11-4378-90c3-49e154fa54e5": "Sakashima's Student",
   "249104ba-65fc-42d6-ad8b-d97640545d89": "Forest",
   "24a084e1-b181-49cc-acb0-8b074ba36fde": "Price of Glory",
+  "24afe08b-6b88-42b3-a996-33f138431a87": "Sol Ring",
   "24cf4c50-d576-41fb-b45c-5bc25d54247b": "Dawn's Truce",
   "251d8c4a-a40c-4f89-9738-4928a7d4a97c": "Persistent Petitioners",
   "2578f3b5-c233-4f44-8b10-5a9dc311add5": "Unleash Fury",
@@ -4024,6 +4028,7 @@ const SL_SCRYFALL_TO_NAME = {
   "99cdce67-67c0-4b1e-8f86-6e7d6b9fc6c2": "Samut, Tyrant Smasher",
   "9a12c7be-5001-4e4b-81d5-cbb76fd3c9d0": "Magical Hack",
   "9a15b06c-8a5c-4e19-887e-e7daf6f653b9": "Island",
+  "9a42413a-ab02-4baa-8abf-2b71f56320ba": "Thought Vessel",
   "9a55b4e9-bbe7-4f12-909e-77082f54c1bb": "Serum Visions",
   "9a6468b6-ac2f-4af5-985f-e9cae5eb2251": "Delayed Blast Fireball",
   "9a67f626-1cc6-4489-a9d3-4304779602d9": "Amareth, the Lustrous",
@@ -4233,6 +4238,7 @@ const SL_SCRYFALL_TO_NAME = {
   "ada81bdf-340d-44f2-8c48-64af2f179bab": "Rogue's Passage",
   "ada90827-f11b-495b-8962-66dd6345b454": "Worldspine Wurm",
   "adadb18e-cd71-4049-9d4a-4ecab2db3a39": "Monastery Swiftspear",
+  "adc05479-0dc6-455d-a858-4414d8f3b7c9": "Fabricate",
   "adf1a38e-30a8-4883-af5f-7d2c3f98b707": "Foundry Inspector",
   "ae57dc27-539b-45f2-a18a-ca1f699f645d": "Scavenging Ooze",
   "ae63d70a-9ecc-4912-aeb7-7d41c91b3b9d": "Progenitus",
@@ -5103,6 +5109,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "0563dcbc-59da-468a-97ed-37cd5e36d14a": "548",
   "056f1559-cca9-4aae-810b-a7db56c214e9": "1374",
   "05712bcb-eb67-4e84-a640-7e507675756a": "66",
+  "0596b5ac-0d95-430a-a747-332abdd30139": "2558",
   "05b50907-41e2-4613-b030-7c6556874bd2": "2389",
   "05c000fe-726f-4236-9317-c9dfeba4fb66": "811",
   "05fab477-5e35-4a47-a972-441bbddc3302": "1967",
@@ -5370,6 +5377,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "1e5e5f25-41c8-4626-bb14-a121167a9d79": "1041",
   "1e5ef9cd-ee4d-4cbe-a07d-89f9322e5362": "1075",
   "1e6bd3fa-0d07-4519-b67f-67867ad13c89": "134",
+  "1e7fd748-fc8f-4553-91a9-a049e5db68e7": "2559",
   "1e947092-c153-410c-bd81-30142c662459": "7012",
   "1e9e13cf-4cb4-41f3-88e0-6836a16e905b": "1394",
   "1ecc64b6-6f2c-4b20-aa80-54cc47382606": "1117",
@@ -5401,6 +5409,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "214828eb-434c-47ed-b4af-faaa6c784fb4": "1575",
   "214ed19f-65c4-4459-9bb9-65156a62e84d": "470",
   "21562285-5fed-4227-be4b-3470972a5437": "1982",
+  "21755311-ccad-4d86-ba47-0060a6c4cfff": "2557",
   "21775491-53e7-4654-8d23-54d0acd89299": "2528",
   "21c718f2-b7a2-4d3d-b5de-629347e6a45b": "1646",
   "21d03913-c905-439c-a603-7d7fae6b9cd9": "1653",
@@ -5441,6 +5450,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "248add6e-bf11-4378-90c3-49e154fa54e5": "2359",
   "249104ba-65fc-42d6-ad8b-d97640545d89": "388",
   "24a084e1-b181-49cc-acb0-8b074ba36fde": "1525",
+  "24afe08b-6b88-42b3-a996-33f138431a87": "2560",
   "24cf4c50-d576-41fb-b45c-5bc25d54247b": "2803",
   "251d8c4a-a40c-4f89-9738-4928a7d4a97c": "596",
   "2578f3b5-c233-4f44-8b10-5a9dc311add5": "7050",
@@ -6593,6 +6603,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "99cdce67-67c0-4b1e-8f86-6e7d6b9fc6c2": "535",
   "9a12c7be-5001-4e4b-81d5-cbb76fd3c9d0": "2141",
   "9a15b06c-8a5c-4e19-887e-e7daf6f653b9": "2146",
+  "9a42413a-ab02-4baa-8abf-2b71f56320ba": "2561",
   "9a55b4e9-bbe7-4f12-909e-77082f54c1bb": "2338",
   "9a6468b6-ac2f-4af5-985f-e9cae5eb2251": "1824",
   "9a67f626-1cc6-4489-a9d3-4304779602d9": "2254",
@@ -6802,6 +6813,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "ada81bdf-340d-44f2-8c48-64af2f179bab": "2652",
   "ada90827-f11b-495b-8962-66dd6345b454": "1305",
   "adadb18e-cd71-4049-9d4a-4ecab2db3a39": "2043",
+  "adc05479-0dc6-455d-a858-4414d8f3b7c9": "7121",
   "adf1a38e-30a8-4883-af5f-7d2c3f98b707": "2106",
   "ae57dc27-539b-45f2-a18a-ca1f699f645d": "135",
   "ae63d70a-9ecc-4912-aeb7-7d41c91b3b9d": "1163",
