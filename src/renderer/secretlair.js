@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
 // Regenerated 2026-08-07 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 104 superdrops/standalones · 364 drops · 2593 printings (1940 drop-mapped, 106 foil-backfilled)
+// 104 superdrops/standalones · 364 drops · 2594 printings (1940 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -2797,6 +2797,7 @@ const SL_SCRYFALL_TO_NAME = {
   "1dd52f2e-5d07-4a10-8d1b-a456eaca977c": "Relentless Rats",
   "1dddf4a0-c676-44ec-9285-fab1c27cfeb8": "Butcher of Malakir",
   "1df8d25e-e519-4197-aa8e-ec596cb2a2d8": "Sarkhan Vol",
+  "1e180975-c62e-46a8-bb22-e4fcbfcb5e3e": "Ponder",
   "1e25869c-06bf-4724-beda-e63e00ca2a9d": "Fatal Push",
   "1e376a75-77ea-40f0-a61e-afcdea2c763a": "Bruna, Light of Alabaster",
   "1e5e5f25-41c8-4626-bb14-a121167a9d79": "Narset, Parter of Veils",
@@ -5393,6 +5394,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "1dd52f2e-5d07-4a10-8d1b-a456eaca977c": "755",
   "1dddf4a0-c676-44ec-9285-fab1c27cfeb8": "7072",
   "1df8d25e-e519-4197-aa8e-ec596cb2a2d8": "1144",
+  "1e180975-c62e-46a8-bb22-e4fcbfcb5e3e": "7119",
   "1e25869c-06bf-4724-beda-e63e00ca2a9d": "884",
   "1e376a75-77ea-40f0-a61e-afcdea2c763a": "1221",
   "1e5e5f25-41c8-4626-bb14-a121167a9d79": "1041",
