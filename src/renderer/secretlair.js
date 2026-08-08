@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-08-07 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-08-08 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 104 superdrops/standalones · 364 drops · 2594 printings (1940 drop-mapped, 106 foil-backfilled)
+// 104 superdrops/standalones · 364 drops · 2599 printings (1940 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -2635,6 +2635,7 @@ const SL_SCRYFALL_TO_NAME = {
   "0db4cf09-8cf0-4aa7-8bfe-fe600352032d": "Myr Battlesphere",
   "0db5492c-dc2d-4a06-ae97-f03669b88fb0": "Teferi's Ageless Insight",
   "0dc3e4ba-726d-4ec5-be73-c68bc186fb2f": "Iroas, God of Victory",
+  "0e2181c0-e0ff-4e5e-b59c-0e389642d45c": "Dread Return",
   "0e234227-d91e-4049-ad4a-3beca6b89023": "Dark Deal",
   "0e39a5ae-de10-4412-8939-97dc40fa24d4": "Anowon, the Ruin Thief",
   "0e863861-eb0d-4f86-9770-bd32b8227d07": "Command Tower",
@@ -2726,6 +2727,7 @@ const SL_SCRYFALL_TO_NAME = {
   "174eafc5-1489-45dd-9555-123647f2268f": "Persistent Petitioners",
   "17518e8e-46ad-4730-b10b-b8875c0536b6": "Dolmen Gate",
   "17558592-2e66-48d3-b38a-3738e5a2a01f": "Nightscape Familiar",
+  "17810fef-8186-421b-bb55-83396d5caf34": "Defile",
   "17ed79a4-6c88-4061-8b08-d94ad58d0234": "Path of Ancestry",
   "180000d4-6844-4292-b768-b1f74a3b8b2d": "Sol Ring",
   "1805eb22-c9de-444f-a7da-21cac1fccfa4": "Rip Apart",
@@ -3086,6 +3088,7 @@ const SL_SCRYFALL_TO_NAME = {
   "39d9ac88-d6d4-4c20-8a3e-269d22884ca5": "Ob Nixilis, the Hate-Twisted",
   "39edd98a-2ee9-4799-9194-5b5a3efb6255": "Rose Noble",
   "3a14d6c5-cfd1-4860-834a-5a0dc9df0320": "Deadpool, Trading Card",
+  "3a1e8139-3690-4d4b-80b4-c733b4bbe786": "Diabolic Intent",
   "3a509149-9864-4622-8122-21a723defaa8": "Howling Mine",
   "3a51438f-d3fc-4e55-9866-fe2d19eadb54": "Fatal Push",
   "3a8acace-57fb-4759-b15e-f4a8be1d13eb": "Mistbind Clique",
@@ -3871,6 +3874,7 @@ const SL_SCRYFALL_TO_NAME = {
   "87bb746a-7959-4567-87a0-09e69fc78a4c": "Fetid Pools",
   "87fc1e38-a44e-4127-946e-eac0c8db2b2f": "Angel of the Ruins",
   "88040c95-8233-4f7f-807d-7c9e33388d49": "Midnight Reaper",
+  "8819dd6d-1127-4c73-9df7-5e5d66c20a68": "Mirkwood Bats",
   "881ed685-bf7c-4ba3-8401-2ead8c24ca0f": "Squirrel Wrangler",
   "88269739-8a38-4f75-a53e-4b4ce70f2aef": "Protean Hulk",
   "882d3475-4fb9-49ad-bc19-e6331428701b": "Shalai, Voice of Plenty",
@@ -4961,6 +4965,7 @@ const SL_SCRYFALL_TO_NAME = {
   "f6151f39-966e-4af6-a20a-d761781abed9": "Aether Vial",
   "f61a5022-1590-44d7-9def-73173c0dec04": "Scourge of Valkas",
   "f61a6f03-cd3a-48ab-b9ad-e9b1f986ea4b": "Havengul Lich",
+  "f62bb546-e060-4c65-9600-94c5f68732a9": "Read the Bones",
   "f6365e12-c470-40a2-95b0-827ec4404c38": "Heliod, God of the Sun",
   "f63fa9a2-66f8-41bf-93e1-f8ddbe2e292b": "Roon of the Hidden Realm",
   "f6502f54-4045-40f5-98a0-d9eeca61dc87": "Vona, Butcher of Magan",
@@ -5232,6 +5237,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "0db4cf09-8cf0-4aa7-8bfe-fe600352032d": "2097",
   "0db5492c-dc2d-4a06-ae97-f03669b88fb0": "1721",
   "0dc3e4ba-726d-4ec5-be73-c68bc186fb2f": "70",
+  "0e2181c0-e0ff-4e5e-b59c-0e389642d45c": "2564",
   "0e234227-d91e-4049-ad4a-3beca6b89023": "873",
   "0e39a5ae-de10-4412-8939-97dc40fa24d4": "1568★",
   "0e863861-eb0d-4f86-9770-bd32b8227d07": "697",
@@ -5323,6 +5329,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "174eafc5-1489-45dd-9555-123647f2268f": "595",
   "17518e8e-46ad-4730-b10b-b8875c0536b6": "1806",
   "17558592-2e66-48d3-b38a-3738e5a2a01f": "1546★",
+  "17810fef-8186-421b-bb55-83396d5caf34": "2562",
   "17ed79a4-6c88-4061-8b08-d94ad58d0234": "2684",
   "180000d4-6844-4292-b768-b1f74a3b8b2d": "1988",
   "1805eb22-c9de-444f-a7da-21cac1fccfa4": "1917",
@@ -5683,6 +5690,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "39d9ac88-d6d4-4c20-8a3e-269d22884ca5": "511",
   "39edd98a-2ee9-4799-9194-5b5a3efb6255": "1580",
   "3a14d6c5-cfd1-4860-834a-5a0dc9df0320": "1753",
+  "3a1e8139-3690-4d4b-80b4-c733b4bbe786": "2563",
   "3a509149-9864-4622-8122-21a723defaa8": "177",
   "3a51438f-d3fc-4e55-9866-fe2d19eadb54": "7017",
   "3a8acace-57fb-4759-b15e-f4a8be1d13eb": "116",
@@ -6468,6 +6476,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "87bb746a-7959-4567-87a0-09e69fc78a4c": "2520",
   "87fc1e38-a44e-4127-946e-eac0c8db2b2f": "1343",
   "88040c95-8233-4f7f-807d-7c9e33388d49": "1171",
+  "8819dd6d-1127-4c73-9df7-5e5d66c20a68": "2565",
   "881ed685-bf7c-4ba3-8401-2ead8c24ca0f": "198",
   "88269739-8a38-4f75-a53e-4b4ce70f2aef": "319",
   "882d3475-4fb9-49ad-bc19-e6331428701b": "244",
@@ -7558,6 +7567,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "f6151f39-966e-4af6-a20a-d761781abed9": "1640",
   "f61a5022-1590-44d7-9def-73173c0dec04": "1490★",
   "f61a6f03-cd3a-48ab-b9ad-e9b1f986ea4b": "859",
+  "f62bb546-e060-4c65-9600-94c5f68732a9": "2566",
   "f6365e12-c470-40a2-95b0-827ec4404c38": "68",
   "f63fa9a2-66f8-41bf-93e1-f8ddbe2e292b": "2173",
   "f6502f54-4045-40f5-98a0-d9eeca61dc87": "1413★",
