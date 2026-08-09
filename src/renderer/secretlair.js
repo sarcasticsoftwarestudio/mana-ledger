@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-08-08 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-08-09 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 104 superdrops/standalones · 364 drops · 2599 printings (1940 drop-mapped, 106 foil-backfilled)
+// 104 superdrops/standalones · 364 drops · 2600 printings (1940 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -3350,6 +3350,7 @@ const SL_SCRYFALL_TO_NAME = {
   "5427d8a6-ac9e-4e50-bd39-81713b2ade25": "Fatal Push",
   "5444140b-9acf-4d28-bf41-2218f1c12831": "Serum Visions",
   "54467e0f-fa50-4fd9-957d-892e567a2a08": "Selvala, Explorer Returned",
+  "545f6d3a-5101-407c-acde-168c5097d866": "Academy Manufactor",
   "5476a08d-7826-4b5b-90b8-56013273a189": "Sefris of the Hidden Ways",
   "54a25476-a256-457f-a5b8-82c6919ac13a": "Kasmina, Enigmatic Mentor",
   "54b65cca-7844-4d3e-9d7f-ed1f49f94425": "Knuckles the Echidna",
@@ -5952,6 +5953,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "5427d8a6-ac9e-4e50-bd39-81713b2ade25": "112",
   "5444140b-9acf-4d28-bf41-2218f1c12831": "31",
   "54467e0f-fa50-4fd9-957d-892e567a2a08": "1914",
+  "545f6d3a-5101-407c-acde-168c5097d866": "7188",
   "5476a08d-7826-4b5b-90b8-56013273a189": "2508",
   "54a25476-a256-457f-a5b8-82c6919ac13a": "507",
   "54b65cca-7844-4d3e-9d7f-ed1f49f94425": "2082",
