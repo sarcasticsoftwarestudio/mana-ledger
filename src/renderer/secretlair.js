@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-08-10 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-08-11 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 104 superdrops/standalones · 364 drops · 2600 printings (1940 drop-mapped, 106 foil-backfilled)
+// 104 superdrops/standalones · 364 drops · 2601 printings (1940 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -4758,6 +4758,7 @@ const SL_SCRYFALL_TO_NAME = {
   "e2294ef4-3b8e-44be-991a-c68287b1cd14": "Deflecting Swat",
   "e25ce640-baf5-442b-8b75-d05dd9fb20dd": "Zndrsplt, Eye of Wisdom // Zndrsplt, Eye of Wisdom",
   "e27047e1-0f6a-4f78-a3ed-02fc417dde29": "Virulent Sliver",
+  "e28be8b0-b4ae-4f05-8481-a666496c595f": "Counterspell",
   "e2b14a8c-2264-4908-8151-da6c8856350e": "Big Score",
   "e2c025c8-ec8c-4d7b-8450-a330f247ab82": "Seven Dwarves",
   "e2c39866-98c2-4c60-98e1-eaf8e40b2d29": "Godless Shrine",
@@ -6918,7 +6919,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "b4241fbb-9874-4c6b-baa7-62527bc24991": "788",
   "b436e594-ec27-465d-a570-7645ddbbc2f7": "209",
   "b43da6f6-fe15-41d3-932d-4ec3d16cc0b2": "545",
-  "b459b25c-647b-4353-932e-f590f26ab973": "2343",
+  "b459b25c-647b-4353-932e-f590f26ab973": "2433",
   "b487e4c0-1135-46f4-807d-cab3f1743132": "552",
   "b48bd5d8-65f7-42a6-9910-556ad12e8899": "1793",
   "b4b3d65d-3485-4d82-ba2e-9e2071f284b5": "1619",
@@ -7361,6 +7362,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "e2294ef4-3b8e-44be-991a-c68287b1cd14": "1552",
   "e25ce640-baf5-442b-8b75-d05dd9fb20dd": "379★",
   "e27047e1-0f6a-4f78-a3ed-02fc417dde29": "659",
+  "e28be8b0-b4ae-4f05-8481-a666496c595f": "7120",
   "e2b14a8c-2264-4908-8151-da6c8856350e": "7096",
   "e2c025c8-ec8c-4d7b-8450-a330f247ab82": "814",
   "e2c39866-98c2-4c60-98e1-eaf8e40b2d29": "128",
@@ -7446,7 +7448,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "ea8f92fb-9ecc-4a41-aabc-7261acb4e8fc": "1314★",
   "ea949741-af94-47ae-a577-2953c69ab71d": "11",
   "ea979ce3-5ac3-4ca1-a28c-aa6071c32616": "1680",
-  "ea9d7b34-7c68-470e-88e1-6d3216fea368": "2344",
+  "ea9d7b34-7c68-470e-88e1-6d3216fea368": "2434",
   "eaa1db45-6e3a-4941-b55e-7a91a60ea1b6": "1430",
   "eaa3fc7c-c340-454f-b89c-2d059d376cb1": "790★",
   "eaf56de3-a2c5-476a-9fac-f149e8c3aa3d": "2380",
