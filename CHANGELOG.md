@@ -12,6 +12,8 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+## [1.7.4] - 2026-08-13
+
 ### Added
 - **Briefing articles are now searchable.** Filter the local Wizards archive by title, summary, author, category, article type, or section heading.
 - **Wizards card galleries now carry into Briefing.** Custom card elements and source artwork embedded in official articles are retained; named cards receive Scryfall-backed hover and detail links, while unlabeled artwork remains visible without unsafe guessed identities.
