@@ -12,6 +12,17 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+### Added
+- **Briefing now syncs automatically with the app's daily startup refresh.** On the first open each day, Wizards articles and card matches update alongside prices, Secret Lair data, and precons; stale Briefing data still refreshes on its own when the collection is empty.
+- **Every parsed Briefing card image now has a hover preview.** Exact matches retain their full Scryfall-backed card details; unmatched Wizards artwork expands into a larger source-image preview without guessing the card's identity.
+- **Briefing now remembers what you have read and saved.** New, unread, updated, and bookmarked states persist locally, with dedicated filters, a newest-article shortcut, and a one-click “mark all read” action.
+- **Article discovery is substantially richer.** Filter by author, set, publication range, or whether cards were parsed; sort by date, recent source updates, or match completeness; and search within the selected article separately from archive search.
+- **Official article changes are tracked.** When Wizards revises a cached page, Briefing identifies changes to its summary, sections, card images, parsed card list, or PDFs and shows what changed since it was last read.
+- **Parsed galleries are collection-aware.** Card tiles show owned, missing, wanted, exact/name/manual match state, can be filtered by collection status, and can add every matched missing card to the want list in one action.
+- **Every article image has a full viewer.** The lightbox supports zoom, previous/next navigation, the original Wizards asset, card details, want-list controls, and ownership status for matched images.
+- **Card matches can be reviewed and corrected.** Search Scryfall for a better printing, persist the correction locally across future syncs, restore the automatic result, or retry unresolved names without downloading every article again.
+- **A Parsing Details view explains each result.** Metadata, section, image, and card-resolution diagnostics expose parser confidence, evidence, errors, detected changes, and focused recovery actions.
+
 ## [1.7.4] - 2026-08-13
 
 ### Added

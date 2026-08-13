@@ -8,6 +8,7 @@ import {
   parseWizardsFeedHtml,
   resolveWizardsArticleCards,
   sanitizeWizardsArticle,
+  summarizeArticleChanges,
 } from '../src/renderer-js/wizardsArticles.js';
 
 describe('Wizards Briefing parser', () => {
@@ -208,5 +209,24 @@ describe('Wizards Briefing parser', () => {
   it('rejects non-Wizards and non-article URLs before fetching', async () => {
     await expect(importWizardsArticle('https://example.com/en/news/feature/not-wizards')).rejects.toThrow(/magic\.wizards\.com/i);
     await expect(importWizardsArticle('https://magic.wizards.com/en/news')).rejects.toThrow(/article URL/i);
+  });
+
+  it('summarizes durable article, section, image, card, and document changes', () => {
+    const previous = {
+      url: 'https://magic.wizards.com/en/news/feature/example', title: 'Example', summary: 'Old summary',
+      sections: [{ heading: 'Old section', summary: 'Old copy', paragraphs: [] }],
+      embeddedCards: [{ imageUrl: 'https://media.wizards.com/old.webp' }],
+      releaseNoteCards: [{ name: 'Cloudshift' }], pdfLinks: [],
+    };
+    const changes = summarizeArticleChanges(previous, {
+      ...previous, summary: 'New summary',
+      sections: [...previous.sections, { heading: 'New section', summary: 'New copy', paragraphs: [] }],
+      embeddedCards: [...previous.embeddedCards, { imageUrl: 'https://media.wizards.com/new.webp' }],
+      releaseNoteCards: [...previous.releaseNoteCards, { name: 'Sol Ring' }],
+      pdfLinks: [{ url: 'https://media.wizards.com/notes.pdf' }],
+    });
+    expect(changes).toEqual(expect.arrayContaining([
+      'Article details or summary changed', '1 section added or revised', '1 card image added', '1 card added', 'Official documents changed',
+    ]));
   });
 });

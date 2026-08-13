@@ -12,7 +12,7 @@ import { netFetch } from './utils.js';
 const FEED_URL = 'https://magic.wizards.com/en/news';
 const SETTINGS_KEY = 'wizards_article_data';
 const LEGACY_SL_SETTINGS_KEY = 'sl_announcement_data';
-const PARSER_VERSION = 2;
+const PARSER_VERSION = 3;
 const MAX_ARTICLES = 24;
 const MAX_CACHED_ARTICLES = 120;
 const MAX_SECTIONS = 36;
@@ -318,6 +318,62 @@ function mergeCardCandidates(...groups) {
     existing.rulings = cleanList([...(existing.rulings || []), ...(card?.rulings || [])], 10, 650);
   }
   return [...byName.values()].slice(0, MAX_ARTICLE_CARDS);
+}
+
+const stableSet = values => [...new Set(values.filter(Boolean))].sort();
+const addedCount = (before, after) => {
+  const previous = new Set(before);
+  return after.filter(value => !previous.has(value)).length;
+};
+
+// User-facing change tracking intentionally compares durable article content,
+// not transient Scryfall responses, so an API hiccup never labels an article
+// as modified. The latest concise summary stays on the cached article.
+export function summarizeArticleChanges(previous, next) {
+  if (!previous?.url) return [];
+  const changes = [];
+  if ([previous.title, previous.summary, previous.author, previous.modifiedAt].join('\n')
+      !== [next.title, next.summary, next.author, next.modifiedAt].join('\n')) {
+    changes.push('Article details or summary changed');
+  }
+
+  const oldSections = stableSet((previous.sections || []).map(section => `${section.heading}|${section.summary}|${(section.paragraphs || []).join('|')}`));
+  const newSections = stableSet((next.sections || []).map(section => `${section.heading}|${section.summary}|${(section.paragraphs || []).join('|')}`));
+  if (oldSections.join('\n') !== newSections.join('\n')) {
+    const added = addedCount(oldSections, newSections);
+    changes.push(added ? `${added} section${added === 1 ? '' : 's'} added or revised` : 'Article sections revised');
+  }
+
+  const oldImages = stableSet((previous.embeddedCards || []).map(card => card.imageUrl));
+  const newImages = stableSet((next.embeddedCards || []).map(card => card.imageUrl));
+  if (oldImages.join('\n') !== newImages.join('\n')) {
+    const added = addedCount(oldImages, newImages);
+    changes.push(added ? `${added} card image${added === 1 ? '' : 's'} added` : 'Card images changed');
+  }
+
+  const oldCards = stableSet((previous.releaseNoteCards || []).map(card => normalizeName(card.name)));
+  const newCards = stableSet((next.releaseNoteCards || []).map(card => normalizeName(card.name)));
+  if (oldCards.join('\n') !== newCards.join('\n')) {
+    const added = addedCount(oldCards, newCards);
+    changes.push(added ? `${added} card${added === 1 ? '' : 's'} added` : 'Parsed card list changed');
+  }
+
+  const oldPdfs = stableSet((previous.pdfLinks || []).map(link => link.url));
+  const newPdfs = stableSet((next.pdfLinks || []).map(link => link.url));
+  if (oldPdfs.join('\n') !== newPdfs.join('\n')) changes.push('Official documents changed');
+  return changes.slice(0, 5);
+}
+
+function applyArticleHistory(article, previous = null) {
+  const now = new Date().toISOString();
+  if (!previous) return sanitizeWizardsArticle({ ...article, discoveredAt: now, contentUpdatedAt: '', changeSummary: [] });
+  const changes = summarizeArticleChanges(previous, article);
+  return sanitizeWizardsArticle({
+    ...article,
+    discoveredAt: previous.discoveredAt || previous.publishedAt || now,
+    contentUpdatedAt: changes.length ? now : previous.contentUpdatedAt,
+    changeSummary: changes.length ? changes : previous.changeSummary,
+  });
 }
 
 function findPdfLinks(html) {
@@ -628,6 +684,11 @@ export function sanitizeWizardsArticle(row = {}) {
     embeddedCards,
     cards,
     unmatchedCards: cleanList(row.unmatchedCards, MAX_ARTICLE_CARDS, 180),
+    discoveredAt: clean(row.discoveredAt || row.publishedAt, 60),
+    contentUpdatedAt: clean(row.contentUpdatedAt, 60),
+    changeSummary: cleanList(row.changeSummary, 8, 180),
+    cardMatchStatus: ['complete', 'partial', 'unavailable', 'pending'].includes(row.cardMatchStatus) ? row.cardMatchStatus : '',
+    cardMatchError: clean(row.cardMatchError, 300),
     detailVersion: Math.max(0, Number(row.detailVersion) || 0),
     parserConfidence: ['high', 'medium', 'low'].includes(row.parserConfidence) ? row.parserConfidence : 'low',
     evidence: row.evidence && typeof row.evidence === 'object' ? {
@@ -675,7 +736,7 @@ async function fetchArticle(seed, previous) {
     if (!response.ok) return previous || sanitizeWizardsArticle(seed);
     let parsed = parseWizardsArticleHtml(await response.text(), seed);
     if (parsed.releaseNoteCards.length) parsed = await resolveWizardsArticleCards(parsed);
-    return parsed;
+    return applyArticleHistory(parsed, previous);
   } catch { return previous || sanitizeWizardsArticle(seed); }
 }
 
@@ -701,10 +762,15 @@ export async function refreshWizardsArticles(opts = {}) {
     const previousByUrl = new Map((articleData?.rows || []).map(row => [row.url, sanitizeWizardsArticle(row)]));
     const feedSeeds = seeds.slice(0, MAX_ARTICLES);
     const feedUrls = new Set(feedSeeds.map(seed => seed.url));
+    const preserveUrls = new Set(Array.isArray(opts.preserveUrls) ? opts.preserveUrls : []);
     const importedSeeds = [...previousByUrl.values()]
       .filter(row => row.imported && row.url && !feedUrls.has(row.url))
       .slice(0, 12);
-    const refreshSeeds = [...feedSeeds, ...importedSeeds];
+    const importedUrls = new Set(importedSeeds.map(row => row.url));
+    const savedSeeds = [...previousByUrl.values()]
+      .filter(row => preserveUrls.has(row.url) && !feedUrls.has(row.url) && !importedUrls.has(row.url))
+      .slice(0, 40);
+    const refreshSeeds = [...feedSeeds, ...importedSeeds, ...savedSeeds];
     const rows = await mapPool(refreshSeeds, 4, seed => fetchArticle(seed, previousByUrl.get(seed.url)));
     if (!rows.some(row => row?.title && row?.url)) throw new Error('article details did not validate');
     const currentUrls = new Set(rows.map(row => row.url));
@@ -712,10 +778,13 @@ export async function refreshWizardsArticles(opts = {}) {
     // explicitly imported so a sync grows an archive instead of making older
     // release notes disappear.
     const retained = (articleData?.rows || []).filter(row => row?.url && !currentUrls.has(row.url));
+    const savedRetained = retained.filter(row => preserveUrls.has(row.url));
+    const ordinaryRetained = retained.filter(row => !preserveUrls.has(row.url));
+    const cacheLimit = Math.max(MAX_CACHED_ARTICLES, rows.length + savedRetained.length);
     articleData = {
       fetchedAt: new Date().toISOString(),
       parserVersion: PARSER_VERSION,
-      rows: [...rows, ...retained].slice(0, MAX_CACHED_ARTICLES).map(sanitizeWizardsArticle),
+      rows: [...rows, ...savedRetained, ...ordinaryRetained].slice(0, cacheLimit).map(sanitizeWizardsArticle),
     };
     await window.api?.settings?.set(SETTINGS_KEY, JSON.stringify(articleData));
     window.logger?.success?.('Briefing', `Wizards sync: ${articleData.rows.length} recent articles`);
@@ -737,7 +806,8 @@ export async function importWizardsArticle(value) {
   });
   if (!article.title || article.title === 'Wizards article') throw new Error('The article title could not be parsed.');
   if (article.releaseNoteCards.length) article = await resolveWizardsArticleCards(article);
-  article = sanitizeWizardsArticle({ ...article, imported: true });
+  const previous = (articleData?.rows || []).find(row => row.url === url);
+  article = applyArticleHistory({ ...article, imported: true }, previous);
   const others = (articleData?.rows || []).filter(row => row.url !== url);
   articleData = {
     fetchedAt: articleData?.fetchedAt || null,
@@ -747,6 +817,24 @@ export async function importWizardsArticle(value) {
   await window.api?.settings?.set(SETTINGS_KEY, JSON.stringify(articleData));
   window.logger?.success?.('Briefing', `Imported ${article.title}`);
   return article;
+}
+
+export async function retryWizardsArticleCards(url) {
+  const index = (articleData?.rows || []).findIndex(row => row.url === url);
+  if (index < 0) throw new Error('That article is no longer in the Briefing cache.');
+  const article = articleData.rows[index];
+  if (!article.releaseNoteCards?.length && !article.collectorNumbers?.length) {
+    throw new Error('No named cards or collector-number ranges are available to retry.');
+  }
+  const resolved = await resolveWizardsArticleCards({ ...article, cardMatchStatus: 'pending', cardMatchError: '' });
+  articleData.rows[index] = sanitizeWizardsArticle({
+    ...resolved,
+    discoveredAt: article.discoveredAt,
+    contentUpdatedAt: article.contentUpdatedAt,
+    changeSummary: article.changeSummary,
+  });
+  await window.api?.settings?.set(SETTINGS_KEY, JSON.stringify(articleData));
+  return articleData.rows[index];
 }
 
 export function wizardsArticles() { return articleData?.rows || []; }

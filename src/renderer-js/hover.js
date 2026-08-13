@@ -60,15 +60,44 @@ export function buildCardHoverHtml(card) {
   `;
 }
 
+export function buildSourceImageHoverHtml(source = {}) {
+  const imageUrl = String(source.imageUrl || '').trim();
+  if (!imageUrl) return '';
+  const label = String(source.label || '').trim() || 'Wizards article image';
+  const section = String(source.section || '').trim();
+  return `
+    <img class="chp-img chp-source-img" src="${esc(imageUrl)}" alt="${esc(label)}" data-imgerr="hide">
+    <div class="chp-name">${esc(label)}</div>
+    <div class="chp-sub">${section ? `${esc(section)} · ` : ''}Official Wizards source · No exact card match</div>
+  `;
+}
+
 export function showCardHoverPreview(el, card) {
   const preview = document.getElementById('card-hover-preview');
   if (!preview) return;
   clearTimeout(_hoverShowTimer);
   _hoverShowTimer = setTimeout(() => {
     _hoverToken++;
+    preview.classList.remove('source-image-preview');
     preview.innerHTML = buildCardHoverHtml(card);
     preview.classList.add('visible');
     // Defer until after browser reflow so offsetHeight is accurate
+    requestAnimationFrame(() => positionHoverPreview(el));
+  }, 200);
+}
+
+// Some Wizards galleries publish art without a trustworthy card caption. Keep
+// that source image useful without inventing an identity: the standard hover
+// surface becomes a larger, image-only preview with explicit source labeling.
+export function showSourceImageHoverPreview(el, source) {
+  const preview = document.getElementById('card-hover-preview');
+  if (!preview || !source?.imageUrl) return;
+  clearTimeout(_hoverShowTimer);
+  _hoverShowTimer = setTimeout(() => {
+    _hoverToken++;
+    preview.classList.add('source-image-preview');
+    preview.innerHTML = buildSourceImageHoverHtml(source);
+    preview.classList.add('visible');
     requestAnimationFrame(() => positionHoverPreview(el));
   }, 200);
 }
@@ -201,6 +230,7 @@ export function showSlTileHoverPreview(el, scryfallId) {
   _hoverShowTimer = setTimeout(() => {
     const myToken = ++_hoverToken;
     const cached = _slHoverData.get(scryfallId) || null;
+    preview.classList.remove('source-image-preview');
     preview.innerHTML = buildSlUnownedHoverHtml(scryfallId, cached);
     preview.classList.add('visible');
     requestAnimationFrame(() => positionHoverPreview(el));
@@ -258,6 +288,17 @@ export function attachContentListeners() {
       el.addEventListener('mouseenter', () => showSlTileHoverPreview(el, scryfallId));
       el.addEventListener('mouseleave', hideCardHoverPreview);
       el.addEventListener('focus', () => showSlTileHoverPreview(el, scryfallId));
+      el.addEventListener('blur', hideCardHoverPreview);
+    });
+    document.querySelectorAll('.briefing-card-source[data-source-image]').forEach(el => {
+      const source = {
+        imageUrl: el.dataset.sourceImage,
+        label: el.dataset.sourceLabel,
+        section: el.dataset.sourceSection,
+      };
+      el.addEventListener('mouseenter', () => showSourceImageHoverPreview(el, source));
+      el.addEventListener('mouseleave', hideCardHoverPreview);
+      el.addEventListener('focus', () => showSourceImageHoverPreview(el, source));
       el.addEventListener('blur', hideCardHoverPreview);
     });
     document.querySelectorAll('.gallery-card[data-slact="card-modal"]:not([data-scryfall-id])').forEach(el => {

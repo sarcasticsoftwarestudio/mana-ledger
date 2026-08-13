@@ -36,7 +36,12 @@ export let ui = {
     colPickerOpen: false,
   },
   sealed: { search: '', type: 'all', status: 'all' },
-  briefing: { articleUrl: '', filter: 'all', search: '', view: 'overview', feedScroll: 0, syncing: false, importing: false },
+  briefing: {
+    articleUrl: '', filter: 'all', status: 'all', search: '', articleSearch: '',
+    author: 'all', setCode: 'all', dateFrom: '', dateTo: '', hasCards: 'all',
+    sort: 'newest', cardFilter: 'all', view: 'overview', feedScroll: 0,
+    syncing: false, importing: false, matching: false,
+  },
   wantList: { search: '', groupByDrop: false, view: 'table' },
   decks: { deckId: null, search: '', view: 'list', ownFilter: 'all' },
   insights: {

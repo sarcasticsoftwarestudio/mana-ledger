@@ -13,6 +13,7 @@ import * as NS_render from './render.js';
 import * as NS_ticker from './ticker.js';
 import * as NS_cardsTab from './cardsTab.js';
 import * as NS_briefing from './briefing.js';
+import * as NS_briefingState from './briefingState.js';
 import * as NS_gallery from './gallery.js';
 import * as NS_slTab from './slTab.js';
 import * as NS_failures from './failures.js';
@@ -54,6 +55,7 @@ import { render } from './render.js';
 import { initSearch } from './search.js';
 import { showSettings } from './settings.js';
 import { computeSlIndex, loadSlOverrides, refreshSlData } from './slTab.js';
+import { startupRefreshPlan } from './startupRefresh.js';
 import { collection, ui } from './state.js';
 import { showAbout, showFeedback, showShortcuts } from './statusbar.js';
 import { autoLoad, loadCollectionFile, saveCollection } from './storage.js';
@@ -64,7 +66,7 @@ import { esc, fmt, fmtPct, toast, today } from './utils.js';
 // this preserves the classic-script contract. Remove as tabs migrate to
 // components with real event wiring.
 const WINDOW_DENYLIST = new Set(['window', 'document', 'location', 'top', 'parent', 'self', 'frames', 'length', 'name', 'status', 'history', 'origin', 'closed', 'opener', 'navigator', 'screen']);
-for (const ns of [NS_constants, NS_state, NS_logger, NS_utils, NS_csv, NS_storage, NS_importWizard, NS_prices, NS_statusbar, NS_sealedPricing, NS_analytics, NS_render, NS_ticker, NS_cardsTab, NS_briefing, NS_gallery, NS_slTab, NS_failures, NS_features, NS_sealedTab, NS_decks, NS_insights, NS_deckIO, NS_modals, NS_productPicker, NS_sealedModals, NS_exportModal, NS_settings, NS_updaterUI, NS_hover, NS_wantlist, NS_search, NS_slData, NS_preconData, NS_preconTab, NS_slWiki, NS_slBonus, NS_slAnnouncements, NS_wizardsArticles, NS_slUpcoming, NS_slHelp, NS_slIntelligence, NS_slHistorySeed, NS_firstRun, NS_dispatch]) {
+for (const ns of [NS_constants, NS_state, NS_logger, NS_utils, NS_csv, NS_storage, NS_importWizard, NS_prices, NS_statusbar, NS_sealedPricing, NS_analytics, NS_render, NS_ticker, NS_cardsTab, NS_briefing, NS_briefingState, NS_gallery, NS_slTab, NS_failures, NS_features, NS_sealedTab, NS_decks, NS_insights, NS_deckIO, NS_modals, NS_productPicker, NS_sealedModals, NS_exportModal, NS_settings, NS_updaterUI, NS_hover, NS_wantlist, NS_search, NS_slData, NS_preconData, NS_preconTab, NS_slWiki, NS_slBonus, NS_slAnnouncements, NS_wizardsArticles, NS_slUpcoming, NS_slHelp, NS_slIntelligence, NS_slHistorySeed, NS_firstRun, NS_dispatch]) {
   for (const [key, value] of Object.entries(ns)) {
     if (WINDOW_DENYLIST.has(key)) continue;
     try { window[key] = value; } catch { /* read-only window prop — skip */ }
@@ -178,6 +180,7 @@ async function init() {
   await NS_slBonus.loadSlBonusFromSettings();
   await NS_slAnnouncements.loadSlAnnouncementsFromSettings();
   await NS_wizardsArticles.loadWizardsArticlesFromSettings();
+  await NS_briefingState.loadBriefingState();
   await NS_slUpcoming.loadSlUpcomingFromSettings();
   // The persisted sealed index makes exact MTGJSON -> TCGCSV product-ID joins
   // available in the SL Explorer immediately, without waiting for Sealed tab.
@@ -232,14 +235,11 @@ async function init() {
 
   render();
 
-  // Briefing uses a separate last-known-good article cache. Refresh it in the
-  // background at most daily so the workspace is ready without delaying launch.
-  if (NS_wizardsArticles.wizardsArticlesNeedRefresh()) {
-    setTimeout(async () => {
-      await NS_wizardsArticles.refreshWizardsArticles({ silent: true });
-      if (ui.activeTab === 'briefing') render();
-    }, 650);
-  }
+  const startupRefresh = startupRefreshPlan({
+    hasCards: collection.cards.length > 0,
+    lastPriceRefresh: collection.lastPriceRefresh,
+    briefingNeedsRefresh: NS_wizardsArticles.wizardsArticlesNeedRefresh(),
+  });
 
   // Older announcement caches predate structured drop/card extraction. When
   // the experimental Upcoming feature is enabled, upgrade those cached future
@@ -264,23 +264,29 @@ async function init() {
     }
   } catch { /* older main process without backupHealth — ignore */ }
 
-  // Auto-refresh once per calendar day on first open — runs after render so the
-  // UI is visible before the network requests start.
-  if (collection.cards.length > 0) {
-    const todayStr = new Date().toDateString();
-    const lastStr  = collection.lastPriceRefresh
-      ? new Date(collection.lastPriceRefresh).toDateString()
-      : null;
-    if (lastStr !== todayStr) {
-      window.logger?.info('App', 'First open today — auto-refreshing prices and SL data…');
-      setTimeout(async () => {
+  // Run all launch-time network work after the first render. Briefing joins the
+  // same first-open-today pass as prices, Secret Lair data and precons, while a
+  // stale article cache can still refresh independently on an empty collection.
+  if (startupRefresh.briefing || startupRefresh.prices) {
+    const targets = [
+      startupRefresh.briefing && 'Briefing',
+      startupRefresh.prices && 'prices',
+      startupRefresh.secretLair && 'Secret Lair data',
+      startupRefresh.precons && 'precons',
+    ].filter(Boolean);
+    window.logger?.info('App', `Startup refresh — syncing ${targets.join(', ')}…`);
+    setTimeout(async () => {
+      const jobs = [];
+      if (startupRefresh.briefing) jobs.push(NS_briefing.syncBriefing({ silent: true }));
+      if (startupRefresh.prices) jobs.push((async () => {
         await refreshPrices();
         if (typeof refreshSlData === 'function') await refreshSlData();
         // Precon catalog check is one small index fetch — new decks (a few a
         // month at most) get appended without anyone clicking the button.
         await NS_preconData.refreshPreconData({ silent: true });
-      }, 800);
-    }
+      })());
+      await Promise.all(jobs);
+    }, 800);
   }
 }
 
