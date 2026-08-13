@@ -12,6 +12,8 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+## [1.7.3] - 2026-08-13
+
 ### Added
 - **Briefing brings official Magic news into its own workspace.** Browse recent Wizards announcements, release notes, rules updates, and features without forcing unrelated news into the Secret Lair Explorer, or import any `magic.wizards.com/en/news` article directly.
 - **Release-note card galleries use exact printings.** Detected set and collector-number ranges are matched through Scryfall, with complete image galleries, familiar card-detail hovers, full card dialogs, and a separate card-rulings view.
