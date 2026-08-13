@@ -12,6 +12,13 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+### Added
+- **Briefing brings official Magic news into its own workspace.** Browse recent Wizards announcements, release notes, rules updates, and features without forcing unrelated news into the Secret Lair Explorer, or import any `magic.wizards.com/en/news` article directly.
+- **Release-note card galleries use exact printings.** Detected set and collector-number ranges are matched through Scryfall, with complete image galleries, familiar card-detail hovers, full card dialogs, and a separate card-rulings view.
+
+### Changed
+- **Wizards article parsing now tolerates multiple page layouts.** Metadata, summaries, headings, sections, dates, authors, and PDF links use a generic fallback when an article does not match a specialized release-note or Secret Lair structure. Previously discovered articles remain available in the local Briefing archive across syncs.
+
 ## [1.7.2] - 2026-07-27
 
 ### Fixed

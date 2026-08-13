@@ -114,9 +114,9 @@ export function hideCardHoverPreview() {
   if (preview) preview.classList.remove('visible');
 }
 
-// Scryfall card details fetched for unowned SL hover tiles, cached so a tile is
-// only ever fetched once (repeat hovers are instant). Concurrent hovers of the
-// same id share one in-flight request. Failures aren't cached so they retry.
+// Scryfall card details fetched for unowned reference tiles (Secret Lair,
+// Precons, Briefing), cached so a tile is only ever fetched once. Concurrent
+// hovers of the same id share one in-flight request. Failures aren't cached.
 const _slHoverData = new Map();      // scryfallId → Scryfall card object
 const _slHoverInflight = new Map();  // scryfallId → Promise<card|null>
 
@@ -160,7 +160,7 @@ function buildSlUnownedHoverHtml(scryfallId, data) {
   const cmc = data && data.cmc != null ? data.cmc : null;
   const sub = data
     ? `${esc(data.set_name || 'Secret Lair')} · ${esc((data.set || 'SLD').toUpperCase())} · #${esc(data.collector_number || num || '?')}`
-    : `Secret Lair · SLD${num ? ` · #${esc(num)}` : ''}`;
+    : (slInfo.length ? `Secret Lair · SLD${num ? ` · #${esc(num)}` : ''}` : `Scryfall printing${num ? ` · #${esc(num)}` : ''}`);
   // Single, etched, or foil — match the live refresh's price fallback order.
   const priceNum = data ? parseFloat(data.prices?.usd ?? data.prices?.usd_foil ?? data.prices?.usd_etched) : NaN;
 
@@ -248,11 +248,19 @@ export function attachContentListeners() {
       el.addEventListener('mouseleave', hideCardHoverPreview);
     });
   }
-  // SL Explorer + Precon Explorer + Want List gallery. slCardTile now uses
+  // SL Explorer + Precon Explorer + Want List + Briefing galleries. slCardTile now uses
   // delegated data-slact="card-modal" (hardened path); wantlist's own tiles
   // still use the inline onclick — support both until they migrate.
-  if (ui.activeTab === 'slviewer' || ui.activeTab === 'wantlist' || ui.activeTab === 'precons') {
-    document.querySelectorAll('.gallery-card[data-slact="card-modal"]').forEach(el => {
+  if (ui.activeTab === 'slviewer' || ui.activeTab === 'wantlist' || ui.activeTab === 'precons' || ui.activeTab === 'briefing') {
+    document.querySelectorAll('.gallery-card[data-scryfall-id]').forEach(el => {
+      const scryfallId = el.dataset.scryfallId;
+      if (!scryfallId) return;
+      el.addEventListener('mouseenter', () => showSlTileHoverPreview(el, scryfallId));
+      el.addEventListener('mouseleave', hideCardHoverPreview);
+      el.addEventListener('focus', () => showSlTileHoverPreview(el, scryfallId));
+      el.addEventListener('blur', hideCardHoverPreview);
+    });
+    document.querySelectorAll('.gallery-card[data-slact="card-modal"]:not([data-scryfall-id])').forEach(el => {
       const scryfallId = el.dataset.arg;
       if (!scryfallId) return;
       el.addEventListener('mouseenter', () => showSlTileHoverPreview(el, scryfallId));

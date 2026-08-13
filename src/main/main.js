@@ -131,6 +131,7 @@ function buildMenu() {
         tabItem('Dashboard',                'dashboard',  'CmdOrCtrl+1'),
         tabItem('Card Collection',          'cards',      'CmdOrCtrl+2'),
         tabItem('Sealed Collection',        'sealed',     'CmdOrCtrl+3'),
+        tabItem('Briefing',                 'briefing',   'CmdOrCtrl+4'),
         tabItem('Secret Lair Explorer',     'slviewer',   'CmdOrCtrl+5'),
         tabItem('Failed Lookups',           'failures',   'CmdOrCtrl+6'),
         tabItem('Decks',                    'decks',      'CmdOrCtrl+7'),
@@ -260,7 +261,7 @@ const ALLOWED_FETCH_HOSTS = new Set([
   'www.pricecharting.com',
   'api.cardtrader.com',  // optional authenticated cross-market sealed listings
   'mtg.wiki',           // Drop Series table: superdrop grouping + per-drop MSRPs + upcoming drops
-  'magic.wizards.com',  // official Secret Lair announcements, sale windows, bundles and promotions
+  'magic.wizards.com',  // official Magic news, release notes, announcements and Secret Lair context
 ]);
 
 // ── IPC handlers ─────────────────────────────────────────────────────────────

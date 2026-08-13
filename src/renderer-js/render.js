@@ -1,4 +1,5 @@
 import { renderCards } from './cardsTab.js';
+import { renderBriefing } from './briefing.js';
 import { renderDecks } from './decks.js';
 import { renderFailedLookupsTab } from './failures.js';
 import { insightsEnabled, syncFeatureVisibility } from './features.js';
@@ -40,6 +41,7 @@ export function render() {
         }
         break;
       case 'cards':     content.innerHTML = renderCards();             break;
+      case 'briefing':  content.innerHTML = renderBriefing();          break;
       case 'sealed':    content.innerHTML = renderSealed();            break;
       case 'insights':  content.innerHTML = insightsEnabled() ? renderInsights() : ''; break;
       case 'decks':     content.innerHTML = renderDecks();             break;

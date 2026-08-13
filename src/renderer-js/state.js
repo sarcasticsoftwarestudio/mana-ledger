@@ -36,6 +36,7 @@ export let ui = {
     colPickerOpen: false,
   },
   sealed: { search: '', type: 'all', status: 'all' },
+  briefing: { articleUrl: '', filter: 'all', view: 'overview', syncing: false, importing: false },
   wantList: { search: '', groupByDrop: false, view: 'table' },
   decks: { deckId: null, search: '', view: 'list', ownFilter: 'all' },
   insights: {
