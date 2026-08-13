@@ -12,6 +12,8 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+## [1.7.5] - 2026-08-13
+
 ### Added
 - **Briefing now syncs automatically with the app's daily startup refresh.** On the first open each day, Wizards articles and card matches update alongside prices, Secret Lair data, and precons; stale Briefing data still refreshes on its own when the collection is empty.
 - **Every parsed Briefing card image now has a hover preview.** Exact matches retain their full Scryfall-backed card details; unmatched Wizards artwork expands into a larger source-image preview without guessing the card's identity.
