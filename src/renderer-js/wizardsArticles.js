@@ -12,7 +12,7 @@ import { netFetch } from './utils.js';
 const FEED_URL = 'https://magic.wizards.com/en/news';
 const SETTINGS_KEY = 'wizards_article_data';
 const LEGACY_SL_SETTINGS_KEY = 'sl_announcement_data';
-const PARSER_VERSION = 1;
+const PARSER_VERSION = 2;
 const MAX_ARTICLES = 24;
 const MAX_CACHED_ARTICLES = 120;
 const MAX_SECTIONS = 36;
@@ -116,11 +116,103 @@ function contentRegion(html) {
   return source.slice(start >= 0 ? start : 0, footer > start ? footer : source.length);
 }
 
+function insideExcludedContainer(lowerSource, index) {
+  return ['a', 'nav', 'aside', 'footer'].some(tag => lowerSource.lastIndexOf(`<${tag}`, index) > lowerSource.lastIndexOf(`</${tag}`, index));
+}
+
 function contentBlocks(html) {
   const region = contentRegion(html);
+  const lowerRegion = region.toLowerCase();
   return [...region.matchAll(/<(h[1-4]|p|li|blockquote)\b[^>]*>([\s\S]*?)<\/\1>/gi)]
     .map(match => ({ tag: match[1].toLowerCase(), text: htmlText(match[2]), index: match.index || 0 }))
-    .filter(block => block.text);
+    .filter(block => block.text && !insideExcludedContainer(lowerRegion, block.index));
+}
+
+function attributeValue(tag, name) {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = String(tag || '').match(new RegExp(`\\b${escaped}\\s*=\\s*(["'])([\\s\\S]*?)\\1`, 'i'));
+  return match ? decode(match[2]) : '';
+}
+
+function safeArticleImageUrl(value) {
+  const raw = decode(value).trim();
+  if (!raw) return '';
+  try {
+    const url = new URL(raw.startsWith('//') ? `https:${raw}` : raw, 'https://magic.wizards.com');
+    if (url.protocol !== 'https:' || !['media.wizards.com', 'images.ctfassets.net'].includes(url.hostname)) return '';
+    return url.toString();
+  } catch { return ''; }
+}
+
+function canonicalCaptionName(value) {
+  return htmlText(value)
+    .replace(/\s+as\s+["“][\s\S]*$/i, '')
+    .replace(/\s+tokens?$/i, '')
+    .trim();
+}
+
+function headingAt(blocks, index) {
+  let heading = '';
+  for (const block of blocks) {
+    if (block.index > index) break;
+    if (/^h[2-4]$/.test(block.tag)) heading = block.text;
+  }
+  return heading;
+}
+
+export function parseEmbeddedCardImages(html, title = '') {
+  const region = contentRegion(html);
+  const lowerRegion = region.toLowerCase();
+  const blocks = contentBlocks(region);
+  const images = [];
+  const seen = new Set();
+  const add = image => {
+    if (!image.imageUrl || seen.has(image.imageUrl)) return;
+    seen.add(image.imageUrl);
+    images.push(image);
+  };
+
+  for (const match of region.matchAll(/<magic-card\b(?:[^>"']+|"[^"]*"|'[^']*')*>/gi)) {
+    if (insideExcludedContainer(lowerRegion, match.index || 0)) continue;
+    const tag = match[0];
+    const imageUrl = safeArticleImageUrl(attributeValue(tag, 'face'));
+    const backImageUrl = safeArticleImageUrl(attributeValue(tag, 'back'));
+    const displayName = htmlText(attributeValue(tag, 'caption'));
+    const name = canonicalCaptionName(displayName);
+    add({
+      name,
+      displayName: displayName || name || 'Card image',
+      section: headingAt(blocks, match.index || 0),
+      imageUrl,
+      backImageUrl,
+      sourceKind: 'magic-card',
+      scryfallId: '',
+      matchedName: '',
+    });
+  }
+
+  const cardImageArticle = /\bcards?\b|card image gallery/i.test(title);
+  for (const match of region.matchAll(/<img\b[^>]*>/gi)) {
+    if (insideExcludedContainer(lowerRegion, match.index || 0)) continue;
+    const tag = match[0];
+    const imageUrl = safeArticleImageUrl(attributeValue(tag, 'src') || attributeValue(tag, 'data-src'));
+    if (!imageUrl || !/media\.wizards\.com$/i.test(new URL(imageUrl).hostname)) continue;
+    const displayName = htmlText(attributeValue(tag, 'alt') || attributeValue(tag, 'title'));
+    const genericArtwork = /^(?:artwork|card image|image)\s*\d+$/i.test(displayName);
+    const name = genericArtwork ? '' : canonicalCaptionName(displayName);
+    if (!name && !(cardImageArticle && genericArtwork)) continue;
+    add({
+      name,
+      displayName: displayName || 'Card image',
+      section: headingAt(blocks, match.index || 0),
+      imageUrl,
+      backImageUrl: '',
+      sourceKind: 'article-image',
+      scryfallId: '',
+      matchedName: '',
+    });
+  }
+  return images.slice(0, MAX_ARTICLE_CARDS);
 }
 
 function parseSections(blocks) {
@@ -205,6 +297,29 @@ export function parseReleaseNoteCards(html) {
   }).slice(0, MAX_ARTICLE_CARDS);
 }
 
+function mergeCardCandidates(...groups) {
+  const byName = new Map();
+  for (const card of groups.flat()) {
+    const name = clean(card?.name, 180);
+    const key = normalizeName(name);
+    if (!key) continue;
+    const existing = byName.get(key);
+    if (!existing) {
+      byName.set(key, {
+        name,
+        section: clean(card?.section, 120),
+        rulesText: clean(card?.rulesText, 1500),
+        rulings: cleanList(card?.rulings, 10, 650),
+      });
+      continue;
+    }
+    existing.section ||= clean(card?.section, 120);
+    existing.rulesText ||= clean(card?.rulesText, 1500);
+    existing.rulings = cleanList([...(existing.rulings || []), ...(card?.rulings || [])], 10, 650);
+  }
+  return [...byName.values()].slice(0, MAX_ARTICLE_CARDS);
+}
+
 function findPdfLinks(html) {
   return [...String(html || '').matchAll(/<a\b[^>]*href=["']([^"']+\.pdf(?:\?[^"']*)?)["'][^>]*>([\s\S]*?)<\/a>/gi)]
     .map(match => ({ label: htmlText(match[2]) || 'Official PDF', url: absoluteUrl(match[1]) }))
@@ -212,11 +327,13 @@ function findPdfLinks(html) {
     .slice(0, 12);
 }
 
-function inferSetCode(body, title) {
+function inferSetCode(body, title, html = '') {
   const explicit = body.match(/\b([A-Z0-9]{2,6})\s+collector numbers?\s+\d/i)?.[1];
   if (explicit) return explicit.toUpperCase();
   const titled = title.match(/\[([A-Z0-9]{2,6})\]/)?.[1];
-  return titled ? titled.toUpperCase() : '';
+  if (titled) return titled.toUpperCase();
+  const mediaPath = String(html || '').match(/media\.wizards\.com\/\d{4}\/([a-z0-9]{2,6})\//i)?.[1];
+  return mediaPath && !/^images?$/i.test(mediaPath) ? mediaPath.toUpperCase() : '';
 }
 
 function inferCollectorNumbers(body, setCode) {
@@ -236,14 +353,12 @@ function inferCollectorNumbers(body, setCode) {
 export function classifyWizardsArticle(input = {}) {
   const title = clean(input.title).toLowerCase();
   const category = clean(input.category).toLowerCase();
-  const signal = `${title} ${clean(input.summary)} ${(input.headings || []).join(' ')}`.toLowerCase();
   if (/banned\s+(?:and|&)\s+restricted|format check-in/.test(title)) return 'banned_restricted';
   if (/release\s+notes?/.test(title)) return 'release_notes';
   if (/secret\s+lair/.test(title)) return 'secret_lair';
   if (/update bulletin|rules? update/.test(title)) return 'rules_update';
-  if (/what(?:'|’)s inside|prerelease guide|card image gallery|collecting /.test(title)) return 'product_guide';
+  if (/what(?:'|’)s inside|prerelease guide|card image gallery|collecting |\ball (?:the )?.*cards?\b/.test(title)) return 'product_guide';
   if (category === 'announcements' && /secret\s+lair/.test(`${title} ${clean(input.summary)}`)) return 'secret_lair';
-  if (/release\s+notes?/.test(signal)) return 'release_notes';
   if (category === 'announcements') return 'announcement';
   return category === 'making-magic' ? 'design' : 'feature';
 }
@@ -305,10 +420,12 @@ export function parseWizardsArticleHtml(html, seed = {}) {
   const bodySignal = `${description} ${headings.join(' ')} ${blocks.slice(0, 18).map(block => block.text).join(' ')}`;
   const category = seed.category || articlePath(seed.url || '')?.category || '';
   const kind = classifyWizardsArticle({ title, category, summary: bodySignal, headings });
-  const releaseNoteCards = kind === 'release_notes' ? parseReleaseNoteCards(source) : [];
+  const embeddedCards = parseEmbeddedCardImages(source, title);
+  const embeddedCandidates = embeddedCards.filter(card => card.name).map(card => ({ name: card.name, section: card.section }));
+  const releaseNoteCards = mergeCardCandidates(parseReleaseNoteCards(source), embeddedCandidates);
   const articleBody = htmlText(contentRegion(source));
-  const setCode = releaseNoteCards.length ? inferSetCode(articleBody, title) : '';
-  const collectorNumbers = releaseNoteCards.length ? inferCollectorNumbers(articleBody, setCode) : [];
+  const setCode = releaseNoteCards.length || embeddedCards.length ? inferSetCode(articleBody, title, source) : '';
+  const collectorNumbers = setCode ? inferCollectorNumbers(articleBody, setCode) : [];
   const generic = {
     ...seed,
     url: absoluteUrl(seed.url || metaContent(html, 'og:url')),
@@ -326,6 +443,7 @@ export function parseWizardsArticleHtml(html, seed = {}) {
     setCode,
     collectorNumbers,
     releaseNoteCards,
+    embeddedCards,
     cards: [],
     unmatchedCards: releaseNoteCards.map(card => card.name),
     detailVersion: PARSER_VERSION,
@@ -333,17 +451,31 @@ export function parseWizardsArticleHtml(html, seed = {}) {
     evidence: {
       title: h1 ? 'article h1' : 'page metadata',
       publishedAt: jsonLdString(html, 'datePublished') ? 'structured metadata' : 'page time element',
-      cards: collectorNumbers.length ? 'collector-number ranges + card-specific note blocks' : (releaseNoteCards.length ? 'card-specific note blocks' : ''),
+      cards: collectorNumbers.length
+        ? 'collector-number ranges + article card data'
+        : (embeddedCards.length
+          ? `${embeddedCards.length} Wizards card image${embeddedCards.length === 1 ? '' : 's'}${embeddedCandidates.length ? ' + exact-name candidates' : ''}`
+          : (releaseNoteCards.length ? 'card-specific note blocks' : '')),
     },
   };
   if (kind !== 'secret_lair') return sanitizeWizardsArticle(generic);
 
   const secret = parseAnnouncementDetailHtml(html, seed);
   const secretSummary = /^(?:Products Coming Soon|Coming Soon)(?:\s|$)/i.test(secret.summary || '') ? generic.summary : secret.summary;
-  return sanitizeWizardsArticle({ ...generic, ...secret, summary: secretSummary || generic.summary, kind: 'secret_lair', category });
+  const revealedCandidates = (secret.revealedDrops || []).flatMap(drop => (drop.cards || []).map(card => ({ name: card.name, section: drop.name })));
+  const secretCandidates = mergeCardCandidates(releaseNoteCards, revealedCandidates);
+  return sanitizeWizardsArticle({
+    ...generic,
+    ...secret,
+    summary: secretSummary || generic.summary,
+    kind: 'secret_lair',
+    category,
+    releaseNoteCards: secretCandidates,
+    unmatchedCards: secretCandidates.map(card => card.name),
+  });
 }
 
-function compactScryfallCard(card, candidate, method) {
+function compactScryfallCard(card, candidate, method, confidence = 'exact') {
   const front = card.card_faces?.[0] || {};
   const images = card.image_uris || front.image_uris || {};
   return {
@@ -363,7 +495,7 @@ function compactScryfallCard(card, candidate, method) {
     rulesText: candidate.rulesText,
     rulings: cleanList(candidate.rulings, 10, 650),
     noteSection: candidate.section,
-    match: { method, confidence: 'exact', sourceName: candidate.name },
+    match: { method, confidence, sourceName: candidate.name },
   };
 }
 
@@ -382,10 +514,14 @@ export async function resolveWizardsArticleCards(article, fetchCollection = fetc
   const collectorNumbers = Array.isArray(article?.collectorNumbers) ? article.collectorNumbers : [];
   if (!candidates.length && !collectorNumbers.length) return sanitizeWizardsArticle(article);
   const resolved = [];
+  // A named Secret Lair card can have several SLD printings. The Wizards image
+  // remains the source-of-truth visual, while Scryfall is matched by card name
+  // for hover/oracle details unless a collector number makes the printing exact.
+  const nameSetCode = article.kind === 'secret_lair' ? '' : article.setCode;
   const requests = collectorNumbers.length && article.setCode
     ? collectorNumbers.map(collectorNumber => ({ collectorNumber, identifier: { collector_number: collectorNumber, set: article.setCode.toLowerCase() } }))
-    : candidates.map(candidate => ({ candidate, identifier: article.setCode
-      ? { name: candidate.name, set: article.setCode.toLowerCase() }
+    : candidates.map(candidate => ({ candidate, identifier: nameSetCode
+      ? { name: candidate.name, set: nameSetCode.toLowerCase() }
       : { name: candidate.name } }));
   const chunks = [];
   for (let i = 0; i < requests.length; i += 75) chunks.push(requests.slice(i, i + 75));
@@ -401,17 +537,28 @@ export async function resolveWizardsArticleCards(article, fetchCollection = fetc
           const front = normalizeName(String(card?.name || '').split(' // ')[0]);
           return full === wanted || front === wanted;
         }) || { name: card.name, section: 'Set card', rulesText: '', rulings: [] };
-        const method = collectorNumbers.length ? 'set + collector number' : (article.setCode ? 'set + exact name' : 'exact name');
-        resolved.push(compactScryfallCard(card, candidate, method));
+        const method = collectorNumbers.length ? 'set + collector number' : (nameSetCode ? 'set + exact name' : 'exact card name');
+        resolved.push(compactScryfallCard(card, candidate, method, collectorNumbers.length ? 'exact' : 'name'));
       }
     }
   } catch (error) {
     return sanitizeWizardsArticle({ ...article, cardMatchStatus: 'unavailable', cardMatchError: clean(error.message, 300) });
   }
   const matchedNames = new Set(resolved.map(card => normalizeName(card.sourceName)));
+  const resolvedByName = new Map();
+  for (const card of resolved) {
+    resolvedByName.set(normalizeName(card.sourceName), card);
+    resolvedByName.set(normalizeName(card.name), card);
+    resolvedByName.set(normalizeName(String(card.name).split(' // ')[0]), card);
+  }
+  const embeddedCards = (article.embeddedCards || []).map(image => {
+    const matched = image.name ? resolvedByName.get(normalizeName(image.name)) : null;
+    return matched ? { ...image, scryfallId: matched.id, matchedName: matched.name } : image;
+  });
   return sanitizeWizardsArticle({
     ...article,
     cards: resolved,
+    embeddedCards,
     unmatchedCards: candidates.filter(card => !matchedNames.has(normalizeName(card.name))).map(card => card.name),
     cardMatchStatus: resolved.length === (collectorNumbers.length || candidates.length) ? 'complete' : 'partial',
   });
@@ -447,6 +594,16 @@ export function sanitizeWizardsArticle(row = {}) {
       method: clean(card.match.method, 80), confidence: clean(card.match.confidence, 30), sourceName: clean(card.match.sourceName, 220),
     } : null,
   })).filter(card => card.id && card.name).slice(0, MAX_ARTICLE_CARDS);
+  const embeddedCards = (Array.isArray(row.embeddedCards) ? row.embeddedCards : []).map(card => ({
+    name: clean(card?.name, 180),
+    displayName: clean(card?.displayName || card?.name, 240) || 'Card image',
+    section: clean(card?.section, 160),
+    imageUrl: safeArticleImageUrl(card?.imageUrl),
+    backImageUrl: safeArticleImageUrl(card?.backImageUrl),
+    sourceKind: card?.sourceKind === 'magic-card' ? 'magic-card' : 'article-image',
+    scryfallId: clean(card?.scryfallId, 60).toLowerCase(),
+    matchedName: clean(card?.matchedName, 220),
+  })).filter(card => card.imageUrl).slice(0, MAX_ARTICLE_CARDS);
   const title = clean(row.title, 260) || 'Wizards article';
   const category = clean(row.category || path?.category, 60).toLowerCase();
   const kind = clean(row.kind, 60) || classifyWizardsArticle({ title, category, summary: row.summary, headings: row.headings });
@@ -468,6 +625,7 @@ export function sanitizeWizardsArticle(row = {}) {
       summary: clean(section?.summary, 1100), paragraphs: cleanList(section?.paragraphs, 8, 700),
     })).filter(section => section.heading).slice(0, MAX_SECTIONS),
     releaseNoteCards,
+    embeddedCards,
     cards,
     unmatchedCards: cleanList(row.unmatchedCards, MAX_ARTICLE_CARDS, 180),
     detailVersion: Math.max(0, Number(row.detailVersion) || 0),
@@ -485,7 +643,10 @@ export async function loadWizardsArticlesFromSettings() {
     const raw = await window.api?.settings?.get(SETTINGS_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed?.rows)) articleData = { ...parsed, rows: parsed.rows.map(sanitizeWizardsArticle) };
+      if (Array.isArray(parsed?.rows)) {
+        const reclassify = (Number(parsed.parserVersion) || 0) < PARSER_VERSION;
+        articleData = { ...parsed, rows: parsed.rows.map(row => sanitizeWizardsArticle(reclassify ? { ...row, kind: '' } : row)) };
+      }
     }
     if (articleData?.rows?.length) return;
 
@@ -538,7 +699,13 @@ export async function refreshWizardsArticles(opts = {}) {
     const seeds = parseWizardsFeedHtml(await response.text());
     if (seeds.length < 4) throw new Error(`only ${seeds.length} article links parsed — feed layout changed?`);
     const previousByUrl = new Map((articleData?.rows || []).map(row => [row.url, sanitizeWizardsArticle(row)]));
-    const rows = await mapPool(seeds.slice(0, MAX_ARTICLES), 4, seed => fetchArticle(seed, previousByUrl.get(seed.url)));
+    const feedSeeds = seeds.slice(0, MAX_ARTICLES);
+    const feedUrls = new Set(feedSeeds.map(seed => seed.url));
+    const importedSeeds = [...previousByUrl.values()]
+      .filter(row => row.imported && row.url && !feedUrls.has(row.url))
+      .slice(0, 12);
+    const refreshSeeds = [...feedSeeds, ...importedSeeds];
+    const rows = await mapPool(refreshSeeds, 4, seed => fetchArticle(seed, previousByUrl.get(seed.url)));
     if (!rows.some(row => row?.title && row?.url)) throw new Error('article details did not validate');
     const currentUrls = new Set(rows.map(row => row.url));
     // The landing page is a moving window. Keep articles already discovered or
@@ -587,6 +754,7 @@ export function wizardsArticleInfo() {
   return articleData ? { fetchedAt: articleData.fetchedAt, count: articleData.rows.length, parserVersion: articleData.parserVersion || 0 } : null;
 }
 export function wizardsArticlesNeedRefresh(maxAgeMs = 24 * 60 * 60 * 1000) {
+  if ((articleData?.parserVersion || 0) < PARSER_VERSION) return true;
   const fetched = articleData?.fetchedAt ? new Date(articleData.fetchedAt).getTime() : 0;
   return !fetched || !Number.isFinite(fetched) || Date.now() - fetched > maxAgeMs;
 }

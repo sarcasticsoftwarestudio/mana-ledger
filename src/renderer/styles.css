@@ -2574,7 +2574,7 @@ body[data-binder-open="true"]::before {
 .sl-card-wanted { opacity: 1; box-shadow: 0 0 0 2px rgba(201, 155, 60, 0.6); }
 
 /* ── Wizards Briefing ─────────────────────────────────────────────────── */
-.briefing-page { max-width: 1280px; margin: 0 auto; }
+.briefing-page { display: flex; flex-direction: column; width: 100%; height: 100%; min-height: 0; max-width: 1280px; margin: 0 auto; }
 .briefing-page-head {
   display: flex;
   align-items: flex-end;
@@ -2594,12 +2594,42 @@ body[data-binder-open="true"]::before {
 .briefing-sync { display: flex; align-items: center; gap: 10px; }
 .briefing-sync > span { color: var(--text-muted); font-size: 10.5px; white-space: nowrap; }
 .briefing-sync > div { display: flex; gap: 7px; flex-wrap: wrap; justify-content: flex-end; }
-.briefing-filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.briefing-filters { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 9px; margin-bottom: 12px; }
+.briefing-filter-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
 .briefing-filter { padding: 5px 10px; font-size: 10.5px; }
+.briefing-search {
+  display: flex;
+  align-items: center;
+  width: min(330px, 100%);
+  min-height: 34px;
+  padding: 0 8px 0 10px;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.briefing-search:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+.briefing-search > span { flex: 0 0 auto; font-size: 16px; }
+.briefing-search input {
+  min-width: 0;
+  flex: 1;
+  padding: 7px 8px;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  outline: 0;
+  font: inherit;
+  font-size: 11px;
+}
+.briefing-search input::-webkit-search-cancel-button { display: none; }
+.briefing-search button { padding: 0 3px; color: var(--text-muted); background: transparent; border: 0; cursor: pointer; font-size: 16px; }
+.briefing-search button:hover { color: var(--text); }
 .briefing-workspace {
   display: grid;
   grid-template-columns: minmax(230px, 280px) minmax(0, 1fr);
-  min-height: 570px;
+  min-width: 0;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -2608,6 +2638,9 @@ body[data-binder-open="true"]::before {
 .briefing-feed {
   min-width: 0;
   padding: 11px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   background: color-mix(in srgb, var(--surface) 68%, var(--bg));
   border-right: 1px solid var(--border);
 }
@@ -2650,7 +2683,7 @@ body[data-binder-open="true"]::before {
 }
 .briefing-feed-item strong { display: block; margin-top: 5px; font-size: 11.5px; line-height: 1.35; }
 .briefing-feed-item small { display: block; margin-top: 6px; color: var(--text-muted); font-size: 9.5px; line-height: 1.35; }
-.briefing-reader { min-width: 0; background: var(--bg); }
+.briefing-reader { min-width: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; background: var(--bg); }
 .briefing-article-head {
   padding: 22px 24px 18px;
   background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 9%, transparent), transparent 45%);
@@ -2719,7 +2752,11 @@ body[data-binder-open="true"]::before {
 }
 .briefing-card img { width: 100%; border-radius: 10px 10px 7px 7px; }
 .briefing-card > span { display: block; padding: 7px 7px 0; overflow: hidden; font-size: 9.5px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+.briefing-card > span b { display: block; overflow: hidden; font: inherit; text-overflow: ellipsis; }
+.briefing-card > span small { display: block; margin-top: 3px; overflow: hidden; color: var(--text-muted); font-size: 8.5px; font-weight: 500; text-overflow: ellipsis; }
 .briefing-card > em { position: absolute; top: 5px; right: 5px; padding: 2px 5px; color: var(--green); background: rgba(12,15,13,.88); border-radius: 4px; font-size: 7.5px; font-style: normal; font-weight: 700; text-transform: uppercase; }
+.briefing-card-source { cursor: default; }
+.briefing-card-source > em { color: var(--accent2); }
 .briefing-unmatched { display: grid; gap: 4px; margin-top: 14px; padding: 10px 12px; color: var(--text-dim); background: var(--surface); border: 1px solid var(--accent-dim); border-radius: var(--radius-md); font-size: 10px; }
 .briefing-unmatched strong { color: var(--accent2); }
 .briefing-sections { display: grid; gap: 8px; }
@@ -2750,8 +2787,12 @@ body[data-binder-open="true"]::before {
 @media (max-width: 700px) {
   .briefing-page-head { align-items: flex-start; flex-direction: column; }
   .briefing-sync { width: 100%; justify-content: space-between; }
-  .briefing-workspace { display: block; }
+  .briefing-filters { align-items: stretch; }
+  .briefing-search { width: 100%; }
+  .briefing-page { height: auto; }
+  .briefing-workspace { display: block; height: auto; }
   .briefing-feed { display: flex; gap: 7px; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--border); }
+  .briefing-reader { overflow: visible; }
   .briefing-feed-month { display: none; }
   .briefing-feed-item { flex: 0 0 210px; margin: 0; }
   .briefing-gallery-head { align-items: flex-start; flex-direction: column; }

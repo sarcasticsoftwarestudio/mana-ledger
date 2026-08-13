@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   classifyWizardsArticle,
   importWizardsArticle,
+  parseEmbeddedCardImages,
   parseReleaseNoteCards,
   parseWizardsArticleHtml,
   parseWizardsFeedHtml,
@@ -34,6 +35,49 @@ describe('Wizards Briefing parser', () => {
       headings: ['Format Check-In'],
     })).toBe('secret_lair');
     expect(classifyWizardsArticle({ title: 'Example Set Release Notes', category: 'feature' })).toBe('release_notes');
+    expect(classifyWizardsArticle({
+      title: 'All the Scene Cards from Magic: The Gathering | The Hobbit',
+      category: 'feature',
+      headings: ['Treasures of Smaug', 'Mystery Booster Commander Edition Release Notes'],
+    })).toBe('product_guide');
+  });
+
+  it('extracts Wizards magic-card elements and keeps every source image', () => {
+    const html = `
+      <h1>Secret Lair: Example Drop</h1>
+      <h2>Secret Lair x Example</h2>
+      <responsive-grid>
+        <magic-card face="https://media.wizards.com/2026/images/daily/example/cloudshift.webp" caption="Cloudshift"></magic-card>
+        <magic-card face="https://media.wizards.com/2026/images/daily/example/welcome.webp" caption="Tocasia's Welcome<br>as &quot;Quite a Gathering&quot;"></magic-card>
+      </responsive-grid>
+    `;
+    const images = parseEmbeddedCardImages(html, 'Secret Lair: Example Drop');
+    expect(images).toHaveLength(2);
+    expect(images.map(image => image.name)).toEqual(['Cloudshift', "Tocasia's Welcome"]);
+
+    const article = parseWizardsArticleHtml(html, {
+      url: 'https://magic.wizards.com/en/news/announcements/secret-lair-example-drop',
+      category: 'announcements',
+    });
+    expect(article.kind).toBe('secret_lair');
+    expect(article.embeddedCards).toHaveLength(2);
+    expect(article.releaseNoteCards.map(card => card.name)).toEqual(['Cloudshift', "Tocasia's Welcome"]);
+  });
+
+  it('retains generically labeled card artwork without inventing card names', () => {
+    const article = parseWizardsArticleHtml(`
+      <h1>All the Scene Cards from The Hobbit</h1>
+      <h2>Treasures of Smaug</h2>
+      <img src="https://media.wizards.com/2026/hob/example/en_one.webp" alt="Artwork 1">
+      <img src="https://media.wizards.com/2026/hob/example/en_two.webp" alt="Artwork 2">
+      <a href="/en/news/feature/other-release-notes"><h3>Other Set Release Notes</h3></a>
+    `, { url: 'https://magic.wizards.com/en/news/feature/all-the-scene-cards', category: 'feature' });
+    expect(article.kind).toBe('product_guide');
+    expect(article.setCode).toBe('HOB');
+    expect(article.embeddedCards).toHaveLength(2);
+    expect(article.embeddedCards.every(card => !card.name)).toBe(true);
+    expect(article.releaseNoteCards).toEqual([]);
+    expect(article.headings).toEqual(['Treasures of Smaug']);
   });
 
   it('parses release-note metadata, sections, collector ranges and card rulings', () => {
@@ -119,6 +163,34 @@ describe('Wizards Briefing parser', () => {
       match: { method: 'set + collector number', confidence: 'exact' },
     });
     expect(resolved.unmatchedCards).toEqual([]);
+  });
+
+  it('attaches exact-name Scryfall details to Wizards source images', async () => {
+    const article = sanitizeWizardsArticle({
+      url: 'https://magic.wizards.com/en/news/announcements/secret-lair-example-drop',
+      title: 'Secret Lair: Example Drop',
+      kind: 'secret_lair',
+      category: 'announcements',
+      releaseNoteCards: [{ name: 'Cloudshift', section: 'Example Drop' }],
+      embeddedCards: [{
+        name: 'Cloudshift', displayName: 'Cloudshift', section: 'Example Drop',
+        imageUrl: 'https://media.wizards.com/2026/images/daily/example/cloudshift.webp', sourceKind: 'magic-card',
+      }],
+    });
+    const resolved = await resolveWizardsArticleCards(article, async identifiers => ({
+      data: identifiers.map(() => ({
+        id: '00000000-0000-0000-0000-000000000099', name: 'Cloudshift', set: 'avr', set_name: 'Avacyn Restored',
+        collector_number: '12', rarity: 'common', type_line: 'Instant', oracle_text: 'Exile target creature.', artist: 'Artist',
+        image_uris: { small: 'https://cards.scryfall.io/small/cloudshift.jpg', normal: 'https://cards.scryfall.io/normal/cloudshift.jpg' },
+      })),
+      not_found: [],
+    }));
+    expect(resolved.cards[0].match).toMatchObject({ method: 'exact card name', confidence: 'name' });
+    expect(resolved.embeddedCards[0]).toMatchObject({
+      imageUrl: 'https://media.wizards.com/2026/images/daily/example/cloudshift.webp',
+      scryfallId: '00000000-0000-0000-0000-000000000099',
+      matchedName: 'Cloudshift',
+    });
   });
 
   it('keeps a useful generic fallback when no specialized structure matches', () => {

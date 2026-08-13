@@ -1,5 +1,5 @@
 import { renderCards } from './cardsTab.js';
-import { renderBriefing } from './briefing.js';
+import { attachBriefingListeners, renderBriefing } from './briefing.js';
 import { renderDecks } from './decks.js';
 import { renderFailedLookupsTab } from './failures.js';
 import { insightsEnabled, syncFeatureVisibility } from './features.js';
@@ -56,6 +56,7 @@ export function render() {
     content.innerHTML = `<div style="padding:24px;color:#f87171;font-family:monospace">Render error: ${e.message}<br><pre style="font-size:11px;margin-top:8px;opacity:.7">${e.stack || ''}</pre></div>`;
   }
   attachContentListeners();
+  if (ui.activeTab === 'briefing') attachBriefingListeners();
   updateRefreshUI();
   updateFailedBadge();
   updateWantBadge();

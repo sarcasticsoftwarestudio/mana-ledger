@@ -38,6 +38,13 @@ const matchesFilter = (article, filter) => {
   return article.kind === filter;
 };
 
+export const articleMatchesSearch = (article, value) => {
+  const query = String(value || '').trim().toLowerCase();
+  if (!query) return true;
+  return [article.title, article.summary, article.author, article.category, kindLabel(article.kind), ...(article.headings || [])]
+    .some(field => String(field || '').toLowerCase().includes(query));
+};
+
 export async function syncBriefing() {
   if (ui.briefing.syncing || ui.briefing.importing) return;
   ui.briefing.syncing = true;
@@ -57,7 +64,7 @@ export function showBriefingImportModal() {
       const article = await importWizardsArticle(value);
       ui.briefing.articleUrl = article.url;
       ui.briefing.filter = 'all';
-      ui.briefing.view = article.cards?.length ? 'cards' : 'overview';
+      ui.briefing.view = article.cards?.length || article.embeddedCards?.length ? 'cards' : 'overview';
       toast(`Imported ${article.title}`, 'success');
     } catch (error) {
       toast(error.message || 'That Wizards article could not be imported.', 'error');
@@ -66,6 +73,13 @@ export function showBriefingImportModal() {
       render();
     }
   });
+}
+
+export function attachBriefingListeners() {
+  const feed = document.querySelector('.briefing-feed');
+  if (!feed) return;
+  feed.scrollTop = Number(ui.briefing.feedScroll) || 0;
+  feed.addEventListener('scroll', () => { ui.briefing.feedScroll = feed.scrollTop; }, { passive: true });
 }
 
 function renderFeed(rows, selected) {
@@ -95,7 +109,7 @@ function renderArticleTabs(article) {
   const view = ui.briefing.view || 'overview';
   const button = (id, label) => `<button type="button" class="briefing-tab${view === id ? ' active' : ''}"
     data-act="ui-set" data-path="briefing.view" data-val="${id}">${label}</button>`;
-  const cardCount = article.cards?.length || article.releaseNoteCards?.length || 0;
+  const cardCount = article.embeddedCards?.length || article.cards?.length || article.releaseNoteCards?.length || 0;
   const rulingCount = (article.cards || []).filter(card => card.rulings?.length).length
     || (article.releaseNoteCards || []).filter(card => card.rulings?.length).length;
   return `<nav class="briefing-tabs" aria-label="Article sections">
@@ -107,8 +121,9 @@ function renderArticleTabs(article) {
 }
 
 function renderOverview(article) {
-  const cards = article.cards?.length || 0;
-  const expected = article.collectorNumbers?.length || article.releaseNoteCards?.length || 0;
+  const embedded = article.embeddedCards || [];
+  const cards = embedded.length ? embedded.filter(card => card.scryfallId).length : (article.cards?.length || 0);
+  const expected = embedded.length || article.collectorNumbers?.length || article.releaseNoteCards?.length || 0;
   const matched = expected ? `${cards} / ${expected}` : '—';
   const sourceNotes = [
     article.parserConfidence ? `${article.parserConfidence} parser confidence` : '',
@@ -133,21 +148,34 @@ function renderOverview(article) {
 
 function renderCards(article) {
   const cards = article.cards || [];
-  if (!cards.length) {
+  const embedded = article.embeddedCards || [];
+  if (!cards.length && !embedded.length) {
     const pending = article.releaseNoteCards?.length || 0;
     return `<div class="briefing-empty">${pending ? `${pending} card names were parsed, but exact Scryfall matching is unavailable. Sync sources to retry.` : 'No card list was detected in this article.'}</div>`;
   }
-  const expected = article.collectorNumbers?.length || article.releaseNoteCards?.length || cards.length;
+  const matched = embedded.length ? embedded.filter(card => card.scryfallId).length : cards.length;
+  const expected = embedded.length || article.collectorNumbers?.length || article.releaseNoteCards?.length || cards.length;
   return `
     <div class="briefing-gallery-head">
-      <div><strong>Cards in this article</strong><small>Hover for the same printing details used throughout Mana Ledger. Select a card for the full view.</small></div>
-      <span class="briefing-match ${cards.length === expected ? 'complete' : 'partial'}">${cards.length} of ${expected} matched</span>
+      <div><strong>Cards in this article</strong><small>${embedded.length ? 'Images come directly from the Wizards article. Hover matched names for Scryfall details; unlabeled source artwork stays visible without a guessed identity.' : 'Hover for the same printing details used throughout Mana Ledger. Select a card for the full view.'}</small></div>
+      <span class="briefing-match ${matched === expected ? 'complete' : 'partial'}">${matched} of ${expected} matched</span>
     </div>
     <div class="briefing-card-grid">
-      ${cards.map(card => `<button type="button" class="gallery-card briefing-card" data-scryfall-id="${esc(card.id)}" data-slact="card-modal" data-arg="${esc(card.id)}" aria-label="Open ${esc(card.name)}">
+      ${embedded.length ? embedded.map(card => {
+        const label = card.name || card.displayName || 'Article card image';
+        const detail = card.scryfallId
+          ? `data-scryfall-id="${esc(card.scryfallId)}" data-slact="card-modal" data-arg="${esc(card.scryfallId)}" aria-label="Open ${esc(card.matchedName || label)}"`
+          : `aria-label="${esc(label)}; source image has no reliable card-name match"`;
+        const openTag = card.scryfallId ? 'button type="button"' : 'div';
+        return `<${openTag} class="gallery-card briefing-card${card.scryfallId ? '' : ' briefing-card-source'}" ${detail}>
+          <img src="${esc(card.imageUrl)}" alt="${esc(label)}" loading="lazy" data-imgerr="hide-card">
+          <span><b>${esc(label)}</b>${card.section && card.section !== label ? `<small>${esc(card.section)}</small>` : ''}</span>
+          <em>${card.scryfallId ? 'Matched' : 'Source'}</em>
+        </${card.scryfallId ? 'button' : 'div'}>`;
+      }).join('') : cards.map(card => `<button type="button" class="gallery-card briefing-card" data-scryfall-id="${esc(card.id)}" data-slact="card-modal" data-arg="${esc(card.id)}" aria-label="Open ${esc(card.name)}">
         <img src="${esc(card.imageSmall || card.imageNormal)}" alt="${esc(card.name)}" loading="lazy" data-imgerr="hide-card">
-        <span>${esc(card.name)}</span>
-        ${card.match?.confidence === 'exact' ? '<em>Exact</em>' : ''}
+        <span><b>${esc(card.name)}</b></span>
+        <em>${card.match?.confidence === 'exact' ? 'Exact' : 'Matched'}</em>
       </button>`).join('')}
     </div>
     ${(article.unmatchedCards || []).length ? `<div class="briefing-unmatched"><strong>Needs review</strong><span>${article.unmatchedCards.map(name => esc(name)).join(' · ')}</span></div>` : ''}`;
@@ -206,19 +234,20 @@ function renderArticle(article) {
 export function renderBriefing() {
   const allRows = wizardsArticles().slice().sort((a, b) => String(b.publishedAt || '').localeCompare(String(a.publishedAt || '')));
   const filter = ui.briefing.filter || 'all';
-  const rows = allRows.filter(article => matchesFilter(article, filter));
+  const search = ui.briefing.search || '';
+  const rows = allRows.filter(article => matchesFilter(article, filter) && articleMatchesSearch(article, search));
   let selected = rows.find(article => article.url === ui.briefing.articleUrl) || rows[0] || null;
   if (selected && ui.briefing.articleUrl !== selected.url) ui.briefing.articleUrl = selected.url;
   const info = wizardsArticleInfo();
   const filterButtons = FILTERS.map(([value, label]) => `<button type="button" class="btn ${filter === value ? 'btn-primary' : 'btn-ghost'} briefing-filter"
-    data-act="ui-set" data-path="briefing.filter" data-val="${value}" data-also="briefing.articleUrl=;briefing.view=overview">${label}</button>`).join('');
+    data-act="ui-set" data-path="briefing.filter" data-val="${value}" data-also="briefing.articleUrl=;briefing.view=overview;briefing.feedScroll=0">${label}</button>`).join('');
 
   return `<section class="briefing-page">
     <header class="briefing-page-head">
       <div><span class="briefing-eyebrow">Official Magic intelligence</span><h1>Briefing</h1><p>Announcements, release notes, rules updates, and product news in one place.</p></div>
       <div class="briefing-sync"><span>${info?.fetchedAt ? `Last checked ${esc(readableDate(info.fetchedAt))}` : 'Not synced yet'}</span><div><button type="button" class="btn btn-ghost" data-act="showBriefingImportModal" ${ui.briefing.syncing || ui.briefing.importing ? 'disabled' : ''}>${ui.briefing.importing ? '⏳ Importing…' : '+ Import article'}</button><button type="button" class="btn btn-ghost" data-act="syncBriefing" ${ui.briefing.syncing || ui.briefing.importing ? 'disabled' : ''}>${ui.briefing.syncing ? '⏳ Syncing…' : '↻ Sync Wizards'}</button></div></div>
     </header>
-    <div class="briefing-filters">${filterButtons}</div>
+    <div class="briefing-filters"><div class="briefing-filter-buttons">${filterButtons}</div><div class="briefing-search"><span aria-hidden="true">⌕</span><input id="briefingSearch" type="search" placeholder="Search ${allRows.length} articles…" value="${esc(search)}" data-act="ui-set" data-path="briefing.search" data-also="briefing.articleUrl=;briefing.view=overview;briefing.feedScroll=0" data-refocus="briefingSearch" aria-label="Search Briefing articles">${search ? '<button type="button" data-act="ui-set" data-path="briefing.search" data-val="" data-also="briefing.articleUrl=;briefing.view=overview;briefing.feedScroll=0" aria-label="Clear article search">×</button>' : ''}</div></div>
     ${allRows.length ? `<div class="briefing-workspace">
       <aside class="briefing-feed" aria-label="Wizards article feed">${rows.length ? renderFeed(rows, selected) : '<div class="briefing-empty">No articles match this filter.</div>'}</aside>
       ${selected ? renderArticle(selected) : '<div class="briefing-empty">Select an article.</div>'}
