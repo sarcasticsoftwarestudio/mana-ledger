@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-08-14 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-08-15 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 104 superdrops/standalones · 364 drops · 2601 printings (1940 drop-mapped, 106 foil-backfilled)
+// 104 superdrops/standalones · 364 drops · 2608 printings (1940 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -2709,6 +2709,7 @@ const SL_SCRYFALL_TO_NAME = {
   "1535dc66-763b-4b14-bd2e-684a2fc7cdfb": "Arcane Denial",
   "1546013b-89d7-46b8-bfcb-9d150a50499f": "Witch's Oven",
   "154c2d54-6dc2-4350-8cc1-f099c7d13ccc": "Kokusho, the Evening Star",
+  "1558852b-c4e7-454b-8d9f-7b64aac38f40": "Curiosity",
   "159882aa-b596-4195-9b2e-983eee28d1bc": "Silence",
   "15b3fde6-7f7f-4bc4-9d74-92c869e916b4": "Sticker sheet",
   "15d49ad9-3600-4f64-b284-4f096ed90b4d": "Fleshbag Marauder",
@@ -3300,6 +3301,7 @@ const SL_SCRYFALL_TO_NAME = {
   "4f252720-11b7-43a6-83bc-0d670a54ae31": "Cathartic Reunion",
   "4f3acd04-a59c-4975-92ba-5314dd845fd9": "Command Tower",
   "4f43c378-9e6a-4ece-9c24-5dc08c977746": "Lightning Bolt",
+  "4f514443-0f72-48de-bfa3-682befdbbcb9": "Contentious Plan",
   "4f55fdb1-4c4e-4bc7-aa22-d00b43d5cfa5": "Mogg Assassin",
   "4f5b136d-34ad-4bf4-bb1b-1523df01f441": "Inspiring Overseer",
   "4f694292-3a9d-4d65-8917-d70a9efd3a88": "Chaos Warp",
@@ -3386,6 +3388,7 @@ const SL_SCRYFALL_TO_NAME = {
   "58cbcf51-3824-4ab3-89e3-cdcc1a0c7267": "Necrotic Ooze",
   "58e4a55f-b35a-411a-9a05-0cbb0d767920": "Morophon, the Boundless",
   "5932f2dc-3bb6-4f5e-8e8d-c62e7413ac0a": "Counterspell",
+  "59367636-bbc2-44d7-bedf-fe52d2f0720e": "Sylvan Caryatid",
   "593cbbd0-6ec3-4506-be0c-a229f070ce6d": "Planar Bridge",
   "5981ff16-9d0f-4b4f-ae90-6b54db1f60f9": "Resculpt",
   "59c4f0f7-b952-49cc-85cc-152d12597995": "Lethal Scheme",
@@ -3888,6 +3891,7 @@ const SL_SCRYFALL_TO_NAME = {
   "8993e4d0-d306-4993-b5a7-dbba754d479e": "Mountain",
   "899ed197-e434-4f01-a71f-053ae3820d6c": "Life from the Loam",
   "89b84af6-8fa6-4224-9f51-0edf48358dcd": "Swamp",
+  "89c162b4-2284-4eb6-a8a3-ebc345d176dd": "Solve the Equation",
   "89c327b8-0b21-425b-87d8-3d04397becfe": "Patron Wizard",
   "89dda260-836d-44e7-9540-13c352a1526c": "Bloodletter of Aclazotz",
   "89e2d714-2070-434a-9a81-276e72594e06": "Giada, Font of Hope",
@@ -4303,6 +4307,7 @@ const SL_SCRYFALL_TO_NAME = {
   "b2f5de3e-f3ca-439f-8b7c-f0b1807f34b4": "Artifact Mutation",
   "b33b5e4e-e68f-4b7d-a9c3-af01aa92c4e8": "Stuffy Doll",
   "b34a753d-f066-41be-b26b-98cafdbf0c99": "Mask of Memory",
+  "b369b535-718b-4fa0-b35c-b4ac3e20ce99": "Windfall",
   "b37309cf-8b80-402b-9d29-fe5de56ced38": "Command Tower",
   "b373adfa-ebc2-4060-8ff3-d1f0eca03c02": "Mountain",
   "b38315a5-820e-4f31-b359-5c367bdf2cfc": "Baral, Chief of Compliance",
@@ -4797,6 +4802,7 @@ const SL_SCRYFALL_TO_NAME = {
   "e6748788-496c-42b4-9f68-e0bd5692b511": "Serra the Benevolent",
   "e697d90f-3553-4f2e-9b30-b04e6dcd6de4": "Stony Silence",
   "e69db7d6-80fd-4832-b9f4-47eb4aab54e6": "Mother of Runes",
+  "e6a16012-702d-4cf3-81cc-5390f45807c1": "Arcane Heist",
   "e6a1b96a-ff75-4b4c-aea7-b41d9f9ac710": "Crystalline Sliver",
   "e6a2e7e0-9948-4c08-ad74-9a0c5cf054f3": "Silence",
   "e6ec1f39-08e0-45ce-b4ec-c25d64bd3461": "Plains",
@@ -4960,6 +4966,7 @@ const SL_SCRYFALL_TO_NAME = {
   "f5b3ed42-ef06-4e44-8a76-fc367bcb5ee5": "Pride of the Perfect",
   "f5bccd95-0703-4755-8f31-bd8ab615bd04": "Plains",
   "f5d054f9-ef77-4552-aa49-e9dfd840d8f6": "Merciless Executioner",
+  "f5db8199-22d8-4721-b62b-245ec5e2907a": "Big Score",
   "f5f4fbb8-c91a-4193-b6ef-0a3d4436caad": "Swamp",
   "f5f502f4-0295-40de-8ffe-48f23d72006c": "Sorin Markov",
   "f608fcd6-b59d-457e-879e-bcc53e15bc15": "Go for the Throat",
@@ -5313,6 +5320,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "1535dc66-763b-4b14-bd2e-684a2fc7cdfb": "1545",
   "1546013b-89d7-46b8-bfcb-9d150a50499f": "1762",
   "154c2d54-6dc2-4350-8cc1-f099c7d13ccc": "1528",
+  "1558852b-c4e7-454b-8d9f-7b64aac38f40": "2569",
   "159882aa-b596-4195-9b2e-983eee28d1bc": "7003",
   "15b3fde6-7f7f-4bc4-9d74-92c869e916b4": "335",
   "15d49ad9-3600-4f64-b284-4f096ed90b4d": "1175",
@@ -5904,6 +5912,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "4f252720-11b7-43a6-83bc-0d670a54ae31": "1465★",
   "4f3acd04-a59c-4975-92ba-5314dd845fd9": "7029",
   "4f43c378-9e6a-4ece-9c24-5dc08c977746": "1638",
+  "4f514443-0f72-48de-bfa3-682befdbbcb9": "2568",
   "4f55fdb1-4c4e-4bc7-aa22-d00b43d5cfa5": "2517",
   "4f5b136d-34ad-4bf4-bb1b-1523df01f441": "1523",
   "4f694292-3a9d-4d65-8917-d70a9efd3a88": "2692",
@@ -5990,6 +5999,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "58cbcf51-3824-4ab3-89e3-cdcc1a0c7267": "133",
   "58e4a55f-b35a-411a-9a05-0cbb0d767920": "1896",
   "5932f2dc-3bb6-4f5e-8e8d-c62e7413ac0a": "175",
+  "59367636-bbc2-44d7-bedf-fe52d2f0720e": "7189",
   "593cbbd0-6ec3-4506-be0c-a229f070ce6d": "447",
   "5981ff16-9d0f-4b4f-ae90-6b54db1f60f9": "2029",
   "59c4f0f7-b952-49cc-85cc-152d12597995": "2187",
@@ -6492,6 +6502,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "8993e4d0-d306-4993-b5a7-dbba754d479e": "674",
   "899ed197-e434-4f01-a71f-053ae3820d6c": "8",
   "89b84af6-8fa6-4224-9f51-0edf48358dcd": "2511",
+  "89c162b4-2284-4eb6-a8a3-ebc345d176dd": "2570",
   "89c327b8-0b21-425b-87d8-3d04397becfe": "1002",
   "89dda260-836d-44e7-9540-13c352a1526c": "2502",
   "89e2d714-2070-434a-9a81-276e72594e06": "1586",
@@ -6907,6 +6918,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "b2f5de3e-f3ca-439f-8b7c-f0b1807f34b4": "269",
   "b33b5e4e-e68f-4b7d-a9c3-af01aa92c4e8": "880",
   "b34a753d-f066-41be-b26b-98cafdbf0c99": "2309",
+  "b369b535-718b-4fa0-b35c-b4ac3e20ce99": "2571",
   "b37309cf-8b80-402b-9d29-fe5de56ced38": "1697",
   "b373adfa-ebc2-4060-8ff3-d1f0eca03c02": "1358",
   "b38315a5-820e-4f31-b359-5c367bdf2cfc": "1164",
@@ -7401,6 +7413,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "e6748788-496c-42b4-9f68-e0bd5692b511": "1252",
   "e697d90f-3553-4f2e-9b30-b04e6dcd6de4": "2554",
   "e69db7d6-80fd-4832-b9f4-47eb4aab54e6": "299",
+  "e6a16012-702d-4cf3-81cc-5390f45807c1": "2567",
   "e6a1b96a-ff75-4b4c-aea7-b41d9f9ac710": "661",
   "e6a2e7e0-9948-4c08-ad74-9a0c5cf054f3": "1816",
   "e6ec1f39-08e0-45ce-b4ec-c25d64bd3461": "547",
@@ -7564,6 +7577,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "f5b3ed42-ef06-4e44-8a76-fc367bcb5ee5": "7098",
   "f5bccd95-0703-4755-8f31-bd8ab615bd04": "1647",
   "f5d054f9-ef77-4552-aa49-e9dfd840d8f6": "1025",
+  "f5db8199-22d8-4721-b62b-245ec5e2907a": "7190",
   "f5f4fbb8-c91a-4193-b6ef-0a3d4436caad": "105",
   "f5f502f4-0295-40de-8ffe-48f23d72006c": "1698",
   "f608fcd6-b59d-457e-879e-bcc53e15bc15": "1986",
