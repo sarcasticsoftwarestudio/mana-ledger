@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-08-15 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-08-16 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 104 superdrops/standalones · 364 drops · 2608 printings (1940 drop-mapped, 106 foil-backfilled)
+// 104 superdrops/standalones · 364 drops · 2610 printings (1940 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -4709,6 +4709,7 @@ const SL_SCRYFALL_TO_NAME = {
   "dccfc3b7-235c-4680-aabf-4cb2e8d9a2fe": "Wayward Swordtooth",
   "dd0b3ace-91aa-46b7-8265-b8bc22dff5f7": "Ellie, Vengeful Hunter",
   "dd0ee2f1-d5be-4f60-a128-7011eef71f11": "Voldaren Estate",
+  "dd1d87e4-f51a-448f-824f-99dffd73403c": "Arcane Signet",
   "dd2c39c5-e3d1-421b-b14e-a28e6810a1d1": "Anger",
   "dd57c7f3-4ca5-45e7-9be2-c5c1c3d6ad31": "Goblin Lackey",
   "dd58870d-8625-4d35-a51b-e191970cadf3": "Voracious Hydra",
@@ -4903,6 +4904,7 @@ const SL_SCRYFALL_TO_NAME = {
   "ef37dd1c-27f6-409d-932e-56520a65791a": "Plains",
   "ef7f3579-452d-4531-a00a-ee74c67a79e3": "Fracturing Gust",
   "ef8073af-bd3d-48f1-99d4-d216e3f1ff60": "Frost Titan",
+  "ef9da696-dd92-4fe8-937b-a660f0d91839": "Tigereye Cameo",
   "efc01aa1-55f3-4557-a5b0-734f3b9ed050": "Wurmcoil Engine",
   "efe28fc7-c3ad-4f8a-80d0-cca333ffc3ff": "Liliana's Standard Bearer",
   "eff6a02b-04ff-48da-b940-d3344134b45d": "Jetmir, Nexus of Revels // Jetmir, Nexus of Revels",
@@ -7320,6 +7322,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "dccfc3b7-235c-4680-aabf-4cb2e8d9a2fe": "1392",
   "dd0b3ace-91aa-46b7-8265-b8bc22dff5f7": "2203",
   "dd0ee2f1-d5be-4f60-a128-7011eef71f11": "2504",
+  "dd1d87e4-f51a-448f-824f-99dffd73403c": "916",
   "dd2c39c5-e3d1-421b-b14e-a28e6810a1d1": "2375",
   "dd57c7f3-4ca5-45e7-9be2-c5c1c3d6ad31": "20",
   "dd58870d-8625-4d35-a51b-e191970cadf3": "1491",
@@ -7514,6 +7517,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "ef37dd1c-27f6-409d-932e-56520a65791a": "484",
   "ef7f3579-452d-4531-a00a-ee74c67a79e3": "273",
   "ef8073af-bd3d-48f1-99d4-d216e3f1ff60": "220",
+  "ef9da696-dd92-4fe8-937b-a660f0d91839": "7093",
   "efc01aa1-55f3-4557-a5b0-734f3b9ed050": "1661",
   "efe28fc7-c3ad-4f8a-80d0-cca333ffc3ff": "845",
   "eff6a02b-04ff-48da-b940-d3344134b45d": "1555",
