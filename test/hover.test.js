@@ -35,13 +35,17 @@ describe('upcoming official-art hover', () => {
       scryfallId: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
     }, {
       name: 'Cloudshift', type_line: 'Instant', oracle_text: 'Exile target creature, then return it.',
-      rarity: 'common', cmc: 1, artist: 'Reference Artist', prices: { usd: '0.25' },
+      rarity: 'common', cmc: 1, artist: 'Reference Artist', prices: { usd: '99.00' },
+    }, {
+      price: 0.25, set_name: 'Avacyn Restored', finish: 'usd_foil',
     });
 
     expect(html).toContain('https://media.wizards.com/2099/cloudshift.webp');
     expect(html).toContain('Matched to Cloudshift');
     expect(html).toContain('Exile target creature');
     expect(html).toContain('$0.25');
+    expect(html).toContain('Cheapest available printing · Avacyn Restored · Foil');
+    expect(html).not.toContain('$99.00');
     expect(html).not.toContain('cards.scryfall.io');
   });
 

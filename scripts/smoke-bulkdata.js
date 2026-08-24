@@ -62,7 +62,8 @@ const check = (label, cond, detail) => {
   const cheap = bulk.cheapestByNames(['Squirrel Girl', 'No Price Anywhere', 'Unknown Card']);
   check('cheapest = lowest across prints & finishes (1.90 @ Marvel Super Heroes)',
     cheap.found['Squirrel Girl'] && Math.abs(cheap.found['Squirrel Girl'].price - 1.90) < 1e-9
-      && cheap.found['Squirrel Girl'].set_name === 'Marvel Super Heroes',
+      && cheap.found['Squirrel Girl'].set_name === 'Marvel Super Heroes'
+      && cheap.found['Squirrel Girl'].finish === 'usd',
     cheap.found['Squirrel Girl']);
   check('unpriced + unknown names reported missing',
     cheap.missing.length === 2 && cheap.missing.includes('No Price Anywhere') && cheap.missing.includes('Unknown Card'),

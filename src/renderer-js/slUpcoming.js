@@ -325,6 +325,7 @@ export function sumUpcomingCheapest(expectedCards, cheapestByName = {}) {
       quantity,
       unitPrice: Number.isFinite(unitPrice) ? unitPrice : null,
       setName: clean(hit?.set_name || hit?.setName, 180),
+      finish: clean(hit?.finish, 20),
     };
   }).filter(row => row.name);
   return {

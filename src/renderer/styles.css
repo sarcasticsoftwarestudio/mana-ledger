@@ -3492,6 +3492,11 @@ tr.want-hit td { border-bottom-color: rgba(123, 216, 159, 0.18); }
   color: var(--accent);
   margin-bottom: 8px;
 }
+.chp-price-note {
+  color: var(--text-muted);
+  font-size: 10px;
+  margin: -5px 0 8px;
+}
 
 /* ── KPI numerics (Svelte dashboard) ───── */
 .kpi-value { font-family: var(--font-sans); font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums lining-nums; }

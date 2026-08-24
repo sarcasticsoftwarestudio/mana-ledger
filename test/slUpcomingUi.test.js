@@ -23,6 +23,9 @@ describe('upcoming Secret Lair pricing UI', () => {
     const matched = upcomingOfficialPreviewTile({
       displayName: 'Cloudshift as "Known Hero"', imageUrl: 'https://media.wizards.com/2099/cloudshift.webp',
       scryfallId: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', matchType: 'reference',
+      matchedName: 'Cloudshift',
+    }, {
+      unitPrice: 0.25, setName: 'Avacyn Restored', finish: 'usd_foil',
     });
     const unique = upcomingOfficialPreviewTile({
       displayName: 'Brand New Hero', imageUrl: 'https://media.wizards.com/2099/new-hero.webp', matchType: 'source',
@@ -30,6 +33,9 @@ describe('upcoming Secret Lair pricing UI', () => {
 
     expect(matched).toContain('src="https://media.wizards.com/2099/cloudshift.webp"');
     expect(matched).toContain('data-upcoming-scryfall-id="eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"');
+    expect(matched).toContain('data-upcoming-cheapest-price="0.25"');
+    expect(matched).toContain('data-upcoming-cheapest-set="Avacyn Restored"');
+    expect(matched).toContain('data-upcoming-cheapest-finish="usd_foil"');
     expect(matched).toContain('Name match');
     expect(unique).toContain('src="https://media.wizards.com/2099/new-hero.webp"');
     expect(unique).toContain('New / unmatched');
@@ -42,13 +48,14 @@ describe('upcoming Secret Lair pricing UI', () => {
       { name: 'Food', displayName: 'Food Tokens', quantity: 7 },
       { name: 'Unpriced Preview', quantity: 1 },
     ], {
-      'Wedding Ring': { price: 4.5, set_name: 'Crimson Vow Commander' },
+      'Wedding Ring': { price: 4.5, set_name: 'Crimson Vow Commander', finish: 'usd' },
       Food: { price: 0.25, set_name: 'Tokens' },
     });
     const html = renderUpcomingPriceBreakdown(estimate);
 
     expect(html).toContain('Wedding Ring as &quot;Mermaid\'s Pendant&quot;');
     expect(html).toContain('Crimson Vow Commander');
+    expect(html).toContain('Nonfoil');
     expect(html).toContain('$4.50');
     expect(html).toContain('7 × $0.25');
     expect(html).toContain('$1.75 subtotal');

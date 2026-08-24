@@ -818,6 +818,10 @@ const slDropPricing = new Set();        // drops with a fetch in flight
 const slUpcomingSinglesCache = new Map(); // announced drop -> cheapest-print estimate
 const slUpcomingPricing = new Set();      // announced drops with a lookup in flight
 
+export function cheapestFinishLabel(value) {
+  return ({ usd: 'Nonfoil', usd_foil: 'Foil', usd_etched: 'Etched foil' })[String(value || '')] || '';
+}
+
 export function renderUpcomingPriceBreakdown(estimate) {
   const rows = Array.isArray(estimate?.rows) ? estimate.rows : [];
   if (!rows.length) return '';
@@ -827,8 +831,9 @@ export function renderUpcomingPriceBreakdown(estimate) {
       const unitPrice = row?.unitPrice == null ? null : Number(row.unitPrice);
       const priced = Number.isFinite(unitPrice);
       const displayName = row?.displayName || row?.name || 'Unknown card';
+      const finish = cheapestFinishLabel(row?.finish);
       const source = priced
-        ? `Cheapest available printing${row?.setName ? ` · ${row.setName}` : ''}`
+        ? `Cheapest available printing${row?.setName ? ` · ${row.setName}` : ''}${finish ? ` · ${finish}` : ''}`
         : 'No priced printing found';
       const amount = !priced
         ? '<strong class="sl-upcoming-price-unavailable">Unavailable</strong>'
@@ -850,11 +855,12 @@ export function upcomingSaleDateLabel(raw) {
     .format(new Date(Date.UTC(+parts[1], +parts[2] - 1, +parts[3])));
 }
 
-export function upcomingOfficialPreviewTile(preview = {}) {
+export function upcomingOfficialPreviewTile(preview = {}, cheapest = null) {
   const imageUrl = String(preview.imageUrl || '');
   if (!imageUrl) return '';
   const id = String(preview.scryfallId || '').toLowerCase();
   const label = preview.displayName || preview.matchedName || preview.name || 'Official card preview';
+  const cheapestPrice = cheapest?.unitPrice == null ? NaN : Number(cheapest.unitPrice);
   const matchLabel = preview.matchType === 'exact' ? 'Exact ID'
     : (preview.matchType === 'reference' ? 'Name match' : 'New / unmatched');
   const action = id
@@ -864,7 +870,10 @@ export function upcomingOfficialPreviewTile(preview = {}) {
     <div class="gallery-card sl-card-preview sl-official-preview" data-upcoming-preview="true" tabindex="0"
       data-upcoming-scryfall-id="${esc(id)}" data-source-image="${esc(imageUrl)}"
       data-source-label="${esc(label)}" data-source-section="${esc(preview.section || '')}"
-      data-upcoming-matched-name="${esc(preview.matchedName || '')}" ${action}>
+      data-upcoming-matched-name="${esc(preview.matchedName || '')}"
+      data-upcoming-cheapest-price="${Number.isFinite(cheapestPrice) ? cheapestPrice : ''}"
+      data-upcoming-cheapest-set="${esc(cheapest?.setName || '')}"
+      data-upcoming-cheapest-finish="${esc(cheapest?.finish || '')}" ${action}>
       <img src="${esc(imageUrl)}" alt="${esc(label)}" loading="lazy" data-imgerr="hide-card">
       <span class="sl-preview-badge">Official preview</span>
       <span class="sl-official-match ${id ? 'matched' : 'source'}">${esc(matchLabel)}</span>
@@ -1358,7 +1367,13 @@ export function renderSlViewer() {
       const waitDays = daysUntil(selected.releaseDate);
       const totalExpected = selected.expectedCount ?? selected.expectedCards.reduce((sum, card) => sum + (card.quantity || 1), 0);
       const officialPreviews = selected.officialPreviews || [];
-      const officialTiles = officialPreviews.map(upcomingOfficialPreviewTile).join('');
+      const singlesEstimate = slUpcomingSinglesCache.get(selected.drop);
+      const priceKey = value => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+      const cheapestByName = new Map((singlesEstimate?.rows || []).map(row => [priceKey(row.name), row]));
+      const officialTiles = officialPreviews.map(preview => upcomingOfficialPreviewTile(
+        preview,
+        cheapestByName.get(priceKey(preview.matchedName || preview.name)) || null,
+      )).join('');
       const officialIds = new Set(officialPreviews.map(card => card.scryfallId).filter(Boolean));
       const previewTiles = selected.cards.filter(card => !officialIds.has(card.id))
         .map(card => slCardTile(card.id, card.collectorNumber, undefined, { preview: true })).join('');
@@ -1387,7 +1402,6 @@ export function renderSlViewer() {
           <strong>Contents not revealed yet</strong>
           <span>This drop is official. Card names and artwork will appear here as sources publish them.</span>
         </div>` : '';
-      const singlesEstimate = slUpcomingSinglesCache.get(selected.drop);
       const singlesPricing = slUpcomingPricing.has(selected.drop);
       const singlesPrice = singlesPricing
         ? '<div class="sl-upcoming-price-head"><span class="sl-upcoming-price-working">⏳ Finding cheapest printings…</span></div>'
@@ -1417,7 +1431,7 @@ export function renderSlViewer() {
           <div class="sl-upcoming-coverage">
             <strong>${officialPreviews.length || (selected.matchedCount ?? selected.cards.length)}${totalExpected ? ` of ${totalExpected}` : ''}</strong>
             <span>${officialPreviews.length ? `${officialPreviews.length} official preview artwork${officialPreviews.length === 1 ? '' : 's'} · ` : ''}${totalExpected ? `${selected.cards.length} exact Secret Lair ID${selected.cards.length === 1 ? '' : 's'} · ${selected.referenceCount ?? selected.referenceCards.length} name match${(selected.referenceCount ?? selected.referenceCards.length) === 1 ? '' : 'es'}` : 'card printing IDs available so far'}</span>
-            <small>Official Wizards artwork is shown immediately. Scryfall name matches supply hover details and pricing; mechanically unique or unmatched previews remain visible without a guessed identity.</small>
+            <small>Official Wizards artwork is shown immediately. Scryfall name matches supply rules details; both the hover and singles estimate use the cheapest available printing. Mechanically unique or unmatched previews remain visible without a guessed identity.</small>
           </div>
           <div class="gallery-grid sl-upcoming-card-grid">${officialTiles}${previewTiles}${referenceTiles}${placeholderTiles}${unrevealedTile}</div>
         </section>`;

@@ -7,6 +7,7 @@ import { showGalleryModal } from './gallery.js';
 import { showImportHub } from './importWizard.js';
 import { promptText, showOpenSecretLairModal, showSellSealedModal, undoSealedSale, undoSecretLairOpen } from './modals.js';
 import { openAddProductFlow } from './productPicker.js';
+import { fetchCheapestPrints } from './prices.js';
 import { render } from './render.js';
 import { showAddSealedModal, showUpdatePriceModal } from './sealedModals.js';
 import { refreshTcgcsvCache } from './sealedPricing.js';
@@ -72,7 +73,21 @@ export function buildSourceImageHoverHtml(source = {}) {
   `;
 }
 
-export function buildUpcomingPreviewHoverHtml(source = {}, data = null) {
+function upcomingCheapestFromSource(source = {}) {
+  const raw = source.cheapestPrice ?? source.price;
+  const price = raw == null || raw === '' ? NaN : Number(raw);
+  return Number.isFinite(price) ? {
+    price,
+    set_name: String(source.cheapestSetName || source.set_name || ''),
+    finish: String(source.cheapestFinish || source.finish || ''),
+  } : null;
+}
+
+function cheapestFinishLabel(value) {
+  return ({ usd: 'Nonfoil', usd_foil: 'Foil', usd_etched: 'Etched foil' })[String(value || '')] || '';
+}
+
+export function buildUpcomingPreviewHoverHtml(source = {}, data = null, cheapest = null) {
   const imageUrl = String(source.imageUrl || '').trim();
   if (!imageUrl) return '';
   const id = String(source.scryfallId || '').toLowerCase();
@@ -85,7 +100,11 @@ export function buildUpcomingPreviewHoverHtml(source = {}, data = null) {
   const artist = data ? (data.artist || data.card_faces?.[0]?.artist || '') : '';
   const rarity = data?.rarity || '';
   const cmc = data && data.cmc != null ? data.cmc : null;
-  const priceNum = data ? parseFloat(data.prices?.usd ?? data.prices?.usd_foil ?? data.prices?.usd_etched) : NaN;
+  const cheapestPrinting = upcomingCheapestFromSource(cheapest || source);
+  const priceNum = cheapestPrinting?.price ?? NaN;
+  const priceSet = cheapestPrinting?.set_name || cheapestPrinting?.setName || '';
+  const priceFinish = cheapestFinishLabel(cheapestPrinting?.finish);
+  const priceSource = `Cheapest available printing${priceSet ? ` · ${priceSet}` : ''}${priceFinish ? ` · ${priceFinish}` : ''}`;
   const ownedQty = id ? collection.cards.filter(card => card.scryfallId === id)
     .reduce((sum, card) => sum + (card.quantity || 1), 0) : 0;
   const rows = [];
@@ -102,6 +121,7 @@ export function buildUpcomingPreviewHoverHtml(source = {}, data = null) {
     <div class="chp-name">${esc(label)}</div>
     <div class="chp-sub">${identity}</div>
     ${Number.isFinite(priceNum) ? `<div class="chp-price">${fmt(priceNum)}</div>` : ''}
+    ${Number.isFinite(priceNum) ? `<div class="chp-price-note">${esc(priceSource)}</div>` : ''}
     ${rows.length ? `<div class="chp-grid">${rows.join('')}</div>` : ''}
     ${oracle ? `<div class="chp-oracle">${esc(oracle)}</div>` : ''}
   `;
@@ -144,19 +164,34 @@ export function showUpcomingPreviewHoverPreview(el, source) {
   clearTimeout(_hoverShowTimer);
   _hoverShowTimer = setTimeout(() => {
     const myToken = ++_hoverToken;
-    const cached = id ? (_slHoverData.get(id) || null) : null;
+    const matchedName = String(source.matchedName || '').trim();
+    const priceKey = matchedName.toLowerCase();
+    let cardData = id ? (_slHoverData.get(id) || null) : null;
+    let cheapest = upcomingCheapestFromSource(source) || (priceKey ? (_upcomingCheapestData.get(priceKey) || null) : null);
+    const repaint = () => {
+      if (_hoverToken !== myToken) return;
+      const active = document.getElementById('card-hover-preview');
+      if (!active || !active.classList.contains('visible')) return;
+      active.innerHTML = buildUpcomingPreviewHoverHtml(source, cardData, cheapest);
+      requestAnimationFrame(() => positionHoverPreview(el));
+    };
     preview.classList.add('source-image-preview');
-    preview.innerHTML = buildUpcomingPreviewHoverHtml(source, cached);
+    preview.innerHTML = buildUpcomingPreviewHoverHtml(source, cardData, cheapest);
     preview.classList.add('visible');
     requestAnimationFrame(() => positionHoverPreview(el));
 
-    if (id && !cached) {
+    if (id && !cardData) {
       fetchSlCardData(id).then(data => {
-        if (!data || _hoverToken !== myToken) return;
-        const active = document.getElementById('card-hover-preview');
-        if (!active || !active.classList.contains('visible')) return;
-        active.innerHTML = buildUpcomingPreviewHoverHtml(source, data);
-        requestAnimationFrame(() => positionHoverPreview(el));
+        if (!data) return;
+        cardData = data;
+        repaint();
+      });
+    }
+    if (matchedName && !cheapest) {
+      fetchUpcomingCheapest(matchedName).then(result => {
+        if (!result) return;
+        cheapest = result;
+        repaint();
       });
     }
   }, 200);
@@ -208,6 +243,22 @@ export function hideCardHoverPreview() {
 // hovers of the same id share one in-flight request. Failures aren't cached.
 const _slHoverData = new Map();      // scryfallId → Scryfall card object
 const _slHoverInflight = new Map();  // scryfallId → Promise<card|null>
+const _upcomingCheapestData = new Map();     // normalized card name → cheapest printing
+const _upcomingCheapestInflight = new Map(); // normalized card name → Promise<printing|null>
+
+function fetchUpcomingCheapest(name) {
+  const key = String(name || '').trim().toLowerCase();
+  if (!key) return Promise.resolve(null);
+  if (_upcomingCheapestData.has(key)) return Promise.resolve(_upcomingCheapestData.get(key));
+  if (_upcomingCheapestInflight.has(key)) return _upcomingCheapestInflight.get(key);
+  const promise = fetchCheapestPrints([name]).then(result => {
+    const hit = result?.[name] || Object.entries(result || {}).find(([candidate]) => candidate.toLowerCase() === key)?.[1] || null;
+    if (hit) _upcomingCheapestData.set(key, hit);
+    return hit;
+  }).catch(() => null).finally(() => _upcomingCheapestInflight.delete(key));
+  _upcomingCheapestInflight.set(key, promise);
+  return promise;
+}
 
 function fetchSlCardData(scryfallId) {
   if (_slHoverData.has(scryfallId)) return Promise.resolve(_slHoverData.get(scryfallId));
@@ -349,6 +400,9 @@ export function attachContentListeners() {
         section: el.dataset.sourceSection,
         scryfallId: el.dataset.upcomingScryfallId,
         matchedName: el.dataset.upcomingMatchedName,
+        cheapestPrice: el.dataset.upcomingCheapestPrice,
+        cheapestSetName: el.dataset.upcomingCheapestSet,
+        cheapestFinish: el.dataset.upcomingCheapestFinish,
       };
       el.addEventListener('mouseenter', () => showUpcomingPreviewHoverPreview(el, source));
       el.addEventListener('mouseleave', hideCardHoverPreview);

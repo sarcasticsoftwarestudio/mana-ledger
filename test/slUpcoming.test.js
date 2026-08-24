@@ -162,11 +162,12 @@ describe('upcoming Secret Lair source join', () => {
       { name: 'Food', quantity: 7 },
       { name: 'Unpriced Preview', quantity: 1 },
     ], {
-      'Wedding Ring': { price: 4.5, set_name: 'Crimson Vow Commander' },
+      'Wedding Ring': { price: 4.5, set_name: 'Crimson Vow Commander', finish: 'usd' },
       Food: { price: 0.25, set_name: 'Tokens' },
     });
     expect(estimate.value).toBe(6.25);
     expect(estimate).toMatchObject({ totalCopies: 9, pricedCopies: 8, missingNames: ['Unpriced Preview'] });
+    expect(estimate.rows[0]).toMatchObject({ setName: 'Crimson Vow Commander', finish: 'usd' });
   });
 
   it('preserves announced wiki drops even before any card IDs are public', () => {
