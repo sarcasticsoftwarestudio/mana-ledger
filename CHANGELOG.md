@@ -12,6 +12,8 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+## [1.7.7] - 2026-08-24
+
 ### Fixed
 - **Upcoming Secret Lairs now use the newly revealed official artwork.** Existing card-name matches retain Scryfall rules, pricing, ownership, and hover details without replacing the preview art; mechanically unique or otherwise unmatched cards still render and receive an official-source hover preview.
 
