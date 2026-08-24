@@ -99,6 +99,39 @@ describe('upcoming Secret Lair source join', () => {
     expect(groups[0].status).toBe('partial');
   });
 
+  it('uses official artwork for matched and mechanically unique upcoming cards', () => {
+    const groups = buildUpcomingLairs([], [{
+      title: 'Secret Lair: Future Superdrop',
+      saleDate: '2099-09-14',
+      revealedDrops: [{
+        name: 'Secret Lair x Future: New Mechanics',
+        cards: [
+          { name: 'Cloudshift', displayName: 'Cloudshift as "Known Hero"', quantity: 1 },
+          { name: 'Brand New Hero', displayName: 'Brand New Hero', quantity: 1 },
+        ],
+      }],
+      officialPreviews: [
+        { name: 'Cloudshift', displayName: 'Cloudshift as "Known Hero"', section: 'Secret Lair x Future: New Mechanics', imageUrl: 'https://media.wizards.com/2099/cloudshift.webp', sourceKind: 'magic-card' },
+        { name: 'Brand New Hero', displayName: 'Brand New Hero', section: 'Secret Lair x Future: New Mechanics', imageUrl: 'https://media.wizards.com/2099/new-hero.webp', sourceKind: 'magic-card' },
+      ],
+    }], [], '2099-09-01', [{
+      id: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', name: 'Cloudshift', released_at: '2012-05-04',
+      set: 'avr', collector_number: '12', image_uris: { normal: 'https://cards.scryfall.io/normal/front/e/e/example.jpg' },
+    }]);
+
+    expect(groups[0].officialPreviews).toEqual([
+      expect.objectContaining({
+        name: 'Cloudshift', imageUrl: 'https://media.wizards.com/2099/cloudshift.webp',
+        scryfallId: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', matchType: 'reference',
+      }),
+      expect.objectContaining({
+        name: 'Brand New Hero', imageUrl: 'https://media.wizards.com/2099/new-hero.webp',
+        scryfallId: '', matchType: 'source',
+      }),
+    ]);
+    expect(groups[0]).toMatchObject({ officialPreviewCount: 2, referenceCount: 1, pendingCount: 1 });
+  });
+
   it('expands a multi-token quantity into every distinct future Scryfall printing', () => {
     const tokenAnnouncement = [{
       title: 'Secret Lair: A Marvelous Mathoms Superdrop',

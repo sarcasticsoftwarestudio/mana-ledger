@@ -114,4 +114,31 @@ describe('Secret Lair supplemental source parsers', () => {
       ],
     }]);
   });
+
+  it('carries official Wizards card artwork into the announcement cache', () => {
+    const row = parseAnnouncementDetailHtml(`
+      <h1>Secret Lair: Future Superdrop</h1>
+      <p>The Superdrop releases on September 14, 2099.</p>
+      <h2>Secret Lair x Future: New Mechanics</h2>
+      <p>Contents:</p><ul>
+        <li>1x Cloudshift</li>
+        <li>1x Brand New Hero</li>
+      </ul>
+      <magic-card face="https://media.wizards.com/2099/cloudshift.webp" caption="Cloudshift as &quot;Known Hero&quot;"></magic-card>
+      <magic-card face="https://media.wizards.com/2099/new-hero.webp" caption="Brand New Hero"></magic-card>
+    `);
+
+    expect(row.detailVersion).toBe(3);
+    expect(row.officialPreviews).toEqual([
+      expect.objectContaining({
+        name: 'Cloudshift', displayName: 'Cloudshift as "Known Hero"',
+        section: 'Secret Lair x Future: New Mechanics',
+        imageUrl: 'https://media.wizards.com/2099/cloudshift.webp',
+      }),
+      expect.objectContaining({
+        name: 'Brand New Hero', section: 'Secret Lair x Future: New Mechanics',
+        imageUrl: 'https://media.wizards.com/2099/new-hero.webp',
+      }),
+    ]);
+  });
 });

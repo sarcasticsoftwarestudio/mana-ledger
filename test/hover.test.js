@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildSourceImageHoverHtml } from '../src/renderer-js/hover.js';
+import { buildSourceImageHoverHtml, buildUpcomingPreviewHoverHtml } from '../src/renderer-js/hover.js';
 
 describe('unmatched source-image hover', () => {
   it('builds an enlarged preview without claiming a card match', () => {
@@ -24,5 +24,34 @@ describe('unmatched source-image hover', () => {
 
     expect(html).not.toContain('<script>');
     expect(html).toContain('&lt;script&gt;');
+  });
+});
+
+describe('upcoming official-art hover', () => {
+  it('combines official art with matched Scryfall rules details', () => {
+    const html = buildUpcomingPreviewHoverHtml({
+      imageUrl: 'https://media.wizards.com/2099/cloudshift.webp',
+      label: 'Cloudshift as "Known Hero"',
+      scryfallId: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+    }, {
+      name: 'Cloudshift', type_line: 'Instant', oracle_text: 'Exile target creature, then return it.',
+      rarity: 'common', cmc: 1, artist: 'Reference Artist', prices: { usd: '0.25' },
+    });
+
+    expect(html).toContain('https://media.wizards.com/2099/cloudshift.webp');
+    expect(html).toContain('Matched to Cloudshift');
+    expect(html).toContain('Exile target creature');
+    expect(html).toContain('$0.25');
+    expect(html).not.toContain('cards.scryfall.io');
+  });
+
+  it('keeps unmatched official previews hoverable without guessing an identity', () => {
+    const html = buildUpcomingPreviewHoverHtml({
+      imageUrl: 'https://media.wizards.com/2099/new-hero.webp', label: 'Brand New Hero',
+    });
+
+    expect(html).toContain('Brand New Hero');
+    expect(html).toContain('No existing card match');
+    expect(html).toContain('chp-source-img');
   });
 });

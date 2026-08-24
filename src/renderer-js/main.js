@@ -241,9 +241,9 @@ async function init() {
     briefingNeedsRefresh: NS_wizardsArticles.wizardsArticlesNeedRefresh(),
   });
 
-  // Older announcement caches predate structured drop/card extraction. When
-  // the experimental Upcoming feature is enabled, upgrade those cached future
-  // articles in the background so article-level placeholders self-heal.
+  // Older announcement caches predate structured drop/card extraction and
+  // official preview artwork. When Upcoming is enabled, upgrade cached future
+  // articles in the background so placeholders self-heal after an app update.
   if (NS_features.upcomingSecretLairsEnabled() && NS_slAnnouncements.slAnnouncementsNeedDetailUpgrade()) {
     setTimeout(async () => {
       await NS_slUpcoming.refreshUpcomingSources({ silent: true });

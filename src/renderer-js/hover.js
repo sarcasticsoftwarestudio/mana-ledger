@@ -72,6 +72,41 @@ export function buildSourceImageHoverHtml(source = {}) {
   `;
 }
 
+export function buildUpcomingPreviewHoverHtml(source = {}, data = null) {
+  const imageUrl = String(source.imageUrl || '').trim();
+  if (!imageUrl) return '';
+  const id = String(source.scryfallId || '').toLowerCase();
+  const label = String(source.label || source.displayName || source.name || '').trim() || 'Official card preview';
+  const matchedName = data?.name || source.matchedName || '';
+  const typeLine = data ? (data.type_line || data.card_faces?.[0]?.type_line || '') : '';
+  const oracle = data
+    ? (data.oracle_text || (data.card_faces || []).map(face => face.oracle_text).filter(Boolean).join('\n\n//\n\n'))
+    : '';
+  const artist = data ? (data.artist || data.card_faces?.[0]?.artist || '') : '';
+  const rarity = data?.rarity || '';
+  const cmc = data && data.cmc != null ? data.cmc : null;
+  const priceNum = data ? parseFloat(data.prices?.usd ?? data.prices?.usd_foil ?? data.prices?.usd_etched) : NaN;
+  const ownedQty = id ? collection.cards.filter(card => card.scryfallId === id)
+    .reduce((sum, card) => sum + (card.quantity || 1), 0) : 0;
+  const rows = [];
+  if (typeLine) rows.push(`<span class="lbl">Type</span><span>${esc(typeLine)}</span>`);
+  if (rarity) rows.push(`<span class="lbl">Rarity</span><span style="text-transform:capitalize">${esc(rarity)}</span>`);
+  if (cmc != null) rows.push(`<span class="lbl">CMC</span><span>${cmc}</span>`);
+  if (artist) rows.push(`<span class="lbl">Reference artist</span><span>${esc(artist)}</span>`);
+  if (id) rows.push(`<span class="lbl">Owned</span><span>${ownedQty ? `Yes · ${ownedQty}` : 'No'}</span>`);
+  const identity = id
+    ? `Official Wizards preview · ${matchedName ? `Matched to ${esc(matchedName)}` : 'Loading matched card details…'}`
+    : 'Official Wizards preview · No existing card match';
+  return `
+    <img class="chp-img chp-source-img" src="${esc(imageUrl)}" alt="${esc(label)}" data-imgerr="hide">
+    <div class="chp-name">${esc(label)}</div>
+    <div class="chp-sub">${identity}</div>
+    ${Number.isFinite(priceNum) ? `<div class="chp-price">${fmt(priceNum)}</div>` : ''}
+    ${rows.length ? `<div class="chp-grid">${rows.join('')}</div>` : ''}
+    ${oracle ? `<div class="chp-oracle">${esc(oracle)}</div>` : ''}
+  `;
+}
+
 export function showCardHoverPreview(el, card) {
   const preview = document.getElementById('card-hover-preview');
   if (!preview) return;
@@ -99,6 +134,31 @@ export function showSourceImageHoverPreview(el, source) {
     preview.innerHTML = buildSourceImageHoverHtml(source);
     preview.classList.add('visible');
     requestAnimationFrame(() => positionHoverPreview(el));
+  }, 200);
+}
+
+export function showUpcomingPreviewHoverPreview(el, source) {
+  const preview = document.getElementById('card-hover-preview');
+  if (!preview || !source?.imageUrl) return;
+  const id = String(source.scryfallId || '').toLowerCase();
+  clearTimeout(_hoverShowTimer);
+  _hoverShowTimer = setTimeout(() => {
+    const myToken = ++_hoverToken;
+    const cached = id ? (_slHoverData.get(id) || null) : null;
+    preview.classList.add('source-image-preview');
+    preview.innerHTML = buildUpcomingPreviewHoverHtml(source, cached);
+    preview.classList.add('visible');
+    requestAnimationFrame(() => positionHoverPreview(el));
+
+    if (id && !cached) {
+      fetchSlCardData(id).then(data => {
+        if (!data || _hoverToken !== myToken) return;
+        const active = document.getElementById('card-hover-preview');
+        if (!active || !active.classList.contains('visible')) return;
+        active.innerHTML = buildUpcomingPreviewHoverHtml(source, data);
+        requestAnimationFrame(() => positionHoverPreview(el));
+      });
+    }
   }, 200);
 }
 
@@ -282,6 +342,19 @@ export function attachContentListeners() {
   // delegated data-slact="card-modal" (hardened path); wantlist's own tiles
   // still use the inline onclick — support both until they migrate.
   if (ui.activeTab === 'slviewer' || ui.activeTab === 'wantlist' || ui.activeTab === 'precons' || ui.activeTab === 'briefing') {
+    document.querySelectorAll('.gallery-card[data-upcoming-preview]').forEach(el => {
+      const source = {
+        imageUrl: el.dataset.sourceImage,
+        label: el.dataset.sourceLabel,
+        section: el.dataset.sourceSection,
+        scryfallId: el.dataset.upcomingScryfallId,
+        matchedName: el.dataset.upcomingMatchedName,
+      };
+      el.addEventListener('mouseenter', () => showUpcomingPreviewHoverPreview(el, source));
+      el.addEventListener('mouseleave', hideCardHoverPreview);
+      el.addEventListener('focus', () => showUpcomingPreviewHoverPreview(el, source));
+      el.addEventListener('blur', hideCardHoverPreview);
+    });
     document.querySelectorAll('.gallery-card[data-scryfall-id]').forEach(el => {
       const scryfallId = el.dataset.scryfallId;
       if (!scryfallId) return;
@@ -301,7 +374,7 @@ export function attachContentListeners() {
       el.addEventListener('focus', () => showSourceImageHoverPreview(el, source));
       el.addEventListener('blur', hideCardHoverPreview);
     });
-    document.querySelectorAll('.gallery-card[data-slact="card-modal"]:not([data-scryfall-id])').forEach(el => {
+    document.querySelectorAll('.gallery-card[data-slact="card-modal"]:not([data-scryfall-id]):not([data-upcoming-preview])').forEach(el => {
       const scryfallId = el.dataset.arg;
       if (!scryfallId) return;
       el.addEventListener('mouseenter', () => showSlTileHoverPreview(el, scryfallId));

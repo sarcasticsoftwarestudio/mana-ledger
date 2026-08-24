@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { renderUpcomingPriceBreakdown, slCardTile, upcomingSaleDateLabel } from '../src/renderer-js/slTab.js';
+import { renderUpcomingPriceBreakdown, slCardTile, upcomingOfficialPreviewTile, upcomingSaleDateLabel } from '../src/renderer-js/slTab.js';
 import { sumUpcomingCheapest } from '../src/renderer-js/slUpcoming.js';
 
 describe('upcoming Secret Lair pricing UI', () => {
@@ -17,6 +17,23 @@ describe('upcoming Secret Lair pricing UI', () => {
     expect(reference).toContain('Reference');
     expect(preview).not.toContain(' title=');
     expect(reference).not.toContain(' title=');
+  });
+
+  it('renders official art while retaining an optional Scryfall identity match', () => {
+    const matched = upcomingOfficialPreviewTile({
+      displayName: 'Cloudshift as "Known Hero"', imageUrl: 'https://media.wizards.com/2099/cloudshift.webp',
+      scryfallId: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', matchType: 'reference',
+    });
+    const unique = upcomingOfficialPreviewTile({
+      displayName: 'Brand New Hero', imageUrl: 'https://media.wizards.com/2099/new-hero.webp', matchType: 'source',
+    });
+
+    expect(matched).toContain('src="https://media.wizards.com/2099/cloudshift.webp"');
+    expect(matched).toContain('data-upcoming-scryfall-id="eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"');
+    expect(matched).toContain('Name match');
+    expect(unique).toContain('src="https://media.wizards.com/2099/new-hero.webp"');
+    expect(unique).toContain('New / unmatched');
+    expect(unique).toContain('data-act="open-url"');
   });
 
   it('renders the cheapest printing, unit price, quantity, and subtotal for every announced card', () => {

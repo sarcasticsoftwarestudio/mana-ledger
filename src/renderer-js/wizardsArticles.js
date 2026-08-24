@@ -8,6 +8,9 @@
 
 import { parseAnnouncementDetailHtml, sanitizeAnnouncementRow } from './slAnnouncements.js';
 import { netFetch } from './utils.js';
+import { parseEmbeddedCardImages, sanitizeWizardsCardImage } from './wizardsCardImages.js';
+
+export { parseEmbeddedCardImages };
 
 const FEED_URL = 'https://magic.wizards.com/en/news';
 const SETTINGS_KEY = 'wizards_article_data';
@@ -126,93 +129,6 @@ function contentBlocks(html) {
   return [...region.matchAll(/<(h[1-4]|p|li|blockquote)\b[^>]*>([\s\S]*?)<\/\1>/gi)]
     .map(match => ({ tag: match[1].toLowerCase(), text: htmlText(match[2]), index: match.index || 0 }))
     .filter(block => block.text && !insideExcludedContainer(lowerRegion, block.index));
-}
-
-function attributeValue(tag, name) {
-  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const match = String(tag || '').match(new RegExp(`\\b${escaped}\\s*=\\s*(["'])([\\s\\S]*?)\\1`, 'i'));
-  return match ? decode(match[2]) : '';
-}
-
-function safeArticleImageUrl(value) {
-  const raw = decode(value).trim();
-  if (!raw) return '';
-  try {
-    const url = new URL(raw.startsWith('//') ? `https:${raw}` : raw, 'https://magic.wizards.com');
-    if (url.protocol !== 'https:' || !['media.wizards.com', 'images.ctfassets.net'].includes(url.hostname)) return '';
-    return url.toString();
-  } catch { return ''; }
-}
-
-function canonicalCaptionName(value) {
-  return htmlText(value)
-    .replace(/\s+as\s+["“][\s\S]*$/i, '')
-    .replace(/\s+tokens?$/i, '')
-    .trim();
-}
-
-function headingAt(blocks, index) {
-  let heading = '';
-  for (const block of blocks) {
-    if (block.index > index) break;
-    if (/^h[2-4]$/.test(block.tag)) heading = block.text;
-  }
-  return heading;
-}
-
-export function parseEmbeddedCardImages(html, title = '') {
-  const region = contentRegion(html);
-  const lowerRegion = region.toLowerCase();
-  const blocks = contentBlocks(region);
-  const images = [];
-  const seen = new Set();
-  const add = image => {
-    if (!image.imageUrl || seen.has(image.imageUrl)) return;
-    seen.add(image.imageUrl);
-    images.push(image);
-  };
-
-  for (const match of region.matchAll(/<magic-card\b(?:[^>"']+|"[^"]*"|'[^']*')*>/gi)) {
-    if (insideExcludedContainer(lowerRegion, match.index || 0)) continue;
-    const tag = match[0];
-    const imageUrl = safeArticleImageUrl(attributeValue(tag, 'face'));
-    const backImageUrl = safeArticleImageUrl(attributeValue(tag, 'back'));
-    const displayName = htmlText(attributeValue(tag, 'caption'));
-    const name = canonicalCaptionName(displayName);
-    add({
-      name,
-      displayName: displayName || name || 'Card image',
-      section: headingAt(blocks, match.index || 0),
-      imageUrl,
-      backImageUrl,
-      sourceKind: 'magic-card',
-      scryfallId: '',
-      matchedName: '',
-    });
-  }
-
-  const cardImageArticle = /\bcards?\b|card image gallery/i.test(title);
-  for (const match of region.matchAll(/<img\b[^>]*>/gi)) {
-    if (insideExcludedContainer(lowerRegion, match.index || 0)) continue;
-    const tag = match[0];
-    const imageUrl = safeArticleImageUrl(attributeValue(tag, 'src') || attributeValue(tag, 'data-src'));
-    if (!imageUrl || !/media\.wizards\.com$/i.test(new URL(imageUrl).hostname)) continue;
-    const displayName = htmlText(attributeValue(tag, 'alt') || attributeValue(tag, 'title'));
-    const genericArtwork = /^(?:artwork|card image|image)\s*\d+$/i.test(displayName);
-    const name = genericArtwork ? '' : canonicalCaptionName(displayName);
-    if (!name && !(cardImageArticle && genericArtwork)) continue;
-    add({
-      name,
-      displayName: displayName || 'Card image',
-      section: headingAt(blocks, match.index || 0),
-      imageUrl,
-      backImageUrl: '',
-      sourceKind: 'article-image',
-      scryfallId: '',
-      matchedName: '',
-    });
-  }
-  return images.slice(0, MAX_ARTICLE_CARDS);
 }
 
 function parseSections(blocks) {
@@ -650,16 +566,8 @@ export function sanitizeWizardsArticle(row = {}) {
       method: clean(card.match.method, 80), confidence: clean(card.match.confidence, 30), sourceName: clean(card.match.sourceName, 220),
     } : null,
   })).filter(card => card.id && card.name).slice(0, MAX_ARTICLE_CARDS);
-  const embeddedCards = (Array.isArray(row.embeddedCards) ? row.embeddedCards : []).map(card => ({
-    name: clean(card?.name, 180),
-    displayName: clean(card?.displayName || card?.name, 240) || 'Card image',
-    section: clean(card?.section, 160),
-    imageUrl: safeArticleImageUrl(card?.imageUrl),
-    backImageUrl: safeArticleImageUrl(card?.backImageUrl),
-    sourceKind: card?.sourceKind === 'magic-card' ? 'magic-card' : 'article-image',
-    scryfallId: clean(card?.scryfallId, 60).toLowerCase(),
-    matchedName: clean(card?.matchedName, 220),
-  })).filter(card => card.imageUrl).slice(0, MAX_ARTICLE_CARDS);
+  const embeddedCards = (Array.isArray(row.embeddedCards) ? row.embeddedCards : [])
+    .map(sanitizeWizardsCardImage).filter(Boolean).slice(0, MAX_ARTICLE_CARDS);
   const title = clean(row.title, 260) || 'Wizards article';
   const category = clean(row.category || path?.category, 60).toLowerCase();
   const kind = clean(row.kind, 60) || classifyWizardsArticle({ title, category, summary: row.summary, headings: row.headings });

@@ -850,6 +850,27 @@ export function upcomingSaleDateLabel(raw) {
     .format(new Date(Date.UTC(+parts[1], +parts[2] - 1, +parts[3])));
 }
 
+export function upcomingOfficialPreviewTile(preview = {}) {
+  const imageUrl = String(preview.imageUrl || '');
+  if (!imageUrl) return '';
+  const id = String(preview.scryfallId || '').toLowerCase();
+  const label = preview.displayName || preview.matchedName || preview.name || 'Official card preview';
+  const matchLabel = preview.matchType === 'exact' ? 'Exact ID'
+    : (preview.matchType === 'reference' ? 'Name match' : 'New / unmatched');
+  const action = id
+    ? `data-slact="card-modal" data-arg="${esc(id)}"`
+    : `data-act="open-url" data-arg="${esc(imageUrl)}"`;
+  return `
+    <div class="gallery-card sl-card-preview sl-official-preview" data-upcoming-preview="true" tabindex="0"
+      data-upcoming-scryfall-id="${esc(id)}" data-source-image="${esc(imageUrl)}"
+      data-source-label="${esc(label)}" data-source-section="${esc(preview.section || '')}"
+      data-upcoming-matched-name="${esc(preview.matchedName || '')}" ${action}>
+      <img src="${esc(imageUrl)}" alt="${esc(label)}" loading="lazy" data-imgerr="hide-card">
+      <span class="sl-preview-badge">Official preview</span>
+      <span class="sl-official-match ${id ? 'matched' : 'source'}">${esc(matchLabel)}</span>
+    </div>`;
+}
+
 export async function priceUpcomingSingles(drop) {
   if (slUpcomingPricing.has(drop)) return;
   const group = slUpcomingGroups().find(item => item.drop === drop);
@@ -1336,16 +1357,31 @@ export function renderSlViewer() {
     if (selected) {
       const waitDays = daysUntil(selected.releaseDate);
       const totalExpected = selected.expectedCount ?? selected.expectedCards.reduce((sum, card) => sum + (card.quantity || 1), 0);
-      const pendingCards = selected.unmatchedCards || [];
-      const previewTiles = selected.cards.map(card => slCardTile(card.id, card.collectorNumber, undefined, { preview: true })).join('');
-      const referenceTiles = selected.referenceCards.map(card => slCardTile(card.id, undefined, undefined, { reference: true })).join('');
+      const officialPreviews = selected.officialPreviews || [];
+      const officialTiles = officialPreviews.map(upcomingOfficialPreviewTile).join('');
+      const officialIds = new Set(officialPreviews.map(card => card.scryfallId).filter(Boolean));
+      const previewTiles = selected.cards.filter(card => !officialIds.has(card.id))
+        .map(card => slCardTile(card.id, card.collectorNumber, undefined, { preview: true })).join('');
+      const referenceTiles = selected.referenceCards.filter(card => !officialIds.has(card.id))
+        .map(card => slCardTile(card.id, undefined, undefined, { reference: true })).join('');
+      const officialNameCounts = new Map();
+      for (const preview of officialPreviews) {
+        const key = String(preview.name || preview.displayName || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+        if (key) officialNameCounts.set(key, (officialNameCounts.get(key) || 0) + 1);
+      }
+      const pendingCards = (selected.unmatchedCards || []).map(card => {
+        const key = String(card.name || card.displayName || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+        const covered = Math.min(card.quantity || 1, officialNameCounts.get(key) || 0);
+        if (covered) officialNameCounts.set(key, (officialNameCounts.get(key) || 0) - covered);
+        return { ...card, quantity: Math.max(0, (card.quantity || 1) - covered) };
+      }).filter(card => card.quantity > 0);
       const placeholderTiles = pendingCards.map(card => `
         <div class="sl-upcoming-card-placeholder">
           <div class="sl-upcoming-placeholder-mark">?</div>
           <strong>${esc(card.displayName || card.name)}</strong>
           <span>${card.quantity > 1 ? `${card.quantity} ${card.variantGroup ? 'additional variants' : 'copies'} · ` : ''}Card image and ID pending</span>
         </div>`).join('');
-      const unrevealedTile = !totalExpected ? `
+      const unrevealedTile = !totalExpected && !officialPreviews.length ? `
         <div class="sl-upcoming-card-placeholder sl-upcoming-unrevealed">
           <div class="sl-upcoming-placeholder-mark">?</div>
           <strong>Contents not revealed yet</strong>
@@ -1379,24 +1415,26 @@ export function renderSlViewer() {
           ${selected.summary ? `<p class="sl-upcoming-summary">${esc(selected.summary)}</p>` : ''}
           <div class="sl-upcoming-price">${singlesPrice}</div>
           <div class="sl-upcoming-coverage">
-            <strong>${selected.matchedCount ?? selected.cards.length}${totalExpected ? ` of ${totalExpected}` : ''}</strong>
-            <span>${totalExpected ? `${selected.cards.length} exact Secret Lair ID${selected.cards.length === 1 ? '' : 's'} · ${selected.referenceCount ?? selected.referenceCards.length} reference card${(selected.referenceCount ?? selected.referenceCards.length) === 1 ? '' : 's'}` : 'card printing IDs available so far'}</span>
-            <small>Reference cards show the announced card identity, not the unreleased Secret Lair artwork. Exact previews replace them automatically when Scryfall publishes those printings.</small>
+            <strong>${officialPreviews.length || (selected.matchedCount ?? selected.cards.length)}${totalExpected ? ` of ${totalExpected}` : ''}</strong>
+            <span>${officialPreviews.length ? `${officialPreviews.length} official preview artwork${officialPreviews.length === 1 ? '' : 's'} · ` : ''}${totalExpected ? `${selected.cards.length} exact Secret Lair ID${selected.cards.length === 1 ? '' : 's'} · ${selected.referenceCount ?? selected.referenceCards.length} name match${(selected.referenceCount ?? selected.referenceCards.length) === 1 ? '' : 'es'}` : 'card printing IDs available so far'}</span>
+            <small>Official Wizards artwork is shown immediately. Scryfall name matches supply hover details and pricing; mechanically unique or unmatched previews remain visible without a guessed identity.</small>
           </div>
-          <div class="gallery-grid sl-upcoming-card-grid">${previewTiles}${referenceTiles}${placeholderTiles}${unrevealedTile}</div>
+          <div class="gallery-grid sl-upcoming-card-grid">${officialTiles}${previewTiles}${referenceTiles}${placeholderTiles}${unrevealedTile}</div>
         </section>`;
     }
 
     const linkedCards = groups.reduce((sum, group) => sum + group.cards.length, 0);
     const referenceCards = groups.reduce((sum, group) => sum + group.referenceCards.length, 0);
+    const officialArtwork = groups.reduce((sum, group) => sum + (group.officialPreviews?.length || 0), 0);
     const fullPreviews = groups.filter(group => group.status === 'full').length;
     const cards = filtered.map(group => {
-      const hero = [...group.cards, ...group.referenceCards].find(card => card.artCrop || card.imageUri);
+      const hero = (group.officialPreviews || []).find(card => card.imageUrl)
+        || [...group.cards, ...group.referenceCards].find(card => card.artCrop || card.imageUri);
       const waitDays = daysUntil(group.releaseDate);
       return `
         <article class="sl-upcoming-drop-card" data-act="ui-set" data-path="slViewer.upcomingDrop" data-val="${esc(group.drop)}">
           <div class="sl-upcoming-drop-art">
-            ${hero ? `<img src="${esc(hero.artCrop || hero.imageUri)}" alt="" loading="lazy" data-imgerr="hide">` : '<div class="sl-upcoming-art-pending">Preview<br>pending</div>'}
+            ${hero ? `<img src="${esc(hero.imageUrl || hero.artCrop || hero.imageUri)}" alt="" loading="lazy" data-imgerr="hide">` : '<div class="sl-upcoming-art-pending">Preview<br>pending</div>'}
             <span class="sl-upcoming-status status-${esc(group.status)}">${esc(statusText(group.status))}</span>
           </div>
           <div class="sl-upcoming-drop-body">
@@ -1404,7 +1442,7 @@ export function renderSlViewer() {
             <h3>${esc(group.drop)}</h3>
             <p class="${group.releaseDate ? '' : 'sl-upcoming-date-missing'}">${esc(upcomingSaleDateLabel(group.releaseDate))}${waitDays != null ? ` · ${waitDays} day${waitDays === 1 ? '' : 's'} away` : ''}</p>
             <div class="sl-upcoming-drop-foot">
-              <span><strong>${group.cards.length}</strong> exact${group.referenceCards.length ? ` · ${group.referenceCards.length} reference` : ''}${group.expectedCount ? ` · ${group.expectedCount} announced` : ''}</span>
+              <span><strong>${group.officialPreviews?.length || 0}</strong> official art · ${group.cards.length} exact${group.referenceCards.length ? ` · ${group.referenceCards.length} name matched` : ''}${group.expectedCount ? ` · ${group.expectedCount} announced` : ''}</span>
               <span>Explore &rarr;</span>
             </div>
           </div>
@@ -1422,6 +1460,7 @@ export function renderSlViewer() {
             <span><strong>${groups.length}</strong> upcoming drop${groups.length === 1 ? '' : 's'}</span>
             <span><strong>${linkedCards}</strong> exact preview ID${linkedCards === 1 ? '' : 's'}</span>
             <span><strong>${referenceCards}</strong> reference card${referenceCards === 1 ? '' : 's'}</span>
+            <span><strong>${officialArtwork}</strong> official artwork${officialArtwork === 1 ? '' : 's'}</span>
             <span><strong>${fullPreviews}</strong> fully exact drop${fullPreviews === 1 ? '' : 's'}</span>
           </div>
         </header>
@@ -1704,10 +1743,11 @@ export function renderSlViewer() {
       </div>
       <div class="sl-upcoming-landing-grid">
         ${upcoming.slice(0, 4).map(group => {
-          const hero = [...group.cards, ...group.referenceCards].find(card => card.artCrop || card.imageUri);
+          const hero = (group.officialPreviews || []).find(card => card.imageUrl)
+            || [...group.cards, ...group.referenceCards].find(card => card.artCrop || card.imageUri);
           return `<article data-act="ui-set" data-path="slViewer.view" data-val="upcoming" data-also="slViewer.upcomingDrop=${esc(group.drop)}">
-            ${hero ? `<img src="${esc(hero.artCrop || hero.imageUri)}" alt="" loading="lazy" data-imgerr="hide">` : '<div class="sl-upcoming-art-pending">Preview pending</div>'}
-            <div><strong>${esc(group.drop)}</strong><span class="${group.releaseDate ? '' : 'sl-upcoming-date-missing'}">${esc(upcomingSaleDateLabel(group.releaseDate))} · ${group.cards.length} exact${group.referenceCards.length ? ` · ${group.referenceCards.length} reference` : ''}${group.expectedCount ? ` · ${group.expectedCount} announced` : ''}</span></div>
+            ${hero ? `<img src="${esc(hero.imageUrl || hero.artCrop || hero.imageUri)}" alt="" loading="lazy" data-imgerr="hide">` : '<div class="sl-upcoming-art-pending">Preview pending</div>'}
+            <div><strong>${esc(group.drop)}</strong><span class="${group.releaseDate ? '' : 'sl-upcoming-date-missing'}">${esc(upcomingSaleDateLabel(group.releaseDate))} · ${group.officialPreviews?.length || 0} official art · ${group.cards.length} exact${group.referenceCards.length ? ` · ${group.referenceCards.length} name matched` : ''}${group.expectedCount ? ` · ${group.expectedCount} announced` : ''}</span></div>
           </article>`;
         }).join('')}
       </div>

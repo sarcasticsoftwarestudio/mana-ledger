@@ -4,10 +4,12 @@
 // an article can describe a superdrop while quoting individual SKU prices.
 
 import { netFetch } from './utils.js';
+import { parseEmbeddedCardImages, sanitizeWizardsCardImage } from './wizardsCardImages.js';
 
 const ARCHIVE_URL = 'https://magic.wizards.com/en/news/announcements?search=Secret+Lair';
 const SETTINGS_KEY = 'sl_announcement_data';
 const MAX_RECENT_ANNOUNCEMENTS = 20;
+const ANNOUNCEMENT_DETAIL_VERSION = 3;
 
 const SERIALIZED_PAGE_DATA = /(?:window\.)?__(?:NUXT|NEXT_DATA)__|webpackChunk|publishedVersion|contentType|\\u00(?:22|2F|3A)/i;
 
@@ -37,6 +39,9 @@ const cleanRevealedDrops = values => (Array.isArray(values) ? values : []).map(d
   })).filter(card => card.name),
 })).filter(drop => drop.name).slice(0, 30);
 
+const cleanOfficialPreviews = values => (Array.isArray(values) ? values : [])
+  .map(sanitizeWizardsCardImage).filter(Boolean).slice(0, 500);
+
 // Remove legacy price fields and parser leaks when loading caches from older
 // builds. This keeps existing installs clean before the next network refresh.
 export const sanitizeAnnouncementRow = row => {
@@ -48,6 +53,7 @@ export const sanitizeAnnouncementRow = row => {
     bundles: cleanHumanList(clean.bundles, 20, 240),
     officialNotes: cleanHumanList(clean.officialNotes, 12, 420),
     revealedDrops: cleanRevealedDrops(clean.revealedDrops),
+    officialPreviews: cleanOfficialPreviews(clean.officialPreviews),
     detailVersion: Math.max(0, Number(clean.detailVersion) || 0),
   };
 };
@@ -154,7 +160,8 @@ export function parseAnnouncementDetailHtml(html, seed = {}) {
     bundles: [...new Set(bundles)].slice(0, 20),
     officialNotes: [...new Set(noteLines)].slice(0, 12),
     revealedDrops: parseRevealedDrops(source),
-    detailVersion: 2,
+    officialPreviews: parseEmbeddedCardImages(source, h1 || seed.title),
+    detailVersion: ANNOUNCEMENT_DETAIL_VERSION,
     summary: seed.summary || firstSummary || body.slice(0, 600),
   });
 }
@@ -194,6 +201,7 @@ export async function refreshSlAnnouncements(opts = {}) {
           bundles: parsed.bundles?.length ? parsed.bundles : (old.bundles || []),
           officialNotes: parsed.officialNotes?.length ? parsed.officialNotes : (old.officialNotes || []),
           revealedDrops: parsed.revealedDrops?.length ? parsed.revealedDrops : (old.revealedDrops || []),
+          officialPreviews: parsed.officialPreviews?.length ? parsed.officialPreviews : (old.officialPreviews || []),
         } : parsed;
       } catch { return previousByUrl.get(seed.url) || seed; }
     }));
@@ -209,7 +217,8 @@ export async function refreshSlAnnouncements(opts = {}) {
 
 export function slAnnouncements() { return announcementData?.rows || []; }
 export function slAnnouncementsNeedDetailUpgrade(asOf = new Date().toISOString().slice(0, 10)) {
-  return slAnnouncements().some(row => row?.saleDate > asOf && row.detailVersion < 2);
+  return slAnnouncements().some(row => (!row?.saleDate || row.saleDate >= asOf)
+    && row.detailVersion < ANNOUNCEMENT_DETAIL_VERSION);
 }
 export function slAnnouncementInfo() {
   return announcementData ? { fetchedAt: announcementData.fetchedAt, count: announcementData.rows.length } : null;

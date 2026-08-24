@@ -19,6 +19,26 @@ const norm = value => clean(value).toLowerCase()
   .replace(/\s+tokens?$/i, '')
   .replace(/[^a-z0-9]+/g, '');
 const safeImage = value => /^https:\/\/cards\.scryfall\.io\//i.test(value || '') ? String(value) : '';
+const safeOfficialImage = value => {
+  try {
+    const url = new URL(String(value || ''));
+    return url.protocol === 'https:' && ['media.wizards.com', 'images.ctfassets.net'].includes(url.hostname)
+      ? url.toString() : '';
+  } catch { return ''; }
+};
+
+export function compactUpcomingOfficialPreview(preview = {}) {
+  const imageUrl = safeOfficialImage(preview.imageUrl);
+  if (!imageUrl) return null;
+  return {
+    name: clean(preview.name, 180),
+    displayName: clean(preview.displayName || preview.name, 240) || 'Official card preview',
+    section: clean(preview.section, 240),
+    imageUrl,
+    backImageUrl: safeOfficialImage(preview.backImageUrl),
+    sourceKind: preview.sourceKind === 'magic-card' ? 'magic-card' : 'article-image',
+  };
+}
 
 export function compactUpcomingScryfallCard(card) {
   const face = card?.card_faces?.find(item => item?.image_uris) || card?.card_faces?.[0] || {};
@@ -146,6 +166,8 @@ export function buildUpcomingLairs(cards, announcements = [], wikiRows = [], asO
     if (releaseDate && releaseDate < asOf) continue;
     const announcedDrops = Array.isArray(article?.revealedDrops) ? article.revealedDrops : [];
     const dropRows = announcedDrops.length ? announcedDrops : [{ name: article.title, cards: [] }];
+    const articlePreviews = (Array.isArray(article?.officialPreviews) ? article.officialPreviews : [])
+      .map(compactUpcomingOfficialPreview).filter(Boolean);
     for (const announced of dropRows) {
       const drop = clean(announced?.name || article.title, 240);
       const key = `${norm(drop)}|${releaseDate}`;
@@ -208,6 +230,25 @@ export function buildUpcomingLairs(cards, announcements = [], wikiRows = [], asO
       const referenceCount = referenceMatches.reduce((sum, card) => sum + card.quantity, 0);
       const pendingCount = unmatched.reduce((sum, card) => sum + card.quantity, 0);
       const coveredCount = matchedCount + referenceCount;
+      const exactPreviewIds = new Set();
+      const officialPreviews = articlePreviews
+        .filter(preview => norm(preview.section) === norm(drop)
+          || ((!preview.section || !announcedDrops.length) && dropRows.length === 1))
+        .map(preview => {
+          const previewName = norm(preview.name);
+          const sameCard = card => previewName && [card.name, card.flavorName, card.displayName]
+            .some(value => norm(value) === previewName);
+          const exact = matched.find(card => !exactPreviewIds.has(card.id) && sameCard(card));
+          if (exact) exactPreviewIds.add(exact.id);
+          const reference = exact ? null : referenceMatches.find(sameCard);
+          const identity = exact || reference;
+          return {
+            ...preview,
+            scryfallId: identity?.id || '',
+            matchedName: identity?.name || '',
+            matchType: exact ? 'exact' : (reference ? 'reference' : 'source'),
+          };
+        });
 
       groups.push({
         drop,
@@ -218,12 +259,14 @@ export function buildUpcomingLairs(cards, announcements = [], wikiRows = [], asO
         summary: clean(article.summary, 700),
         cards: matched,
         referenceCards: referenceMatches,
+        officialPreviews,
         expectedCards,
         unmatchedCards: unmatched,
         expectedCount,
         matchedCount,
         referenceCount,
         pendingCount,
+        officialPreviewCount: officialPreviews.length,
         status: !expectedCards.length ? 'announced'
           : (matchedCount === expectedCount ? 'full'
             : (coveredCount === expectedCount && !matchedCount ? 'outlined'
@@ -248,12 +291,14 @@ export function buildUpcomingLairs(cards, announcements = [], wikiRows = [], asO
       summary: '',
       cards: [],
       referenceCards: [],
+      officialPreviews: [],
       expectedCards: [],
       unmatchedCards: [],
       expectedCount: 0,
       matchedCount: 0,
       referenceCount: 0,
       pendingCount: 0,
+      officialPreviewCount: 0,
       status: 'announced',
       source: 'mtg.wiki',
     });
@@ -314,5 +359,6 @@ export function slUpcomingInfo() {
     groupCount: groups.length,
     matchedCount: groups.reduce((sum, group) => sum + group.cards.length, 0),
     referenceCount: groups.reduce((sum, group) => sum + group.referenceCards.length, 0),
+    officialPreviewCount: groups.reduce((sum, group) => sum + group.officialPreviews.length, 0),
   } : null;
 }

@@ -3015,6 +3015,23 @@ body[data-binder-open="true"]::before {
   color: #eaf4ff;
   background: rgba(60, 111, 164, .96);
 }
+.sl-official-preview { background: #151319; }
+.sl-official-preview img { aspect-ratio: 488 / 680; object-fit: contain; }
+.sl-official-match {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  padding: 3px 6px;
+  color: var(--text-dim);
+  background: rgba(14,14,16,.88);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 5px;
+  font-size: 8px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+.sl-official-match.matched { color: var(--green); }
+.sl-official-match.source { color: var(--accent2); }
 .sl-upcoming-page {
   max-width: 1180px;
 }
