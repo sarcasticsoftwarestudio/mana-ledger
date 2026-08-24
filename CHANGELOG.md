@@ -12,6 +12,8 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+## [1.7.6] - 2026-08-24
+
 ### Fixed
 - **Upcoming Secret Lair announcements no longer disappear when their sale date cannot be parsed.** Their revealed drops and cards remain explorable with a clear date-unavailable notice, while newer “releases on” wording and sale times that follow pre-queue instructions are recognized correctly.
 
