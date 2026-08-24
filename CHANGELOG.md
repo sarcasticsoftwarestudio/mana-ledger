@@ -12,6 +12,8 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+## [1.7.8] - 2026-08-24
+
 ### Fixed
 - **Upcoming Secret Lair hover prices now match the “Price the Singles” estimate.** Both surfaces use the cheapest available printing across all sets and finishes, with the selected set and finish labeled in the hover and price breakdown.
 
