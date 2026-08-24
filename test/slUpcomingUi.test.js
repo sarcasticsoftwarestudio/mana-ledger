@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { renderUpcomingPriceBreakdown, slCardTile } from '../src/renderer-js/slTab.js';
+import { renderUpcomingPriceBreakdown, slCardTile, upcomingSaleDateLabel } from '../src/renderer-js/slTab.js';
 import { sumUpcomingCheapest } from '../src/renderer-js/slUpcoming.js';
 
 describe('upcoming Secret Lair pricing UI', () => {
+  it('labels an unavailable official sale date without hiding the drop', () => {
+    expect(upcomingSaleDateLabel(null)).toBe('Sale date unavailable · check official announcement');
+    expect(upcomingSaleDateLabel('2099-07-27')).toBe('July 27, 2099');
+  });
+
   it('does not add redundant native tooltips to preview or reference cards', () => {
     const id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
     const preview = slCardTile(id, '2816', undefined, { preview: true });

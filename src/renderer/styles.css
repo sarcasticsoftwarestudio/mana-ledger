@@ -3172,6 +3172,7 @@ body[data-binder-open="true"]::before {
   color: var(--text-muted);
   font-size: 10.5px;
 }
+.sl-upcoming-date-missing { color: var(--accent2) !important; font-weight: 650; }
 .sl-upcoming-drop-foot {
   display: flex;
   justify-content: space-between;

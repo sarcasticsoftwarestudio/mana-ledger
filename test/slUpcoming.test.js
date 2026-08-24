@@ -67,6 +67,26 @@ describe('upcoming Secret Lair source join', () => {
     });
   });
 
+  it('keeps official drops visible when their sale date is unavailable', () => {
+    const groups = buildUpcomingLairs([], [{
+      title: 'Secret Lair: Date Pending Superdrop',
+      url: 'https://magic.wizards.com/example-date-pending',
+      saleDate: null,
+      revealedDrops: [{
+        name: 'Secret Lair x Example: Still Official',
+        cards: [{ name: 'Wedding Ring', quantity: 1 }],
+      }],
+    }], [], '2099-07-01');
+
+    expect(groups).toHaveLength(1);
+    expect(groups[0]).toMatchObject({
+      drop: 'Secret Lair x Example: Still Official',
+      releaseDate: '',
+      releaseDateStatus: 'unavailable',
+      status: 'pending',
+    });
+  });
+
   it('fills announced-name gaps with labeled reference printings without treating them as exact SLD previews', () => {
     const references = [
       { id: 'cccccccc-cccc-cccc-cccc-cccccccccccc', name: 'Wedding Ring', released_at: '2021-11-19', set: 'voc', collector_number: '32' },

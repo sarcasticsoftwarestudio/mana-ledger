@@ -55,6 +55,7 @@ export const sanitizeAnnouncementRow = row => {
 const decode = s => String(s || '')
   .replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/&quot;/gi, '"')
   .replace(/&#39;|&apos;/gi, "'").replace(/&ndash;/gi, '–').replace(/&mdash;/gi, '—')
+  .replace(/&trade;/gi, '™')
   .replace(/&#(\d+);/g, (_m, n) => String.fromCodePoint(+n))
   .replace(/&#x([0-9a-f]+);/gi, (_m, n) => String.fromCodePoint(parseInt(n, 16)));
 const visibleHtml = html => String(html || '')
@@ -135,8 +136,9 @@ export function parseAnnouncementDetailHtml(html, seed = {}) {
   const publishedAt = String(html || '').match(/"datePublished"\s*:\s*"([^"]+)"/i)?.[1]
     || String(html || '').match(/<time\b[^>]*datetime=["']([^"']+)/i)?.[1]
     || seed.publishedAt || null;
-  const salePhrase = body.match(/(?:available|arrives|launch(?:es)?|on sale|sale begins|goes live|MagicSecretLair\.com)[^\n.]{0,180}?((?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}(?:,\s+\d{4})?)/i);
-  const timeM = body.match(/(\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?))\s*(P[DT])/i);
+  const salePhrase = body.match(/(?:available|arrives|launch(?:es)?|releas(?:e|es|ed|ing)|on sale|sale begins|goes live|MagicSecretLair\.com)[^\n.]{0,180}?((?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}(?:,\s+\d{4})?)/i);
+  const timeM = body.match(/(?:sale\s+(?:goes live|begins|opens)|goes live|launch(?:es)?)(?:\s+at)?[^\n.]{0,40}?(\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?))\s*(P[DT])/i)
+    || body.match(/(\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?))\s*(P[DT])/i);
   const bundles = [...source.matchAll(/<h([1-4])\b[^>]*>([\s\S]*?bundle[\s\S]*?)<\/h\1>/gi)]
     .map(m => text(m[2])).filter(Boolean);
   const proseBlocks = [...source.matchAll(/<(p|li|blockquote)\b[^>]*>([\s\S]*?)<\/\1>/gi)]

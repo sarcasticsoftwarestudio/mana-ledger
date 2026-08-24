@@ -76,7 +76,10 @@ export async function refreshSlUpcomingData(opts = {}) {
     const announcedNames = [];
     const seenNames = new Set();
     for (const article of slAnnouncements()) {
-      if (!article?.saleDate || article.saleDate < today()) continue;
+      // An unknown sale date is not evidence that an announcement is stale.
+      // Keep its named cards eligible for reference-printing lookup so the
+      // Upcoming view remains useful while the official date needs review.
+      if (article?.saleDate && article.saleDate < today()) continue;
       for (const drop of (article.revealedDrops || [])) {
         for (const item of (drop.cards || [])) {
           const name = clean(item?.name, 180);
@@ -138,7 +141,9 @@ export function buildUpcomingLairs(cards, announcements = [], wikiRows = [], asO
 
   for (const article of (Array.isArray(announcements) ? announcements : [])) {
     const releaseDate = clean(article?.saleDate, 10);
-    if (!releaseDate || releaseDate < asOf) continue;
+    // Official announcements with an unparseable date must remain visible.
+    // Only exclude a row when a known date proves that its sale is in the past.
+    if (releaseDate && releaseDate < asOf) continue;
     const announcedDrops = Array.isArray(article?.revealedDrops) ? article.revealedDrops : [];
     const dropRows = announcedDrops.length ? announcedDrops : [{ name: article.title, cards: [] }];
     for (const announced of dropRows) {
@@ -159,7 +164,7 @@ export function buildUpcomingLairs(cards, announcements = [], wikiRows = [], asO
       for (const expected of expectedCards) {
         const expectedKey = norm(expected.name);
         const exactCandidates = [...futureCards, ...references.filter(item => item.setCode === 'sld')]
-          .filter(item => item.releasedAt === releaseDate
+          .filter(item => !!releaseDate && item.releasedAt === releaseDate
             && (norm(item.name) === expectedKey || norm(item.flavorName) === expectedKey)
             && !usedExactIds.has(item.id))
           .filter((item, index, all) => all.findIndex(other => other.id === item.id) === index)
@@ -208,6 +213,7 @@ export function buildUpcomingLairs(cards, announcements = [], wikiRows = [], asO
         drop,
         superdrop: articleGroupName(article.title),
         releaseDate,
+        releaseDateStatus: releaseDate ? 'known' : 'unavailable',
         url: clean(article.url, 500),
         summary: clean(article.summary, 700),
         cards: matched,
@@ -237,6 +243,7 @@ export function buildUpcomingLairs(cards, announcements = [], wikiRows = [], asO
       drop,
       superdrop: clean(row.superdrop, 240) || 'Standalone',
       releaseDate,
+      releaseDateStatus: 'known',
       url: '',
       summary: '',
       cards: [],
@@ -253,7 +260,12 @@ export function buildUpcomingLairs(cards, announcements = [], wikiRows = [], asO
     seen.add(key);
   }
 
-  return groups.sort((a, b) => a.releaseDate.localeCompare(b.releaseDate) || a.drop.localeCompare(b.drop));
+  return groups.sort((a, b) => {
+    // Known dates stay chronological; undated official announcements remain
+    // visible at the end instead of sorting ahead of every dated release.
+    const unavailable = Number(!a.releaseDate) - Number(!b.releaseDate);
+    return unavailable || a.releaseDate.localeCompare(b.releaseDate) || a.drop.localeCompare(b.drop);
+  });
 }
 
 export function sumUpcomingCheapest(expectedCards, cheapestByName = {}) {

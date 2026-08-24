@@ -42,6 +42,20 @@ describe('Secret Lair supplemental source parsers', () => {
     expect(row.officialNotes[0]).toMatch(/supplies last/i);
   });
 
+  it('recognizes release wording and prefers the actual sale time over a pre-queue time', () => {
+    const row = parseAnnouncementDetailHtml(`
+      <h1>Secret Lair: The Most Powerful Superdrop in the Universe</h1>
+      <time datetime="2026-08-24T09:00-07:00"></time>
+      <p>The Superdrop releases on September 14, 2026, only at MagicSecretLair.com.</p>
+      <p>The pre-queue opens at 8 a.m. PT, before the sale goes live at 9 a.m. PT.</p>
+      <h2>Secret Lair x Masters of the Universe&trade;: By the Power of Grayskull!</h2>
+      <p>Contents:</p><ul><li>1x Crackle with Power</li></ul>
+    `);
+    expect(row.saleDate).toBe('2026-09-14');
+    expect(row.saleTime).toBe('9 a.m. PT');
+    expect(row.revealedDrops[0].name).toContain('Universe™');
+  });
+
   it('ignores both SKU prices and shipping thresholds in announcement details', () => {
     const row = parseAnnouncementDetailHtml(`
       <h1>Secret Lair: Cats Are the Best Superdrop</h1>

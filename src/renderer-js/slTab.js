@@ -843,6 +843,13 @@ export function renderUpcomingPriceBreakdown(estimate) {
   </div>`;
 }
 
+export function upcomingSaleDateLabel(raw) {
+  const parts = String(raw || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!parts) return 'Sale date unavailable · check official announcement';
+  return new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+    .format(new Date(Date.UTC(+parts[1], +parts[2] - 1, +parts[3])));
+}
+
 export async function priceUpcomingSingles(drop) {
   if (slUpcomingPricing.has(drop)) return;
   const group = slUpcomingGroups().find(item => item.drop === drop);
@@ -1318,12 +1325,6 @@ export function renderSlViewer() {
     const filtered = groups.filter(group => !q || [group.drop, group.superdrop, group.summary,
       ...group.expectedCards.map(card => `${card.name} ${card.displayName}`)]
       .some(value => String(value || '').toLowerCase().includes(q)));
-    const formatDate = raw => {
-      const parts = String(raw || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      if (!parts) return raw || 'Date pending';
-      return new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
-        .format(new Date(Date.UTC(+parts[1], +parts[2] - 1, +parts[3])));
-    };
     const daysUntil = raw => {
       const target = new Date(`${raw}T00:00:00Z`).getTime();
       const current = new Date(`${today()}T00:00:00Z`).getTime();
@@ -1371,7 +1372,7 @@ export function renderSlViewer() {
             <div>
               <div class="sl-upcoming-eyebrow">Upcoming Secret Lair · ${esc(statusText(selected.status))}</div>
               <h2>${esc(selected.drop)}</h2>
-              <p>${esc(selected.superdrop)} · ${esc(formatDate(selected.releaseDate))}${waitDays != null ? ` · ${waitDays} day${waitDays === 1 ? '' : 's'} away` : ''}</p>
+              <p>${esc(selected.superdrop)} · <span class="${selected.releaseDate ? '' : 'sl-upcoming-date-missing'}">${esc(upcomingSaleDateLabel(selected.releaseDate))}${waitDays != null ? ` · ${waitDays} day${waitDays === 1 ? '' : 's'} away` : ''}</span></p>
             </div>
             ${selected.url ? `<a href="#" class="btn btn-ghost" data-act="open-url" data-arg="${esc(selected.url)}">Official announcement &rarr;</a>` : ''}
           </div>
@@ -1401,7 +1402,7 @@ export function renderSlViewer() {
           <div class="sl-upcoming-drop-body">
             <div class="sl-upcoming-eyebrow">${esc(group.superdrop)}</div>
             <h3>${esc(group.drop)}</h3>
-            <p>${esc(formatDate(group.releaseDate))}${waitDays != null ? ` · ${waitDays} day${waitDays === 1 ? '' : 's'} away` : ''}</p>
+            <p class="${group.releaseDate ? '' : 'sl-upcoming-date-missing'}">${esc(upcomingSaleDateLabel(group.releaseDate))}${waitDays != null ? ` · ${waitDays} day${waitDays === 1 ? '' : 's'} away` : ''}</p>
             <div class="sl-upcoming-drop-foot">
               <span><strong>${group.cards.length}</strong> exact${group.referenceCards.length ? ` · ${group.referenceCards.length} reference` : ''}${group.expectedCount ? ` · ${group.expectedCount} announced` : ''}</span>
               <span>Explore &rarr;</span>
@@ -1706,7 +1707,7 @@ export function renderSlViewer() {
           const hero = [...group.cards, ...group.referenceCards].find(card => card.artCrop || card.imageUri);
           return `<article data-act="ui-set" data-path="slViewer.view" data-val="upcoming" data-also="slViewer.upcomingDrop=${esc(group.drop)}">
             ${hero ? `<img src="${esc(hero.artCrop || hero.imageUri)}" alt="" loading="lazy" data-imgerr="hide">` : '<div class="sl-upcoming-art-pending">Preview pending</div>'}
-            <div><strong>${esc(group.drop)}</strong><span>${esc(group.releaseDate)} · ${group.cards.length} exact${group.referenceCards.length ? ` · ${group.referenceCards.length} reference` : ''}${group.expectedCount ? ` · ${group.expectedCount} announced` : ''}</span></div>
+            <div><strong>${esc(group.drop)}</strong><span class="${group.releaseDate ? '' : 'sl-upcoming-date-missing'}">${esc(upcomingSaleDateLabel(group.releaseDate))} · ${group.cards.length} exact${group.referenceCards.length ? ` · ${group.referenceCards.length} reference` : ''}${group.expectedCount ? ` · ${group.expectedCount} announced` : ''}</span></div>
           </article>`;
         }).join('')}
       </div>
@@ -1821,7 +1822,7 @@ export async function showSlViewerModal(scryfallId) {
         `).join('') : ''}
         ${upcomingInfo ? `
           <span style="color:var(--text-muted)">Upcoming drop</span><span class="sl-type-badge">${esc(upcomingInfo.drop)}</span>
-          <span style="color:var(--text-muted)">Releases</span><span>${esc(upcomingInfo.releaseDate)} · ${upcomingInfo.matchType === 'reference' ? 'reference printing; final Secret Lair ID pending' : 'exact preview printing'}</span>
+          <span style="color:var(--text-muted)">Releases</span><span class="${upcomingInfo.releaseDate ? '' : 'sl-upcoming-date-missing'}">${esc(upcomingSaleDateLabel(upcomingInfo.releaseDate))} · ${upcomingInfo.matchType === 'reference' ? 'reference printing; final Secret Lair ID pending' : 'exact preview printing'}</span>
         ` : ''}
         ${(typeof preconsContaining === 'function' ? preconsContaining(scryfallId) : []).slice(0, 3).map(p => `
           <span style="color:var(--text-muted)">Precon</span>
