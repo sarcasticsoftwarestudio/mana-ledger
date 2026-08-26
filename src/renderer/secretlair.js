@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-08-25 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-08-26 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 106 superdrops/standalones · 368 drops · 2638 printings (1958 drop-mapped, 106 foil-backfilled)
+// 106 superdrops/standalones · 368 drops · 2642 printings (1958 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -3482,6 +3482,7 @@ const SL_SCRYFALL_TO_NAME = {
   "5f0d37b6-c092-439b-ba8e-e297ad35f155": "Academy Manufactor",
   "5f4bf87b-1e31-4c09-b685-86592eb32be9": "Plains",
   "5f4d7eb5-5c0e-4c89-91b5-0cd200c5cb88": "Explore",
+  "5f4fb1ca-6f34-48f4-b2e7-443fee17dd54": "Plumb the Forbidden",
   "5f569425-465f-42a8-ae4e-7e98d70cc2af": "The Gitrog Monster",
   "5f8c16d5-c2ed-4e5c-8f50-d39013845f55": "Felidar Retreat",
   "5fb40b82-ed28-451f-b191-b9eca2770ca5": "Skemfar Shadowsage",
@@ -3498,6 +3499,7 @@ const SL_SCRYFALL_TO_NAME = {
   "6089330b-dc26-4c35-ba58-522d5bfb963a": "Plains",
   "60c92f1b-0c78-4809-9365-e1ffa515cb4b": "Terror // Terror",
   "60cb8aec-21cf-49c1-8407-e45afe377f4f": "Doomsday",
+  "60d4d916-8229-4285-b8e6-34c3973eb8ae": "Wayfarer's Bauble",
   "60e5c89f-e181-4a77-8127-6afad5354004": "Liliana's Contract",
   "60ecd9bf-757b-4eeb-bef3-0b9ad2e86fca": "Dragonskull Summit",
   "61243a31-6608-451f-9ba1-4f8ecc5aaad1": "Utvara Hellkite",
@@ -3581,6 +3583,7 @@ const SL_SCRYFALL_TO_NAME = {
   "689fbfbc-1eea-4cc0-801b-72305160bf8e": "Prince of Thralls",
   "68c35440-ddb6-4b43-baba-889ff3ce0c0d": "Mountain",
   "68cce7e2-8c4b-4c76-a38b-0fee85da3151": "Ziatora, the Incinerator",
+  "68ce4cd5-00f1-4cf4-ae6a-ac7561a6805f": "Rogue's Passage",
   "68fde4e2-f1a0-4c23-8341-959645f69d8c": "Sun Titan",
   "68fe47d3-8f35-497e-aa3e-92e92f13772e": "Worst Fears",
   "6905e150-4eb8-497c-98b0-439e6253871a": "Thrill of Possibility",
@@ -4046,6 +4049,7 @@ const SL_SCRYFALL_TO_NAME = {
   "94eea6e3-20bc-4dab-90ba-3113c120fb90": "Okaun, Eye of Chaos // Okaun, Eye of Chaos",
   "94f09def-15df-4f74-9727-e5d3138bf19e": "Cut // Ribbons",
   "94f6fec8-2932-456c-91c1-c12d7dd0c31c": "Blade of Selves",
+  "952a0817-0a17-445b-a4f2-b99e09e7722b": "Slip Out the Back",
   "953428a0-ad0e-4061-a43c-715c26b79e9a": "Shadowheart, Dark Justiciar",
   "954fbf3c-7cc2-4f5e-ba96-e3033a20ce61": "Ephemerate",
   "95d3a061-03b4-4004-8a6c-4374513de17a": "Elspeth Tirel",
@@ -6123,6 +6127,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "5f0d37b6-c092-439b-ba8e-e297ad35f155": "2195",
   "5f4bf87b-1e31-4c09-b685-86592eb32be9": "63",
   "5f4d7eb5-5c0e-4c89-91b5-0cd200c5cb88": "2312",
+  "5f4fb1ca-6f34-48f4-b2e7-443fee17dd54": "7114",
   "5f569425-465f-42a8-ae4e-7e98d70cc2af": "1051",
   "5f8c16d5-c2ed-4e5c-8f50-d39013845f55": "2378",
   "5fb40b82-ed28-451f-b191-b9eca2770ca5": "759",
@@ -6139,6 +6144,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "6089330b-dc26-4c35-ba58-522d5bfb963a": "2540",
   "60c92f1b-0c78-4809-9365-e1ffa515cb4b": "750",
   "60cb8aec-21cf-49c1-8407-e45afe377f4f": "1115",
+  "60d4d916-8229-4285-b8e6-34c3973eb8ae": "7113",
   "60e5c89f-e181-4a77-8127-6afad5354004": "161★",
   "60ecd9bf-757b-4eeb-bef3-0b9ad2e86fca": "458",
   "61243a31-6608-451f-9ba1-4f8ecc5aaad1": "1273",
@@ -6222,6 +6228,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "689fbfbc-1eea-4cc0-801b-72305160bf8e": "1549★",
   "68c35440-ddb6-4b43-baba-889ff3ce0c0d": "2418",
   "68cce7e2-8c4b-4c76-a38b-0fee85da3151": "2238",
+  "68ce4cd5-00f1-4cf4-ae6a-ac7561a6805f": "7112",
   "68fde4e2-f1a0-4c23-8341-959645f69d8c": "1550",
   "68fe47d3-8f35-497e-aa3e-92e92f13772e": "2398",
   "6905e150-4eb8-497c-98b0-439e6253871a": "IFIYW-8",
@@ -6687,6 +6694,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "94eea6e3-20bc-4dab-90ba-3113c120fb90": "380",
   "94f09def-15df-4f74-9727-e5d3138bf19e": "367",
   "94f6fec8-2932-456c-91c1-c12d7dd0c31c": "1570",
+  "952a0817-0a17-445b-a4f2-b99e09e7722b": "7115",
   "953428a0-ad0e-4061-a43c-715c26b79e9a": "2483",
   "954fbf3c-7cc2-4f5e-ba96-e3033a20ce61": "1990",
   "95d3a061-03b4-4004-8a6c-4374513de17a": "1585",
