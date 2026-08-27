@@ -12,6 +12,8 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+## [1.7.16] - 2026-08-27
+
 ### Fixed
 - **The Secret Lair Gallery now stays synchronized with live upcoming-drop data.** Newly revealed exact printings are merged into their set-code galleries immediately—even when the baked or supplemental catalog refreshed earlier—restoring missing SLZ cards such as #7 and #8 along with other current SLD and standalone-set previews, without duplicates.
 
