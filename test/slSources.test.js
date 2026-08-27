@@ -115,6 +115,39 @@ describe('Secret Lair supplemental source parsers', () => {
     }]);
   });
 
+  it('accepts every structured drop heading in a clearly identified Secret Lair article', () => {
+    const row = parseAnnouncementDetailHtml(`
+      <h1>Secret Lair: A Perfectly Normal Superdrop</h1>
+      <h2>A Perfectly Normal Everything Bundle</h2>
+      <p>Contents:</p><ul><li>1x Artist Series: Ian Miller</li></ul>
+      <h2>Artist Series: Ian Miller</h2>
+      <p>Contents:</p><ul><li>1x Ashiok, Dream Render</li></ul>
+      <h2>Featuring: Gene Luen Yang</h2>
+      <p>Contents:</p><ul><li>1x Swords to Plowshares</li></ul>
+      <h2>Cosmic Chill by Robin Eisenberg</h2>
+      <p>Contents:</p><ul><li>1x Stasis</li></ul>
+      <h2>How to Order</h2><p>Visit the store when the sale opens.</p>
+      <h2>Announcements</h2>
+      <h3>Another Article with 1x misleading text</h3>
+    `);
+
+    expect(row.revealedDrops.map(drop => drop.name)).toEqual([
+      'Artist Series: Ian Miller',
+      'Featuring: Gene Luen Yang',
+      'Cosmic Chill by Robin Eisenberg',
+    ]);
+  });
+
+  it('does not promote free-form structured headings in a non-Secret-Lair article', () => {
+    const row = parseAnnouncementDetailHtml(`
+      <h1>Magic Product News</h1>
+      <h2>Cosmic Chill by Robin Eisenberg</h2>
+      <p>Contents:</p><ul><li>1x Stasis</li></ul>
+    `);
+
+    expect(row.revealedDrops).toEqual([]);
+  });
+
   it('carries official Wizards card artwork into the announcement cache', () => {
     const row = parseAnnouncementDetailHtml(`
       <h1>Secret Lair: Future Superdrop</h1>
@@ -128,7 +161,7 @@ describe('Secret Lair supplemental source parsers', () => {
       <magic-card face="https://media.wizards.com/2099/new-hero.webp" caption="Brand New Hero"></magic-card>
     `);
 
-    expect(row.detailVersion).toBe(3);
+    expect(row.detailVersion).toBe(4);
     expect(row.officialPreviews).toEqual([
       expect.objectContaining({
         name: 'Cloudshift', displayName: 'Cloudshift as "Known Hero"',

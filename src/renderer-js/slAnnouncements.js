@@ -9,7 +9,7 @@ import { parseEmbeddedCardImages, sanitizeWizardsCardImage } from './wizardsCard
 const ARCHIVE_URL = 'https://magic.wizards.com/en/news/announcements?search=Secret+Lair';
 const SETTINGS_KEY = 'sl_announcement_data';
 const MAX_RECENT_ANNOUNCEMENTS = 20;
-const ANNOUNCEMENT_DETAIL_VERSION = 3;
+const ANNOUNCEMENT_DETAIL_VERSION = 4;
 
 const SERIALIZED_PAGE_DATA = /(?:window\.)?__(?:NUXT|NEXT_DATA)__|webpackChunk|publishedVersion|contentType|\\u00(?:22|2F|3A)/i;
 
@@ -73,14 +73,15 @@ const text = html => decode(visibleHtml(html)
   .replace(/[ \t]+/g, ' ').replace(/\n\s+/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
 const absolute = href => href?.startsWith('http') ? href : `https://magic.wizards.com${href?.startsWith('/') ? '' : '/'}${href || ''}`;
 
-const parseRevealedDrops = source => {
+const parseRevealedDrops = (source, allowStructuredDropHeadings = false) => {
   const headings = [...String(source || '').matchAll(/<h([1-4])\b[^>]*>([\s\S]*?)<\/h\1>/gi)];
   const drops = [];
   for (let i = 0; i < headings.length; i++) {
     const heading = headings[i];
     const name = text(heading[2]);
     if (/^announcements$/i.test(name)) break;
-    if (!/^secret\s+lair\b/i.test(name) || /\bbundle\b|\bsuperdrop\b/i.test(name)) continue;
+    const explicitlyNamedDrop = /^secret\s+lair\b/i.test(name);
+    if (/\bbundle\b|\bsuperdrop\b/i.test(name)) continue;
 
     const start = heading.index + heading[0].length;
     const end = headings[i + 1]?.index ?? source.length;
@@ -102,6 +103,13 @@ const parseRevealedDrops = source => {
         .trim();
       if (cardName) cards.push({ name: cardName, displayName, quantity: Number(match[1]) || 1 });
     }
+    // Within an article that is itself clearly about Secret Lair, a structured
+    // Contents list is stronger evidence of a drop than any particular naming
+    // convention. Wizards also uses headings such as "Artist Series: ...",
+    // "Featuring: ...", and standalone creative names that omit the words
+    // "Secret Lair" entirely. Require parsed card rows for those free-form
+    // headings so ordinary prose sections cannot become empty drops.
+    if (!explicitlyNamedDrop && (!allowStructuredDropHeadings || !cards.length)) continue;
     drops.push({ name, cards });
   }
   return cleanRevealedDrops(drops);
@@ -139,6 +147,7 @@ export function parseAnnouncementDetailHtml(html, seed = {}) {
   const source = visibleHtml(html);
   const body = text(source);
   const h1 = text(source.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i)?.[1] || '');
+  const isSecretLairAnnouncement = /secret(?:\s|[-_])+lair/i.test(`${h1} ${seed.title || ''} ${seed.url || ''}`);
   const publishedAt = String(html || '').match(/"datePublished"\s*:\s*"([^"]+)"/i)?.[1]
     || String(html || '').match(/<time\b[^>]*datetime=["']([^"']+)/i)?.[1]
     || seed.publishedAt || null;
@@ -159,7 +168,7 @@ export function parseAnnouncementDetailHtml(html, seed = {}) {
     saleTime: timeM ? `${timeM[1]} ${timeM[2].toUpperCase()}` : null,
     bundles: [...new Set(bundles)].slice(0, 20),
     officialNotes: [...new Set(noteLines)].slice(0, 12),
-    revealedDrops: parseRevealedDrops(source),
+    revealedDrops: parseRevealedDrops(source, isSecretLairAnnouncement),
     officialPreviews: parseEmbeddedCardImages(source, h1 || seed.title),
     detailVersion: ANNOUNCEMENT_DETAIL_VERSION,
     summary: seed.summary || firstSummary || body.slice(0, 600),
