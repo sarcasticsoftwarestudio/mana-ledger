@@ -71,8 +71,10 @@ export function computeSlProductCompletion(drop, cards = ownedCards()) {
   const product = slProductForDrop(drop);
   if (!product) return { drop, product: null, rows: [], required: 0, owned: 0, missing: 0, wrongFinish: 0, pct: 0 };
   const rows = (product.cards || []).map(req => {
-    const matching = cards.filter(c => (c.scryfallId || '').toLowerCase() === req.scryfallId && finishGroup(c.foil) === req.finish);
-    const wrong = cards.filter(c => (c.scryfallId || '').toLowerCase() === req.scryfallId && finishGroup(c.foil) !== req.finish);
+    const ids = new Set([req.scryfallId, ...(req.alternateScryfallIds || [])].map(x => (x || '').toLowerCase()).filter(Boolean));
+    const anyFinish = !req.finish || req.finish === 'any';
+    const matching = cards.filter(c => ids.has((c.scryfallId || '').toLowerCase()) && (anyFinish || finishGroup(c.foil) === req.finish));
+    const wrong = anyFinish ? [] : cards.filter(c => ids.has((c.scryfallId || '').toLowerCase()) && finishGroup(c.foil) !== req.finish);
     const owned = matching.reduce((n, c) => n + (Number(c.quantity) || 1), 0);
     const wrongQty = wrong.reduce((n, c) => n + (Number(c.quantity) || 1), 0);
     const required = Number(req.count) || 1;
@@ -140,7 +142,7 @@ export async function showSlCompletionReport(drop) {
       : `<span style="color:#f87171;font-weight:700">${r.missing} missing</span>${r.wrongQty ? ` <span style="color:#f59e0b">· ${r.wrongQty} wrong finish</span>` : ''}`;
     return `<tr style="border-top:1px solid var(--border)">
       <td style="padding:7px 9px"><strong>${esc(r.name)}</strong><div style="font-size:10.5px;color:var(--text-muted)">#${esc(r.number || '?')} · ${esc(r.scryfallId)}</div></td>
-      <td style="padding:7px 9px;text-transform:capitalize">${esc(r.finish)}</td>
+      <td style="padding:7px 9px;text-transform:capitalize">${esc(r.finish === 'any' ? 'Any finish' : r.finish)}</td>
       <td style="padding:7px 9px;text-align:center">${r.owned} / ${r.required}</td>
       <td style="padding:7px 9px">${status}</td>
       <td style="padding:7px 9px;text-align:right">${r.missing && unit != null ? fmt(unit * r.missing) : '—'}</td>
@@ -149,7 +151,7 @@ export async function showSlCompletionReport(drop) {
   showModal(`
     <div style="max-width:980px">
       <h2 style="margin:0 0 4px">Exact completion · ${esc(drop)}</h2>
-      <div style="color:var(--text-muted);font-size:12px;margin-bottom:14px">${esc(report.product.name)} · exact printing + required finish + quantity</div>
+      <div style="color:var(--text-muted);font-size:12px;margin-bottom:14px">${esc(report.product.name)} · exact printing + ${report.product.variableFinish ? 'the finish found in your kit' : 'required finish'} + quantity</div>
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px">
         <span class="sl-type-badge">${report.owned}/${report.required} exact (${report.pct}%)</span>
         <span class="sl-type-badge" style="color:${report.missing ? '#f87171' : 'var(--green)'}">${report.missing} missing</span>
@@ -247,16 +249,16 @@ export function showSlProductTruth(drop) {
       <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;font-size:12px;margin-bottom:14px">
         <div style="padding:10px;background:var(--surface);border-radius:7px"><strong>SKU</strong><br>${esc(product.name)}<br><span style="color:var(--text-muted)">${esc(product.uuid)}</span></div>
         <div style="padding:10px;background:var(--surface);border-radius:7px"><strong>Finish / contents</strong><br>${esc(product.finishLabel || product.finish)} · ${(product.cards || []).reduce((n,c)=>n+(Number(c.count)||1),0)} copies<br><span style="color:var(--text-muted)">${esc(Object.entries(finishCounts).map(([k,v])=>`${v} ${k}`).join(' · '))}</span></div>
-        <div style="padding:10px;background:var(--surface);border-radius:7px"><strong>Confidence</strong><br><span style="color:${product.lowConfidence ? '#f59e0b' : 'var(--green)'}">${product.lowConfidence ? 'Fallback / review recommended' : 'Exact sealed-product chain'}</span><br><span style="color:var(--text-muted)">${esc(product.subtype || 'unknown subtype')}</span></div>
+        <div style="padding:10px;background:var(--surface);border-radius:7px"><strong>Confidence</strong><br><span style="color:${product.lowConfidence ? '#f59e0b' : 'var(--green)'}">${product.lowConfidence ? 'Fallback / review recommended' : esc(product.sourceLabel || 'Exact sealed-product chain')}</span><br><span style="color:var(--text-muted)">${esc(product.subtype || 'unknown subtype')}</span></div>
         <div style="padding:10px;background:var(--surface);border-radius:7px"><strong>Release</strong><br>${esc(wiki?.date || product.releaseDate || 'Unknown')}<br><span style="color:var(--text-muted)">${esc(infoForDrop(drop).superdrop || wiki?.superdrop || 'Standalone')}</span></div>
-        <div style="padding:10px;background:var(--surface);border-radius:7px"><strong>MSRP</strong><br>${money(slWikiMsrp(drop, product.finish))}<br><span style="color:var(--text-muted)">finish-aware wiki MSRP</span></div>
+        <div style="padding:10px;background:var(--surface);border-radius:7px"><strong>MSRP</strong><br>${money(product.msrp ?? slWikiMsrp(drop, product.finish))}<br><span style="color:var(--text-muted)">${product.msrp != null ? 'official product MSRP' : 'finish-aware wiki MSRP'}</span></div>
         <div style="padding:10px;background:var(--surface);border-radius:7px"><strong>Identifiers</strong><br>${identifiers.length} preserved<br><span style="color:var(--text-muted)">${esc(identifiers.map(([k]) => k).join(', ') || 'none')}</span></div>
         <div style="padding:10px;background:var(--surface);border-radius:7px"><strong>Historical singles</strong><br>${history?.returnPct == null ? 'Not enough points' : `${history.returnPct >= 0 ? '+' : ''}${history.returnPct.toFixed(1)}%`}<br><span style="color:var(--text-muted)">${history?.points || 0} product-value points${history?.volatility != null ? ` · ${history.volatility.toFixed(1)}% interval volatility` : ''}</span></div>
       </div>
-      <details style="margin:0 0 12px"><summary style="cursor:pointer;font-size:12px;font-weight:700">Guaranteed contents · ${(product.cards || []).length} printing/finish rows</summary><div style="max-height:260px;overflow:auto;border:1px solid var(--border);border-radius:7px;margin-top:7px">${(product.cards || []).map(c=>`<div style="display:grid;grid-template-columns:1fr 90px 54px;gap:8px;padding:6px 9px;border-top:1px solid var(--border);font-size:11px"><span><strong>${esc(c.name)}</strong> <span style="color:var(--text-muted)">#${esc(c.number || '?')}</span></span><span style="text-transform:capitalize">${esc(c.finish)}</span><span style="text-align:right">×${c.count || 1}</span></div>`).join('')}</div></details>
+      <details style="margin:0 0 12px"><summary style="cursor:pointer;font-size:12px;font-weight:700">Guaranteed contents · ${(product.cards || []).length} printing/finish rows</summary><div style="max-height:260px;overflow:auto;border:1px solid var(--border);border-radius:7px;margin-top:7px">${(product.cards || []).map(c=>`<div style="display:grid;grid-template-columns:1fr 90px 54px;gap:8px;padding:6px 9px;border-top:1px solid var(--border);font-size:11px"><span><strong>${esc(c.name)}</strong> <span style="color:var(--text-muted)">#${esc(c.number || '?')}</span></span><span style="text-transform:capitalize">${esc(c.finish === 'any' ? 'Any finish' : c.finish)}</span><span style="text-align:right">×${c.count || 1}</span></div>`).join('')}</div></details>
       <h3 style="font-size:13px;margin:12px 0 7px">Cross-market observations</h3>
       <div style="overflow:auto;border:1px solid var(--border);border-radius:8px"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:var(--surface2)"><th style="padding:7px 9px;text-align:left">Source</th><th style="padding:7px 9px;text-align:left">Basis</th><th style="padding:7px 9px;text-align:right">Value</th><th style="padding:7px 9px;text-align:left">Context</th><th style="padding:7px 9px;text-align:left">Observed</th></tr></thead><tbody>${marketRows}</tbody></table></div>
-      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px">${market.links.map(x => `<a href="#" class="btn btn-ghost" style="font-size:11px" data-act="open-url" data-arg="${esc(x.url)}">${esc(x.name)}${x.id ? ` · ID ${esc(x.id)}` : ''} ↗</a>`).join('')}</div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px">${product.sourceUrl ? `<a href="#" class="btn btn-ghost" style="font-size:11px" data-act="open-url" data-arg="${esc(product.sourceUrl)}">Official product details ↗</a>` : ''}${market.links.map(x => `<a href="#" class="btn btn-ghost" style="font-size:11px" data-act="open-url" data-arg="${esc(x.url)}">${esc(x.name)}${x.id ? ` · ID ${esc(x.id)}` : ''} ↗</a>`).join('')}</div>
       <details style="margin-top:12px"><summary style="cursor:pointer;font-size:12px;font-weight:700">All preserved identifiers</summary><pre style="font-size:11px;white-space:pre-wrap;color:var(--text-dim)">${esc(JSON.stringify(product.identifiers || {}, null, 2))}</pre></details>
       <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">${product.identifiers?.cardtraderId ? `<button class="btn btn-ghost" data-act="refreshSlCardTraderQuote" data-arg="${esc(drop)}">↻ CardTrader listings</button>` : ''}<button class="btn btn-ghost" data-act="showSlMarketQuoteModal" data-arg="${esc(drop)}">＋ Add market observation</button><button class="btn btn-primary" data-act="hideModal">Close</button></div>
     </div>`, 'xl');
@@ -301,7 +303,7 @@ export function showSlBundleLotModal() {
     itemsEl.innerHTML = rows.map((p, i) => `<label style="display:grid;grid-template-columns:auto 1fr 90px 90px;gap:9px;align-items:center;padding:8px 10px;border-top:${i ? '1px solid var(--border)' : '0'};font-size:12px">
       <input type="checkbox" class="sll-pick" data-uuid="${esc(p.uuid)}" checked>
       <span><strong>${esc(p.legacyDrop)}</strong><br><span style="color:var(--text-muted)">${esc(p.finishLabel || p.finish)} · ${p.cards.length} entries</span></span>
-      <span style="color:var(--text-muted)">MSRP ${money(slWikiMsrp(p.legacyDrop, p.finish))}</span>
+      <span style="color:var(--text-muted)">MSRP ${money(p.msrp ?? slWikiMsrp(p.legacyDrop, p.finish))}</span>
       <input type="number" class="sll-qty" min="1" value="1" title="Quantity">
     </label>`).join('') || '<div style="padding:14px;color:var(--text-muted)">No exact SKUs found.</div>';
   };
@@ -320,7 +322,7 @@ export function showSlBundleLotModal() {
     if (!selected.length) { toast('Select at least one SKU.', 'error'); return; }
     const total = subtotal + tax + shipping + fees;
     const method = document.getElementById('sll-method').value;
-    const weights = selected.map(x => method === 'msrp' ? (slWikiMsrp(x.product.legacyDrop, x.product.finish) || 1) * x.qty : x.qty);
+    const weights = selected.map(x => method === 'msrp' ? (x.product.msrp ?? slWikiMsrp(x.product.legacyDrop, x.product.finish) ?? 1) * x.qty : x.qty);
     const weightTotal = weights.reduce((a, b) => a + b, 0) || selected.length;
     let allocated = 0;
     const items = selected.map((x, i) => {

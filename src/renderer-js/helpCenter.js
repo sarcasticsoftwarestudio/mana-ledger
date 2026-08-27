@@ -252,6 +252,7 @@ export const HELP_GUIDES = [
       </section>
       <section class="help-section"><h3>Open a drop</h3>
         <p>Cards show exact printing and finish ownership. <b>Product Truth</b> explains the guaranteed contents, identifiers, source confidence, prices, and available history. <b>Exact Completion</b> checks required quantities and finishes; a normal copy does not complete a foil requirement. <b>Log bonus</b> records what you actually opened without pretending the bonus was guaranteed. <b>Watch</b> saves a local target. You can also add missing cards to the Want List.</p>
+        <p>Special Countdown products are included alongside normal drops. The 30th Anniversary kit tracks one card for each Magic year from 1993 through 2022, and An Encyclopedia of Magic tracks its 26 A–Z cards. Because the card finish varies inside these kits, either the exact normal or foil card completes its slot; a matching rare Encyclopedia Halo foil counts for the same letter, not as an extra required card.</p>
       </section>
       <section class="help-section"><h3>Refresh and personal corrections</h3>
         <p><b>Check for New Cards</b> refreshes exact products and contents, superdrop grouping and MSRP, the bonus-card catalog, and official launch articles. If one source has a bad day, Mana Ledger keeps its last good copy. Use <b>✎ Edit</b> to make a personal grouping fix or note; your correction stays local.</p>

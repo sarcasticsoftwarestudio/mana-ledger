@@ -40,6 +40,16 @@ describe('Secret Lair intelligence overlays', () => {
     expect(report.rows[0]).toMatchObject({ required: 2, owned: 1, missing: 1, wrongQty: 3 });
   });
 
+  it('accepts any finish and an alternate printing for a variable slot', () => {
+    setSlProducts([{ ...product, legacyDrop: 'Variable Kit', finish: 'mixed', variableFinish: true, cards: [
+      { scryfallId: 'base', alternateScryfallIds: ['halo'], name: 'Alpha', number: '1', finish: 'any', count: 1 },
+    ] }]);
+    const report = computeSlProductCompletion('Variable Kit', [
+      { scryfallId: 'halo', foil: 'foil', quantity: 1, status: 'owned' },
+    ]);
+    expect(report).toMatchObject({ required: 1, owned: 1, missing: 0, wrongFinish: 0, pct: 100 });
+  });
+
   it('turns allocated bundle cost and exact product quotes into P&L rows', () => {
     collection.slPurchaseLots = [{ id: 'lot', name: 'Bundle', acquiredAt: '2025-01-01', items: [{ productUuid: 'sku-1', dropName: 'Test Drop Foil', quantity: 2, status: 'sealed', allocatedCost: 54.32 }] }];
     tcgcsvCache.sealedProducts = [{ productId: 42, marketPrice: 80 }];

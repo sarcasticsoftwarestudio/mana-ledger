@@ -327,12 +327,14 @@ export function projectLegacy(model) {
 let slProducts = [];
 let productByDrop = new Map();           // legacyDrop lower → product
 let finishByDropCard = new Map();        // legacyDrop lower → Map(sid → finish)
+let idsByDropCard = new Map();           // legacyDrop lower → Map(any sid → equivalent product ids)
 let attribution = new Map();             // `${sid}|${finish}` → legacyDrop
 
 export function setSlProducts(products) {
   slProducts = Array.isArray(products) ? products : [];
   productByDrop = new Map();
   finishByDropCard = new Map();
+  idsByDropCard = new Map();
   attribution = new Map();
   for (const p of slProducts) {
     const lk = (p.legacyDrop || '').toLowerCase();
@@ -340,12 +342,24 @@ export function setSlProducts(products) {
     if (!productByDrop.has(lk)) productByDrop.set(lk, p);
     let fm = finishByDropCard.get(lk);
     if (!fm) { fm = new Map(); finishByDropCard.set(lk, fm); }
+    let im = idsByDropCard.get(lk);
+    if (!im) { im = new Map(); idsByDropCard.set(lk, im); }
     for (const c of (p.cards || [])) {
-      if (!fm.has(c.scryfallId)) fm.set(c.scryfallId, c.finish);
-      const key = `${c.scryfallId}|${c.finish}`;
-      // First product wins, except a confident product beats a lowConfidence one.
-      if (!attribution.has(key) || (attribution.get(key).lowConfidence && !p.lowConfidence)) {
-        attribution.set(key, p);
+      const ids = [...new Set([c.scryfallId, ...(c.alternateScryfallIds || [])].filter(Boolean))];
+      for (const sid of ids) {
+        if (!fm.has(sid)) fm.set(sid, c.finish);
+        im.set(sid, ids);
+        // Variable-finish products accept the exact printing in any finish.
+        // This is used by the Countdown kits, where each sealed slot may be
+        // normal or foil rather than belonging to a separate fixed-finish SKU.
+        const finishes = c.finish === 'any' ? ['nonfoil', 'foil', 'etched'] : [c.finish];
+        for (const finish of finishes) {
+          const key = `${sid}|${finish}`;
+          // First product wins, except a confident product beats a lowConfidence one.
+          if (!attribution.has(key) || (attribution.get(key).lowConfidence && !p.lowConfidence)) {
+            attribution.set(key, p);
+          }
+        }
       }
     }
   }
@@ -363,7 +377,16 @@ export function slProductForDrop(drop) {
 // null → model has no opinion (caller falls back to finish-blind matching).
 export function requiredFinishFor(drop, sid) {
   const fm = finishByDropCard.get((drop || '').toLowerCase());
-  return fm && fm.get(sid) || null;
+  const finish = fm && fm.get((sid || '').toLowerCase());
+  return finish && finish !== 'any' ? finish : null;
+}
+
+// Equivalent exact printings that can satisfy one product slot. Most rows
+// contain only their primary Scryfall ID; Encyclopedia rows also include the
+// corresponding rare Halo-foil printing without adding a second requirement.
+export function slProductCardIds(drop, sid) {
+  const im = idsByDropCard.get((drop || '').toLowerCase());
+  return im && im.get((sid || '').toLowerCase()) || [(sid || '').toLowerCase()].filter(Boolean);
 }
 
 // The drop an owned copy (sid + collection foil value) belongs to, per model.

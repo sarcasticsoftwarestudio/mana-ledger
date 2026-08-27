@@ -5,6 +5,7 @@ import { getCurrentMarketPrice, getCurrentPrice } from './prices.js';
 import { render } from './render.js';
 import { collection, ui } from './state.js';
 import { autoSave } from './storage.js';
+import { slProductCardIds } from './slData.js';
 import { esc, fmt, netFetch, toast, uid } from './utils.js';
 
 // Delegated actions for this tab (see dispatch.js). These need the element +
@@ -111,7 +112,7 @@ export function addDropMissingToWantList(drop) {
   let added = 0;
   for (const id of ids) {
     const lid = (id || '').toLowerCase();
-    if (ownedIds.has(lid) || wantItemByScryfall(lid)) continue;
+    if (slProductCardIds(drop, lid).some(sid => ownedIds.has(sid)) || wantItemByScryfall(lid)) continue;
     if (addSlCardToWantList(lid, { dropName: drop, silent: true })) added++;
   }
   render(); autoSave();

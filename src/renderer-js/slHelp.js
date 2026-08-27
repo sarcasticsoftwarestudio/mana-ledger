@@ -49,6 +49,7 @@ export function showSlDataGuide() {
           </tr></thead>
           <tbody>
             ${row('MTGJSON SLD', 'Product and contents backbone', 'Sealed SKU UUID/name/subtype/release date; all marketplace identifiers; sealedProduct → deck → exact MTGJSON card UUID/Scryfall ID/count/finish; subsets as coverage fallback.', 'Daily / manual')}
+            ${row('Official Countdown kits + Scryfall SLC', 'Released special-product contracts', 'The 2022 30th Anniversary and 2025 Encyclopedia guaranteed contents, release date and MSRP; exact SLC printings; variable normal/foil slots; Encyclopedia Halo foils as alternatives rather than extra required cards. Bonus rows stay excluded.', 'Built in')}
             ${row('Scryfall', 'Printing metadata and card prices', 'Exact printing, set and collector number; finish availability; USD/USD foil/USD etched and EUR prices; art, artist, promo/frame/full-art metadata; images and oracle data.', 'Bulk daily')}
             ${row('TCGCSV / TCGplayer', 'Sealed market pricing', 'Exact tcgplayerProductId join; market, low, mid, high, direct-low and subtype; product/group names, URL/image, presale and modification metadata.', 'Daily cache')}
             ${row('mtg.wiki Drop Series', 'Curated release structure', 'Superdrop grouping, release date, nonfoil MSRP, foil MSRP, and announced-but-unreleased rows.', 'With SL sync')}
@@ -69,6 +70,7 @@ export function showSlDataGuide() {
         <li><strong style="color:var(--text)">One row per purchasable SKU.</strong> Nonfoil, foil, rainbow foil, etched, and Commander products remain separate even when they share a base drop name.</li>
         <li><strong style="color:var(--text)">Relational contents.</strong> MTGJSON product deck references resolve to exact card UUIDs, then Scryfall printing IDs. Per-entry <code>isFoil</code> plus printing finishes determines the required finish and quantity.</li>
         <li><strong style="color:var(--text)">Exact ownership.</strong> A nonfoil copy cannot complete a foil SKU. P&amp;L and missing-card checks use Scryfall ID + finish, not card-name guesses.</li>
+        <li><strong style="color:var(--text)">Variable-finish kits stay variable.</strong> Countdown Kit cards can be normal or foil, so either finish completes its slot. The Encyclopedia’s matching Halo foil also completes that letter without increasing its 26-card requirement.</li>
         <li><strong style="color:var(--text)">Confidence is explicit.</strong> A product synthesized from subset tags is marked low-confidence. Collector-number sibling backfill repairs known orphan foil printings without rewriting the source.</li>
         <li><strong style="color:var(--text)">Enrichment stays separate.</strong> MSRP, official launch notes, bonus inserts and prices decorate products; they never silently mutate guaranteed contents.</li>
         <li><strong style="color:var(--text)">User observations stay separate too.</strong> Bundle cost allocations affect economic basis, while observed bonus pulls, watches and manual market quotes never rewrite sourced contents.</li>

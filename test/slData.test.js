@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { finishGroup, buildSlModel, projectLegacy } from '../src/renderer-js/slData.js';
+import { attributeDropFor, finishGroup, buildSlModel, projectLegacy, requiredFinishFor, setSlProducts, slProductCardIds } from '../src/renderer-js/slData.js';
 
 describe('finishGroup', () => {
   it('maps collection foil values to the model vocabulary', () => {
@@ -84,5 +84,17 @@ describe('projectLegacy — name-keyed maps for the renderer', () => {
   });
   it("routes the base printing's primary drop to the base SKU", () => {
     expect(legacy.scryfallToDrops['sid-base'][0]).toBe("Goblin & Squabblin'");
+  });
+});
+
+describe('variable-finish product slots', () => {
+  it('accepts either finish and treats alternate IDs as the same slot', () => {
+    setSlProducts([{ legacyDrop: 'Variable Kit', lowConfidence: false, cards: [{
+      scryfallId: 'base-id', alternateScryfallIds: ['halo-id'], finish: 'any', count: 1,
+    }] }]);
+    expect(requiredFinishFor('Variable Kit', 'base-id')).toBeNull();
+    expect(slProductCardIds('Variable Kit', 'halo-id')).toEqual(['base-id', 'halo-id']);
+    expect(attributeDropFor('base-id', 'normal')).toBe('Variable Kit');
+    expect(attributeDropFor('halo-id', 'foil')).toBe('Variable Kit');
   });
 });

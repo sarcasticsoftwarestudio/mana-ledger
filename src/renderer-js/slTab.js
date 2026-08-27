@@ -4,7 +4,8 @@ import { hideModal, showModal } from './modals.js';
 import { fetchScryfallBatch, fetchCheapestPrints } from './prices.js';
 import { render } from './render.js';
 import { searchTcgcsvLocal } from './sealedPricing.js';
-import { attributeDropFor, buildSlModel, finishGroup, projectLegacy, requiredFinishFor, setSlProducts, slDropModelFinish, slProductForDrop } from './slData.js';
+import { attributeDropFor, buildSlModel, finishGroup, projectLegacy, requiredFinishFor, setSlProducts, slDropModelFinish, slProductCardIds, slProductForDrop } from './slData.js';
+import { mergeSlCountdownProducts, slCountdownGroupFor } from './slCountdown.js';
 import { refreshSlWikiData, slWikiGroupFor, slWikiMsrp, slWikiRowFor } from './slWiki.js';
 import { refreshSlBonusData, slBonusCardsForDrop } from './slBonus.js';
 import { refreshSlAnnouncements, slAnnouncements } from './slAnnouncements.js';
@@ -106,13 +107,19 @@ function rebuildSlGrouping() {
   }
   // Wiki grouping for drops the baked dataset doesn't know yet — fresh drops
   // that would otherwise pile into "Recent Additions" until the next re-bake.
-  const wikiSdDate = {};
+  const sourcedSdDate = {};
   for (const [drop, sdName] of Object.entries(home)) {
+    const special = slCountdownGroupFor(drop);
+    if (special) {
+      home[drop] = special.superdrop;
+      sourcedSdDate[special.superdrop] = special.date;
+      continue;
+    }
     if (sdName && sdName !== 'Recent Additions') continue;
     const g = slWikiGroupFor(drop);
     if (g && g.superdrop) {
       home[drop] = g.superdrop;
-      if (g.date && (!wikiSdDate[g.superdrop] || g.date < wikiSdDate[g.superdrop])) wikiSdDate[g.superdrop] = g.date;
+      if (g.date && (!sourcedSdDate[g.superdrop] || g.date < sourcedSdDate[g.superdrop])) sourcedSdDate[g.superdrop] = g.date;
     }
   }
   // apply this user's reassignments
@@ -121,7 +128,7 @@ function rebuildSlGrouping() {
   }
   const bySd = {};
   for (const [drop, sdName] of Object.entries(home)) {
-    if (!bySd[sdName]) bySd[sdName] = { superdrop: sdName, date: slBaseDate[sdName] || wikiSdDate[sdName] || '', drops: [] };
+    if (!bySd[sdName]) bySd[sdName] = { superdrop: sdName, date: slBaseDate[sdName] || sourcedSdDate[sdName] || '', drops: [] };
     bySd[sdName].drops.push(drop);
   }
   const arr = Object.values(bySd).sort((a, b) =>
@@ -290,7 +297,7 @@ export async function refreshSlData() {
     // Known drop names only help restore canonical punctuation for products
     // whose base spelling MTGJSON's subsets don't cover.
     const knownDrops = typeof SL_DROP_TO_SUPERDROP !== 'undefined' ? Object.keys(SL_DROP_TO_SUPERDROP) : [];
-    const model = buildSlModel(json, { knownDrops });
+    const model = mergeSlCountdownProducts(buildSlModel(json, { knownDrops }));
     const legacy = projectLegacy(model);
 
     // Make the refresh authoritative: clear the previous derived maps (including the
@@ -357,9 +364,11 @@ function slCollectorSortKey(num) {
 export function slCardTile(scryfallId, numLabel, requiredFinish, options = {}) {
   const id = scryfallId.toLowerCase();
   const img = `https://cards.scryfall.io/normal/front/${id[0]}/${id[1]}/${id}.jpg`;
-  const ownedPrintings = ownedCards().filter(c => c.scryfallId === scryfallId
+  const acceptableIds = new Set(options.drop ? slProductCardIds(options.drop, id) : [id]);
+  const ownedPrintings = ownedCards().filter(c => acceptableIds.has((c.scryfallId || '').toLowerCase())
     && (!requiredFinish || finishGroup(c.foil) === requiredFinish));
   const owned = ownedPrintings.length > 0;
+  const actionId = (ownedPrintings[0]?.scryfallId || scryfallId).toLowerCase();
   const totalQty = ownedPrintings.reduce((s, c) => s + (c.quantity || 1), 0);
   const val = owned ? cardCurrentValue(ownedPrintings[0]) : null;
   const note = slCardNote(scryfallId);
@@ -371,8 +380,8 @@ export function slCardTile(scryfallId, numLabel, requiredFinish, options = {}) {
     ? `Owned (qty: ${totalQty})`
     : (wanted ? 'On your want list' : 'Not in collection')) + (numLabel ? ` · #${numLabel}` : '');
   return `
-    <div class="gallery-card${owned ? ' sl-card-owned' : (sourcedPreview ? ' sl-card-preview' : ' sl-card-missing')}${wanted ? ' sl-card-wanted' : ''}" data-sl-card="${esc(scryfallId)}"
-      data-slact="card-modal" data-arg="${esc(scryfallId)}"${tooltip ? ` title="${esc(tooltip)}"` : ''}>
+    <div class="gallery-card${owned ? ' sl-card-owned' : (sourcedPreview ? ' sl-card-preview' : ' sl-card-missing')}${wanted ? ' sl-card-wanted' : ''}" data-sl-card="${esc(actionId)}"
+      data-slact="card-modal" data-arg="${esc(actionId)}"${tooltip ? ` title="${esc(tooltip)}"` : ''}>
       <img src="${esc(img)}" alt="" loading="lazy"
         data-imgerr="hide-card"
         style="${owned || sourcedPreview ? '' : 'filter:grayscale(60%) brightness(0.65)'}">
@@ -434,10 +443,11 @@ export function computeDropPnL() {
   // Sold copies have left the collection, so they no longer count toward value.
   for (const c of ownedCards()) {
     if (!c.scryfallId) continue;
-    const drops = SL_SCRYFALL_TO_DROPS[c.scryfallId];
-    if (!drops || !drops.length) continue;
     const attributed = attributeDropFor(c.scryfallId, c.foil);
-    const r = get(attributed && drops.includes(attributed) ? attributed : drops[0]);
+    const drops = SL_SCRYFALL_TO_DROPS[c.scryfallId] || [];
+    if (!attributed && !drops.length) continue;
+    const selectedDrop = attributed && (!drops.length || drops.includes(attributed)) ? attributed : drops[0];
+    const r = get(selectedDrop);
     const v = cardCurrentValue(c);
     r.value += v ?? 0;
     r.singlesQty += c.quantity || 1;
@@ -483,8 +493,8 @@ export function computeDropPnL() {
     const costIsDefault = !(r.sealedCost > 0);
     let cost = r.sealedCost;
     if (costIsDefault) {
-      const wiki = slWikiMsrp(r.drop, dropFinish(r.drop));
-      cost = wiki != null && wiki >= SL_WIKI_MSRP_MIN ? wiki : slMsrpDefault(r.anyFoil);
+      const sourced = slProductForDrop(r.drop)?.msrp ?? slWikiMsrp(r.drop, dropFinish(r.drop));
+      cost = sourced != null && sourced >= SL_WIKI_MSRP_MIN ? sourced : slMsrpDefault(r.anyFoil);
     }
     const gain = r.value - cost;
     return { ...r, cost, costIsDefault, gain, gainPct: cost > 0 ? (gain / cost) * 100 : null };
@@ -1110,7 +1120,10 @@ export function renderSlViewer() {
   // needs for this printing; no opinion → finish-blind (today's behavior).
   const ownsInDrop = (drop, id) => {
     const required = requiredFinishFor(drop, id);
-    return required ? ownedFinishKeys.has(`${id}|${required}`) : ownedIds.has(id);
+    const acceptableIds = slProductCardIds(drop, id);
+    return required
+      ? acceptableIds.some(sid => ownedFinishKeys.has(`${sid}|${required}`))
+      : acceptableIds.some(sid => ownedIds.has(sid));
   };
   // SLD-set names the user owns somewhere — only used as a *drop count* fallback
   // for the rare case where a drop's card list contains a name that has no
@@ -1265,7 +1278,7 @@ export function renderSlViewer() {
     const rows = drops.map(drop => {
       const stats = dropOwnedNameStats(drop);
       const date = slDropReleaseDate(drop);
-      const msrp = slWikiMsrp(drop, dropFinish(drop));
+      const msrp = slProductForDrop(drop)?.msrp ?? slWikiMsrp(drop, dropFinish(drop));
       const note = slDropNote(drop);
       return `
         <tr data-slact="open-drop" data-arg="${esc(drop)}" style="cursor:pointer">
@@ -1714,7 +1727,7 @@ export function renderSlViewer() {
       ${pnlBanner}
       ${dropEconomicsBanner(sv.drop)}
       <div class="gallery-grid">
-        ${shown.map(scryfallId => slCardTile(scryfallId, undefined, requiredFinishFor(sv.drop, scryfallId))).join('')}
+        ${shown.map(scryfallId => slCardTile(scryfallId, undefined, requiredFinishFor(sv.drop, scryfallId), { drop: sv.drop })).join('')}
       </div>
       ${hasMore ? `<div style="text-align:center;padding:28px 0">
         <button class="btn btn-primary" data-act="ui-inc" data-path="slViewer.page">Load more — ${(cardIds.length - shown.length).toLocaleString()} remaining</button>
