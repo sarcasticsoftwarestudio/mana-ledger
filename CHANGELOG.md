@@ -12,6 +12,9 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+### Fixed
+- **The Mana Ledger Guide now keeps its topic list and article side by side.** The app's main-window layout no longer pushes Help articles into a second row, eliminating the large blank area and truncated navigation shown at common desktop window sizes.
+
 ## [1.7.10] - 2026-08-27
 
 ### Added

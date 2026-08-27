@@ -49,6 +49,8 @@ globalThis.requestAnimationFrame = callback => callback();
     settingsSized: /showModal\([\s\S]*'settings'\);/.test((await fs.promises.readFile(path.join(__dirname, '..', 'src', 'renderer-js', 'helpCenter.js'), 'utf8'))),
     constrainedLayout: /\.help-app\s*\{[^}]*height:\s*100%/s.test(styles),
     scrollableArticle: /\.help-stage\s*\{[^}]*overflow-y:\s*auto/s.test(styles),
+    articleIgnoresAppMainGridArea: /\.help-stage\s*\{[^}]*grid-area:\s*auto[^}]*grid-column:\s*2[^}]*grid-row:\s*1/s.test(styles),
+    singleRowHelpGrid: /\.help-layout\s*\{[^}]*grid-template-rows:\s*minmax\(0,1fr\)/s.test(styles),
     responsiveNavigation: /@media \(max-width:760px\)[\s\S]*\.help-layout\s*\{[^}]*grid-template-columns:\s*92px/s.test(styles),
   };
   if (!Object.values(initialChecks).every(Boolean)) throw new Error(`Initial Help Center checks failed: ${JSON.stringify(initialChecks)}`);
