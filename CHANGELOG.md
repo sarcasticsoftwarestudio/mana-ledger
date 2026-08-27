@@ -12,6 +12,8 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+## [1.7.9] - 2026-08-27
+
 ### Added
 - **Upcoming special Secret Lair set codes now appear automatically.** Mana Ledger checks the official Secret Lair storefront, conservatively matches upcoming products to Scryfall's set catalog, and loads verified standalone codes such as The Zeta Set's `SLZ`. These releases use an honest set-gallery view that never treats a randomized or otherwise variable product as if every card came in one purchase.
 
