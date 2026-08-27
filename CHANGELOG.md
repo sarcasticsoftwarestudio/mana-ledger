@@ -12,6 +12,8 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+## [1.7.15] - 2026-08-27
+
 ### Fixed
 - **Upcoming Secret Lair announcements now include every structured drop, even when its heading omits “Secret Lair.”** Artist Series, Featuring, and creatively named drops such as Cosmic Chill are parsed alongside collaboration drops, with their announced card lists and official preview artwork intact.
 
