@@ -370,12 +370,27 @@ function gallerySetCode(code) {
   return value.startsWith('sld-') ? 'sld' : value;
 }
 
-export function slGalleryCatalog() {
+export function slGalleryCatalog(upcomingGroups = slUpcomingGroups()) {
   const rows = new Map();
+  const mergeCard = candidate => {
+    const id = String(candidate?.id || '').toLowerCase();
+    if (!id) return;
+    const current = rows.get(id);
+    rows.set(id, current ? {
+      ...candidate,
+      ...current,
+      name: current.name || candidate.name,
+      num: current.num || candidate.num,
+      setCode: current.setCode || candidate.setCode,
+      setName: current.setName || candidate.setName,
+      releasedAt: current.releasedAt || candidate.releasedAt,
+      preview: !!(current.preview || candidate.preview),
+    } : { ...candidate, id });
+  };
   const names = typeof SL_SCRYFALL_TO_NAME !== 'undefined' ? SL_SCRYFALL_TO_NAME : {};
   const numbers = typeof SL_SCRYFALL_TO_NUMBER !== 'undefined' ? SL_SCRYFALL_TO_NUMBER : {};
   for (const [id, name] of Object.entries(names)) {
-    rows.set(id.toLowerCase(), {
+    mergeCard({
       id: id.toLowerCase(), name, num: String(numbers[id] || ''), setCode: 'sld',
       setName: SL_GALLERY_SET_NAMES.sld, preview: false,
     });
@@ -390,7 +405,27 @@ export function slGalleryCatalog() {
         setName: set.name || SL_GALLERY_SET_NAMES[setCode] || setCode.toUpperCase(),
         releasedAt: card.releasedAt || '', preview: !!set.preview,
       };
-      if (!rows.has(id)) rows.set(id, candidate);
+      mergeCard(candidate);
+    }
+  }
+  // Upcoming exact cards can advance independently of the supplemental
+  // catalog. Merge the same exact Scryfall-backed cards used by By Superdrop so
+  // Gallery cannot lag behind when a set search, announcement sync, or cached
+  // source updates first. Reference printings and source-only artwork are not
+  // group.cards, so they remain correctly excluded from the SL set catalog.
+  for (const group of (Array.isArray(upcomingGroups) ? upcomingGroups : [])) {
+    for (const card of (Array.isArray(group?.cards) ? group.cards : [])) {
+      const setCode = gallerySetCode(card.setCode || group.setCode);
+      if (!setCode) continue;
+      mergeCard({
+        id: card.id,
+        name: card.flavorName || card.name || '',
+        num: String(card.collectorNumber || ''),
+        setCode,
+        setName: group.setName || SL_GALLERY_SET_NAMES[setCode] || `${setCode.toUpperCase()} preview`,
+        releasedAt: card.releasedAt || group.releaseDate || '',
+        preview: true,
+      });
     }
   }
   return [...rows.values()];

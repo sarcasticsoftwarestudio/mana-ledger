@@ -21,14 +21,25 @@ const ANNOUNCEMENTS = Array.from({ length: 6 }, (_, i) => ({
 }));
 const UPCOMING = { fetchedAt: '2026-07-22', cards: [{
   id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', name: 'Future Card', releasedAt: '2099-08-10',
-  collectorNumber: '9999', finishes: ['nonfoil'], imageUri: 'https://cards.scryfall.io/normal/front/a/a/a.jpg',
+  collectorNumber: '9999', finishes: ['nonfoil'], setCode: 'sld', imageUri: 'https://cards.scryfall.io/normal/front/a/a/a.jpg',
+}, {
+  id: '77777777-7777-4777-8777-777777777777', name: 'Path to Exile', releasedAt: '2099-09-02',
+  collectorNumber: '7', finishes: ['nonfoil'], setCode: 'slz', imageUri: 'https://cards.scryfall.io/normal/front/7/7/7.jpg',
 }] };
+const STOREFRONT = {
+  fetchedAt: '2026-07-22', products: [{ title: 'Secret Lair x Example: Future Set', id: 'future_set' }],
+  specialSets: [{
+    code: 'slz', name: 'The Zeta Set', releasedAt: '2099-09-02', setType: 'box', cardCount: 271,
+    storeTitle: 'Secret Lair x Example: Future Set', storeUrl: 'https://secretlair.wizards.com/us/#future_set',
+  }],
+};
 globalThis.window = {
   addEventListener: noop,
   api: { settings: { get: async k => k === 'sl_wiki_data'
     ? JSON.stringify({ fetchedAt: '2026-07-19', rows: WIKI_ROWS })
     : k === 'sl_announcement_data' ? JSON.stringify({ fetchedAt: '2026-07-20', rows: ANNOUNCEMENTS })
-    : k === 'sl_upcoming_data' ? JSON.stringify(UPCOMING) : null, set: async () => {} } },
+    : k === 'sl_upcoming_data' ? JSON.stringify(UPCOMING)
+    : k === 'sl_storefront_data' ? JSON.stringify(STOREFRONT) : null, set: async () => {} } },
 };
 globalThis.document = {
   addEventListener: noop, getElementById: () => null, querySelectorAll: () => [],
@@ -128,7 +139,7 @@ const check = (label, cond, detail) => {
   Object.assign(sv, { view: 'upcoming', upcomingDrop: '', search: '' });
   const uv = renderSlViewer();
   check('upcoming view renders an official drop with exact Scryfall coverage',
-    uv.includes('Explore upcoming Secret Lairs') && uv.includes('Future Preview Drop') && uv.includes('<strong>1</strong> exact preview ID'));
+    uv.includes('Explore upcoming Secret Lairs') && uv.includes('Future Preview Drop') && uv.includes('1 exact'));
   sv.upcomingDrop = 'Future Preview Drop';
   const ud = renderSlViewer();
   check('upcoming drop reuses the card gallery with a preview printing',
@@ -173,10 +184,11 @@ const check = (label, cond, detail) => {
 
   Object.assign(sv, { gallerySet: 'slz', search: '' });
   const slzGallery = renderSlViewer();
-  check('SLZ filter shows all 270 Zeta previews and keeps preview treatment',
-    (slzGallery.match(/data-sl-card=/g) || []).length === 270
-      && (slzGallery.match(/>SLZ #/g) || []).length === 270
-      && (slzGallery.match(/sl-card-preview/g) || []).length >= 270);
+  check('SLZ filter merges live upcoming cards beyond the 270-card baked snapshot',
+    (slzGallery.match(/data-sl-card=/g) || []).length === 271
+      && (slzGallery.match(/>SLZ #/g) || []).length === 271
+      && slzGallery.includes('SLZ #7')
+      && (slzGallery.match(/sl-card-preview/g) || []).length >= 271);
 
   Object.assign(sv, { view: 'promos', search: '', page: 0 });
   const promos = renderSlViewer();
