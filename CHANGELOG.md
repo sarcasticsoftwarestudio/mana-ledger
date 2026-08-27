@@ -12,6 +12,8 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+## [1.7.12] - 2026-08-27
+
 ### Added
 - **The Secret Lair Explorer now includes both released Countdown kits.** The 2022 30th Anniversary Countdown Kit and 2025 An Encyclopedia of Magic appear in their proper chronology with official guaranteed contents, release dates, and MSRPs. Completion accepts each kit's variable normal or foil cards, treats rare Encyclopedia Halo foils as alternatives for the same A–Z slots, and excludes separately listed bonus cards.
 
