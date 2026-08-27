@@ -5,7 +5,8 @@ import { fetchScryfallBatch, fetchCheapestPrints } from './prices.js';
 import { render } from './render.js';
 import { searchTcgcsvLocal } from './sealedPricing.js';
 import { attributeDropFor, buildSlModel, finishGroup, projectLegacy, requiredFinishFor, setSlProducts, slDropModelFinish, slProductCardIds, slProductForDrop } from './slData.js';
-import { mergeSlCountdownProducts, slCountdownGroupFor } from './slCountdown.js';
+import { mergeSlSpecialProducts, slSpecialGroupFor } from './slSpecialProducts.js';
+import { refreshSlSupplementalData, slSupplementalBundles, slSupplementalInfo, slSupplementalSets } from './slSupplemental.js';
 import { refreshSlWikiData, slWikiGroupFor, slWikiMsrp, slWikiRowFor } from './slWiki.js';
 import { refreshSlBonusData, slBonusCardsForDrop } from './slBonus.js';
 import { refreshSlAnnouncements, slAnnouncements } from './slAnnouncements.js';
@@ -55,6 +56,7 @@ const SL_ACTIONS = {
   'add-owned':      a => { if (typeof window !== 'undefined' && window.showAddOwnedCardModal) window.showAddOwnedCardModal(a); },
   'open-printings': a => { if (typeof window !== 'undefined' && window.openPrintingsTab) window.openPrintingsTab(a); },
   'open-precon':    a => { hideModal(); ui.precons.line = ''; ui.precons.deck = a; ui.activeTab = 'precons'; render(); },
+  'open-sl-bundle': a => showSlBundleCatalogDetail(a),
 };
 
 // Bound once at startup (renderer main.js); delegation on document reaches
@@ -109,7 +111,7 @@ function rebuildSlGrouping() {
   // that would otherwise pile into "Recent Additions" until the next re-bake.
   const sourcedSdDate = {};
   for (const [drop, sdName] of Object.entries(home)) {
-    const special = slCountdownGroupFor(drop);
+    const special = slSpecialGroupFor(drop);
     if (special) {
       home[drop] = special.superdrop;
       sourcedSdDate[special.superdrop] = special.date;
@@ -283,6 +285,7 @@ export async function refreshSlData() {
     const resp = await netFetch(SLD_URL);
     if (!resp.ok) throw new Error(`HTTP ${resp.status} from mtgjson.com`);
     const json = await resp.json();
+    const supplementalRefresh = refreshSlSupplementalData({ silent: true, mtgjson: json });
     window.logger?.success('SL', 'Fetched SLD.json from mtgjson.com');
     // MTGJSON v5 set files are shaped as { data: { code, name, cards: [...], tokens: [...], ... } }
     // — the actual card list lives at data.cards, NOT Object.values(data).
@@ -297,7 +300,7 @@ export async function refreshSlData() {
     // Known drop names only help restore canonical punctuation for products
     // whose base spelling MTGJSON's subsets don't cover.
     const knownDrops = typeof SL_DROP_TO_SUPERDROP !== 'undefined' ? Object.keys(SL_DROP_TO_SUPERDROP) : [];
-    const model = mergeSlCountdownProducts(buildSlModel(json, { knownDrops }));
+    const model = mergeSlSpecialProducts(buildSlModel(json, { knownDrops }));
     const legacy = projectLegacy(model);
 
     // Make the refresh authoritative: clear the previous derived maps (including the
@@ -313,7 +316,7 @@ export async function refreshSlData() {
     }
     applySlDataUpdate(legacy.dropCards, legacy.scryfallToDrops, legacy.scryfallToName);
     setSlProducts(model.products);   // finish-aware registry (ownership, P&L, pricing)
-    await enrichmentRefresh; // grouping + MSRP + context, before regrouping
+    await Promise.all([enrichmentRefresh, supplementalRefresh]); // grouping + MSRP + context, before regrouping
     rebuildSlGrouping(); // re-apply this user's local grouping edits on top of the refreshed data
     await saveSlDataToCache(legacy.dropCards, legacy.scryfallToDrops, legacy.scryfallToName, model.products);
 
@@ -321,7 +324,7 @@ export async function refreshSlData() {
     toast(`SL data updated — ${drops} drops, ${cards.length} cards`, 'success');
     window.logger?.success('SL', `Updated: ${model.products.length} products across ${drops} drops · ${cards.length.toLocaleString()} cards · ${Object.keys(legacy.scryfallToDrops).length.toLocaleString()} mapped printings`);
   } catch (e) {
-    await enrichmentRefresh;
+    await Promise.all([enrichmentRefresh, refreshSlSupplementalData({ silent: true })]);
     rebuildSlGrouping();
     toast(`Failed to refresh SL data: ${e.message}`, 'error');
     window.logger?.error('SL', `Refresh failed: ${e.message}`);
@@ -1101,6 +1104,105 @@ function slDropReleaseDate(drop) {
   return (p && p.releaseDate) || '';
 }
 
+function bundleContentsCount(bundle) {
+  const contents = bundle?.contents || {};
+  return ['cards', 'sealed', 'variable', 'other'].reduce((n, key) => n + (contents[key] || []).length, 0);
+}
+
+export function showSlBundleCatalogDetail(uuid) {
+  const bundle = slSupplementalBundles().find(row => row.uuid === uuid);
+  if (!bundle) { toast('That bundle is not in the current catalog.', 'info'); return; }
+  const contents = bundle.contents || {};
+  const section = (title, rows, renderRow) => rows?.length ? `
+    <section style="margin-top:13px"><h3 style="font-size:13px;margin:0 0 7px">${title} · ${rows.length}</h3>
+      <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">${rows.map((row, index) => `
+        <div style="padding:8px 10px;border-top:${index ? '1px solid var(--border)' : '0'};font-size:12px">${renderRow(row)}</div>`).join('')}</div>
+    </section>` : '';
+  const tcgId = bundle.identifiers?.tcgplayerProductId;
+  showModal(`
+    <div style="max-width:900px">
+      <div style="font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--accent2)">Secret Lair bundle catalog</div>
+      <h2 style="margin:4px 0 5px">${esc(bundle.name)}</h2>
+      <p style="margin:0;color:var(--text-muted);font-size:12px">${esc(bundle.releaseDate || 'Release date unavailable')} · ${bundleContentsCount(bundle) ? 'Known components from MTGJSON' : 'Product identity only; structured contents are not published in this catalog'}</p>
+      <div style="margin-top:12px;padding:10px 12px;background:var(--surface);border-left:3px solid var(--accent2);border-radius:7px;font-size:12px;color:var(--text-dim);line-height:1.5">
+        Bundles can contain other sealed drops, promotional cards, booster products, or variable items. This page reports the sourced package record and does not turn every component into a separate required Secret Lair completion target.
+      </div>
+      ${section('Directly listed cards', contents.cards, row => `<strong>${esc(row.name)}</strong> <span style="color:var(--text-muted)">×${row.count || 1} · ${esc(row.setCode || '?')} #${esc(row.number || '?')}${row.finishes?.length ? ` · ${esc(row.finishes.join('/'))}` : ''}</span>`)}
+      ${section('Included sealed products', contents.sealed, row => `<strong>${esc(row.name)}</strong> <span style="color:var(--text-muted)">×${row.count || 1}${row.setCode ? ` · ${esc(row.setCode)}` : ''}</span>`)}
+      ${section('Variable contents', contents.variable, row => `<strong>${esc(row.name)}</strong> <span style="color:var(--text-muted)">×${row.count || 1}</span>`)}
+      ${section('Other contents', contents.other, row => `<strong>${esc(row.name)}</strong> <span style="color:var(--text-muted)">×${row.count || 1}</span>`)}
+      <details style="margin-top:13px"><summary style="cursor:pointer;font-size:12px;font-weight:700">Catalog identifiers</summary><pre style="font-size:11px;white-space:pre-wrap;color:var(--text-dim)">${esc(JSON.stringify(bundle.identifiers || {}, null, 2))}</pre></details>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+        ${tcgId ? `<a href="#" class="btn btn-ghost" data-act="open-url" data-arg="https://www.tcgplayer.com/product/${esc(tcgId)}">Open TCGplayer ↗</a>` : ''}
+        <button class="btn btn-primary" data-act="hideModal">Close</button>
+      </div>
+    </div>`, 'xl');
+}
+
+function renderSlPromosView() {
+  const sets = slSupplementalSets();
+  const q = String(ui.slViewer.search || '').trim().toLowerCase();
+  const ownedIds = new Set(ownedCards().map(card => String(card.scryfallId || '').toLowerCase()).filter(Boolean));
+  const sections = sets.map(set => {
+    const cards = (set.cards || []).filter(card => !q || [card.name, card.collectorNumber, card.setCode, card.artist, ...(card.promoTypes || [])]
+      .some(value => String(value || '').toLowerCase().includes(q)));
+    if (q && !cards.length && ![set.name, set.code, set.description].some(value => String(value || '').toLowerCase().includes(q))) return '';
+    const visible = q ? cards : (set.cards || []);
+    const owned = visible.filter(card => ownedIds.has(card.id)).length;
+    return `
+      <section style="margin:0 0 16px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px">
+        <header style="display:flex;gap:14px;align-items:flex-start;margin-bottom:12px">
+          <div style="flex:1"><div style="font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--accent2)">${esc(set.code.toUpperCase())} · ${esc(set.kind)}</div>
+            <h3 style="margin:3px 0 5px;font-size:17px">${esc(set.name)}</h3><p style="margin:0;color:var(--text-muted);font-size:12px;line-height:1.5">${esc(set.description)}</p></div>
+          <div style="text-align:right;font-size:12px;color:var(--text-muted);white-space:nowrap"><strong style="color:var(--text)">${visible.length}</strong> cards · ${owned} owned<br><a href="#" data-act="open-url" data-arg="${esc(set.sourceUrl)}">Open source ↗</a></div>
+        </header>
+        ${visible.length ? `<div class="gallery-grid">${visible.map(card => slCardTile(card.id, card.collectorNumber)).join('')}</div>` : '<div style="padding:16px;color:var(--text-muted)">No cards in this section match your search.</div>'}
+      </section>`;
+  }).join('');
+  const info = slSupplementalInfo();
+  return `
+    <section style="height:100%;overflow:auto;padding-right:3px">
+      <header style="margin-bottom:12px"><div style="font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--accent2)">Collector side catalogs</div>
+        <h2 style="margin:4px 0 6px">Promos, memorabilia, and related releases</h2>
+        <p style="margin:0;color:var(--text-muted);font-size:12px;line-height:1.55">${info.cards} exact printings across ${info.sets} clearly separated catalogs. Ownership is exact-printing aware, but these cards never inflate drop completion or guaranteed singles values.</p></header>
+      <div style="display:flex;gap:8px;margin-bottom:14px"><input type="text" id="slPromoSearch" placeholder="Search promo name, collector number, code, artist, or type…" value="${esc(ui.slViewer.search || '')}" data-act="ui-set" data-path="slViewer.search" data-refocus="slPromoSearch" style="flex:1;min-width:180px;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text)">${ui.slViewer.search ? '<button class="btn btn-ghost" data-act="ui-set" data-path="slViewer.search" data-val="">Clear</button>' : ''}</div>
+      ${sections || '<div style="padding:30px;text-align:center;color:var(--text-muted)">No supplemental cards match this search.</div>'}
+    </section>`;
+}
+
+function renderSlBundlesView() {
+  const sv = ui.slViewer;
+  const q = String(sv.search || '').trim().toLowerCase();
+  let bundles = slSupplementalBundles().filter(bundle => !q || [bundle.name, bundle.releaseDate, ...Object.values(bundle.identifiers || {}),
+    ...(bundle.contents?.cards || []).map(row => row.name), ...(bundle.contents?.sealed || []).map(row => row.name)]
+    .some(value => String(value || '').toLowerCase().includes(q)));
+  bundles = [...bundles].sort((a, b) => String(b.releaseDate || '').localeCompare(String(a.releaseDate || '')) || a.name.localeCompare(b.name));
+  const pageSize = 100;
+  const shown = bundles.slice(0, (sv.page + 1) * pageSize);
+  const festivalCount = slSupplementalBundles().filter(bundle => /festival in a box/i.test(bundle.name)).length;
+  const rows = shown.map(bundle => {
+    const directCards = bundle.contents?.cards?.length || 0;
+    const sealed = bundle.contents?.sealed?.length || 0;
+    const known = bundleContentsCount(bundle);
+    return `<tr data-slact="open-sl-bundle" data-arg="${esc(bundle.uuid)}" style="cursor:pointer;border-top:1px solid var(--border)">
+      <td style="padding:9px 10px"><strong>${esc(bundle.name)}</strong><div style="font-size:11px;color:var(--text-muted)">${/festival in a box/i.test(bundle.name) ? 'Festival in a Box' : 'Secret Lair bundle'}${bundle.identifiers?.tcgplayerProductId ? ` · TCGplayer ${esc(bundle.identifiers.tcgplayerProductId)}` : ''}</div></td>
+      <td style="padding:9px 10px;white-space:nowrap">${esc(bundle.releaseDate || '—')}</td>
+      <td style="padding:9px 10px;text-align:center">${known ? `${directCards} card${directCards === 1 ? '' : 's'} · ${sealed} sealed` : '<span style="color:var(--text-muted)">Not structured</span>'}</td>
+      <td style="padding:9px 10px;text-align:right;color:var(--accent2);font-weight:700">Details →</td>
+    </tr>`;
+  }).join('');
+  return `
+    <section style="height:100%;display:flex;flex-direction:column;min-height:0">
+      <header style="flex:0 0 auto;margin-bottom:12px"><div style="font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--accent2)">Composite product catalog</div>
+        <h2 style="margin:4px 0 6px">Bundles and Festival in a Box</h2>
+        <p style="margin:0;color:var(--text-muted);font-size:12px;line-height:1.55">${slSupplementalBundles().length} Secret Lair-branded bundle records, including ${festivalCount} Festival-in-a-Box products. Nested drops, direct promos, and variable components remain package information—not invented completion targets.</p>
+        <div style="display:flex;gap:8px;margin-top:11px"><input type="text" id="slBundleSearch" placeholder="Search bundle, included product, date, or marketplace ID…" value="${esc(sv.search || '')}" data-act="ui-set" data-path="slViewer.search" data-refocus="slBundleSearch" style="flex:1;min-width:180px;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text)">${sv.search ? '<button class="btn btn-ghost" data-act="ui-set" data-path="slViewer.search" data-val="">Clear</button>' : ''}</div>
+      </header>
+      <div style="flex:1 1 auto;min-height:0;overflow:auto;border:1px solid var(--border);border-radius:9px"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="position:sticky;top:0;background:var(--surface2);z-index:1"><th style="padding:8px 10px;text-align:left">Product</th><th style="padding:8px 10px;text-align:left">Released</th><th style="padding:8px 10px">Known package contents</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="4" style="padding:30px;text-align:center;color:var(--text-muted)">No bundles match this search.</td></tr>'}</tbody></table>
+        ${shown.length < bundles.length ? `<div style="padding:16px;text-align:center"><button class="btn btn-ghost" data-act="ui-inc" data-path="slViewer.page">Load ${Math.min(pageSize, bundles.length - shown.length)} more</button></div>` : ''}</div>
+    </section>`;
+}
+
 export function renderSlViewer() {
   const sv = ui.slViewer;
   const upcomingEnabled = upcomingSecretLairsEnabled();
@@ -1358,10 +1460,12 @@ export function renderSlViewer() {
     const b = (id, label) => `<button class="btn ${v === id ? 'btn-primary' : 'btn-ghost'}" style="font-size:12px" data-act="ui-set" data-path="slViewer.view" data-val="${id}" data-also="slViewer.page=0">${label}</button>`;
     const upcomingCount = upcomingEnabled ? slUpcomingGroups().length : 0;
     const upcomingButton = upcomingEnabled ? b('upcoming', `Upcoming${upcomingCount ? ` · ${upcomingCount}` : ''}`) : '';
-    return `<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">${b('drops', '📦 By Superdrop')}${upcomingButton}${b('collector', '🔢 By Collector №')}${b('pnl', '💰 P&L')}${b('index', '📈 Index')}${b('intel', '🧠 Intelligence')}${b('announcements', '📣 Announcements')}</div>`;
+    return `<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">${b('drops', '📦 By Superdrop')}${upcomingButton}${b('collector', '🔢 By Collector №')}${b('promos', '🎟 Promos & Related')}${b('bundles', '🧰 Bundles')}${b('pnl', '💰 P&L')}${b('index', '📈 Index')}${b('intel', '🧠 Intelligence')}${b('announcements', '📣 Announcements')}</div>`;
   }
 
   if (sv.view === 'intel') return viewToggle() + renderSlIntelligenceView();
+  if (sv.view === 'promos') return viewToggle() + refreshBtn + renderSlPromosView();
+  if (sv.view === 'bundles') return viewToggle() + refreshBtn + renderSlBundlesView();
   if (sv.view === 'upcoming') {
     const groups = slUpcomingGroups();
     const q = String(sv.search || '').trim().toLowerCase();
@@ -1572,7 +1676,7 @@ export function renderSlViewer() {
     // One merged control bar: view toggle + search + owned count, all on a single row.
     const headerBar = `
       <div style="display:flex;gap:10px;align-items:center;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
-        <div style="display:flex;gap:6px;flex-shrink:0">${tb('drops', '📦 By Superdrop')}${tb('collector', '🔢 By Collector №')}${tb('pnl', '💰 P&L')}${tb('index', '📈 Index')}${tb('intel', '🧠 Intelligence')}${tb('announcements', '📣 Announcements')}</div>
+        <div style="display:flex;gap:6px;flex-shrink:0">${tb('drops', '📦 By Superdrop')}${tb('collector', '🔢 By Collector №')}${tb('promos', '🎟 Promos')}${tb('bundles', '🧰 Bundles')}${tb('pnl', '💰 P&L')}${tb('index', '📈 Index')}${tb('intel', '🧠 Intelligence')}${tb('announcements', '📣 Announcements')}</div>
         <input type="text" id="slSearchInput" placeholder="Search by collector number, card name, or note…"
           value="${esc(sv.search || '')}"
           data-act="ui-set" data-path="slViewer.search" data-refocus="slSearchInput"
@@ -1601,7 +1705,7 @@ export function renderSlViewer() {
     const tbi = (id, label) => `<button class="btn ${sv.view === id ? 'btn-primary' : 'btn-ghost'}" style="font-size:12px;white-space:nowrap" data-act="ui-set" data-path="slViewer.view" data-val="${id}" data-also="slViewer.page=0">${label}</button>`;
     const idxHeader = `
       <div style="display:flex;gap:6px;align-items:center;padding:8px 12px;margin-bottom:14px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
-        ${tbi('drops', '📦 By Superdrop')}${tbi('collector', '🔢 By Collector №')}${tbi('pnl', '💰 P&L')}${tbi('index', '📈 Index')}${tbi('intel', '🧠 Intelligence')}${tbi('announcements', '📣 Announcements')}
+        ${tbi('drops', '📦 By Superdrop')}${tbi('collector', '🔢 By Collector №')}${tbi('promos', '🎟 Promos')}${tbi('bundles', '🧰 Bundles')}${tbi('pnl', '💰 P&L')}${tbi('index', '📈 Index')}${tbi('intel', '🧠 Intelligence')}${tbi('announcements', '📣 Announcements')}
       </div>`;
     return idxHeader + renderSlIndexBody(computeSlIndex());
   }
@@ -1623,7 +1727,7 @@ export function renderSlViewer() {
 
     const headerBar = `
       <div style="display:flex;gap:10px;align-items:center;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
-        <div style="display:flex;gap:6px;flex-shrink:0">${tb('drops', '📦 By Superdrop')}${tb('collector', '🔢 By Collector №')}${tb('pnl', '💰 P&L')}${tb('index', '📈 Index')}${tb('intel', '🧠 Intelligence')}${tb('announcements', '📣 Announcements')}</div>
+        <div style="display:flex;gap:6px;flex-shrink:0">${tb('drops', '📦 By Superdrop')}${tb('collector', '🔢 By Collector №')}${tb('promos', '🎟 Promos')}${tb('bundles', '🧰 Bundles')}${tb('pnl', '💰 P&L')}${tb('index', '📈 Index')}${tb('intel', '🧠 Intelligence')}${tb('announcements', '📣 Announcements')}</div>
         <span style="margin-left:auto;font-size:12px;color:var(--text-muted)">
           ${rows.length} drop${rows.length !== 1 ? 's' : ''} · paid <strong style="color:var(--text)">${money(tot.cost)}</strong> · now <strong style="color:var(--text)">${money(tot.value)}</strong> ·
           <strong style="color:${gcol(totGain)}">${totGain >= 0 ? '+' : ''}${fmt(totGain)}${totPct != null ? ` (${pct(totPct)})` : ''}</strong>

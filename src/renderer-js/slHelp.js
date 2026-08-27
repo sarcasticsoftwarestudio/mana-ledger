@@ -9,6 +9,7 @@ import { slBonusInfo } from './slBonus.js';
 import { slWikiInfo } from './slWiki.js';
 import { slHistorySeedInfo } from './slHistorySeed.js';
 import { slIntelligenceSummary } from './slIntelligence.js';
+import { slSupplementalInfo } from './slSupplemental.js';
 import { tcgcsvCache } from './state.js';
 import { esc } from './utils.js';
 
@@ -29,6 +30,7 @@ export function showSlDataGuide() {
   const upcoming = slUpcomingInfo();
   const historySeed = slHistorySeedInfo();
   const intelligence = slIntelligenceSummary();
+  const supplemental = slSupplementalInfo();
   const ids = new Set();
   for (const p of products) for (const key of Object.keys(p.identifiers || {})) ids.add(key);
 
@@ -50,6 +52,9 @@ export function showSlDataGuide() {
           <tbody>
             ${row('MTGJSON SLD', 'Product and contents backbone', 'Sealed SKU UUID/name/subtype/release date; all marketplace identifiers; sealedProduct → deck → exact MTGJSON card UUID/Scryfall ID/count/finish; subsets as coverage fallback.', 'Daily / manual')}
             ${row('Official Countdown kits + Scryfall SLC', 'Released special-product contracts', 'The 2022 30th Anniversary and 2025 Encyclopedia guaranteed contents, release date and MSRP; exact SLC printings; variable normal/foil slots; Encyclopedia Halo foils as alternatives rather than extra required cards. Bonus rows stay excluded.', 'Built in')}
+            ${row('Official Ultimate Editions + Scryfall SLU', 'Store-distributed fixed products', 'The five nonfoil enemy fetch lands in Ultimate Edition and ten foil Pathways in Ultimate Edition 2. The surprise Blast Zone stays a bonus rather than an eleventh requirement.', 'Built in')}
+            ${row('Scryfall + MTGJSON promo records', 'Promos and related catalogs', 'Exact SLP promos, serialized and standalone SLD promotions, Showcase Plane memorabilia, Universes Within replacement printings, and the clearly labeled 2019 Ponies precursor. These galleries never become guaranteed drop contents.', 'Built in + SL sync')}
+            ${row('MTGJSON Secret Lair bundles', 'Composite product catalog', 'Bundle and Festival-in-a-Box identity, release date, marketplace identifiers, directly listed cards, nested sealed products, and variable/other package components.', 'Built in + SL sync')}
             ${row('Scryfall', 'Printing metadata and card prices', 'Exact printing, set and collector number; finish availability; USD/USD foil/USD etched and EUR prices; art, artist, promo/frame/full-art metadata; images and oracle data.', 'Bulk daily')}
             ${row('TCGCSV / TCGplayer', 'Sealed market pricing', 'Exact tcgplayerProductId join; market, low, mid, high, direct-low and subtype; product/group names, URL/image, presale and modification metadata.', 'Daily cache')}
             ${row('mtg.wiki Drop Series', 'Curated release structure', 'Superdrop grouping, release date, nonfoil MSRP, foil MSRP, and announced-but-unreleased rows.', 'With SL sync')}
@@ -71,6 +76,7 @@ export function showSlDataGuide() {
         <li><strong style="color:var(--text)">Relational contents.</strong> MTGJSON product deck references resolve to exact card UUIDs, then Scryfall printing IDs. Per-entry <code>isFoil</code> plus printing finishes determines the required finish and quantity.</li>
         <li><strong style="color:var(--text)">Exact ownership.</strong> A nonfoil copy cannot complete a foil SKU. P&amp;L and missing-card checks use Scryfall ID + finish, not card-name guesses.</li>
         <li><strong style="color:var(--text)">Variable-finish kits stay variable.</strong> Countdown Kit cards can be normal or foil, so either finish completes its slot. The Encyclopedia’s matching Halo foil also completes that letter without increasing its 26-card requirement.</li>
+        <li><strong style="color:var(--text)">Side catalogs stay separate.</strong> Promos, memorabilia, replacement printings, precursors, and composite bundles are searchable and ownership-aware without being misrepresented as ordinary drops.</li>
         <li><strong style="color:var(--text)">Confidence is explicit.</strong> A product synthesized from subset tags is marked low-confidence. Collector-number sibling backfill repairs known orphan foil printings without rewriting the source.</li>
         <li><strong style="color:var(--text)">Enrichment stays separate.</strong> MSRP, official launch notes, bonus inserts and prices decorate products; they never silently mutate guaranteed contents.</li>
         <li><strong style="color:var(--text)">User observations stay separate too.</strong> Bundle cost allocations affect economic basis, while observed bonus pulls, watches and manual market quotes never rewrite sourced contents.</li>
@@ -99,6 +105,7 @@ export function showSlDataGuide() {
         <div style="padding:9px 11px;background:var(--surface);border-radius:7px"><strong style="color:var(--text)">Bonus catalog</strong><br>${bonus?.count?.toLocaleString() || 0} rows · ${esc(when(bonus?.fetchedAt))}</div>
         <div style="padding:9px 11px;background:var(--surface);border-radius:7px"><strong style="color:var(--text)">Official articles</strong><br>${official?.count?.toLocaleString() || 0} rows · ${esc(when(official?.fetchedAt))}</div>
         <div style="padding:9px 11px;background:var(--surface);border-radius:7px"><strong style="color:var(--text)">Upcoming previews</strong><br>${upcoming?.matchedCount?.toLocaleString() || 0} exact · ${upcoming?.referenceCount?.toLocaleString() || 0} reference across ${upcoming?.groupCount?.toLocaleString() || 0} drops${upcoming?.specialSetCount ? ` · ${upcoming.specialSetCount.toLocaleString()} storefront set${upcoming.specialSetCount === 1 ? '' : 's'}` : ''} · ${esc(when(upcoming?.fetchedAt))}</div>
+        <div style="padding:9px 11px;background:var(--surface);border-radius:7px"><strong style="color:var(--text)">Promos &amp; bundles</strong><br>${supplemental.cards.toLocaleString()} side-catalog cards · ${supplemental.bundles.toLocaleString()} bundles · ${esc(when(supplemental.generatedAt))}</div>
         <div style="padding:9px 11px;background:var(--surface);border-radius:7px"><strong style="color:var(--text)">TCGCSV products</strong><br>${tcgcsvCache.sealedProducts.length.toLocaleString()} rows · ${esc(when(tcgcsvCache.lastRefresh))}</div>
         <div id="sl-help-scryfall-health" style="padding:9px 11px;background:var(--surface);border-radius:7px"><strong style="color:var(--text)">Scryfall bulk index</strong><br>Checking local index…</div>
         <div style="padding:9px 11px;background:var(--surface);border-radius:7px"><strong style="color:var(--text)">History seed</strong><br>${historySeed.series.toLocaleString()} series · ${esc(when(historySeed.generatedAt))}</div>

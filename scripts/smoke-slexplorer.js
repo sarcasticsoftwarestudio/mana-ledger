@@ -157,6 +157,20 @@ const check = (label, cond, detail) => {
   check('All Drops view has no superdrop note editor', !flat.includes('edit-sd-note'));
   sv.superdrop = '';
 
+  Object.assign(sv, { view: 'promos', search: '', page: 0 });
+  const promos = renderSlViewer();
+  check('Promos & Related renders every separated side catalog',
+    ['Secret Lair Promos', 'Serialized SLD promos', 'Standalone storefront and crossover promos',
+      'Secret Lair Showcase: Planes', 'Universes Within', 'Ponies: The Galloping'].every(label => promos.includes(label)));
+  check('promo view explains that side-catalog cards do not alter completion',
+    promos.includes('never inflate drop completion'));
+
+  Object.assign(sv, { view: 'bundles', search: '', page: 0 });
+  const bundles = renderSlViewer();
+  check('bundle view renders the composite catalog without creating completion targets',
+    bundles.includes('Bundles and Festival in a Box') && bundles.includes('212 Secret Lair-branded bundle records')
+      && bundles.includes('not invented completion targets'));
+
   console.log(failures ? `\n${failures} FAILURES` : '\nAll Secret Lair Explorer smoke tests passed.');
   process.exit(failures ? 1 : 0);
 })().catch(err => { console.error(err); process.exit(1); });

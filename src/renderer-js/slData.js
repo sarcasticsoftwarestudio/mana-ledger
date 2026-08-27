@@ -172,7 +172,15 @@ export function buildSlModel(json, opts = {}) {
     if (!canon && p.contents && p.contents.deck && p.contents.deck.length) {
       const fromDeck = splitFinish(p.contents.deck[0].name || '');
       const deckCanon = canonical.get(norm(fromDeck.baseName));
-      if (deckCanon) {
+      // Some recent localized products point at a generic deck name (for
+      // example, "Hatsune Miku Rainbow Foil") that omits the drop subtitle
+      // and language. Only borrow deck spelling when it is genuinely the same
+      // label; otherwise distinct English/Japanese and finish SKUs collapse.
+      const baseKey = norm(baseName);
+      const deckKey = norm(deckCanon);
+      const spellingMatch = baseKey && deckKey
+        && Math.min(baseKey.length, deckKey.length) / Math.max(baseKey.length, deckKey.length) >= 0.9;
+      if (deckCanon && spellingMatch) {
         canon = deckCanon;
         if (!finishLabel && fromDeck.finishLabel) finishLabel = fromDeck.finishLabel;
       }

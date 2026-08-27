@@ -33,6 +33,9 @@ import * as NS_wantlist from './wantlist.js';
 import * as NS_search from './search.js';
 import * as NS_slData from './slData.js';
 import * as NS_slCountdown from './slCountdown.js';
+import * as NS_slSpecialProducts from './slSpecialProducts.js';
+import * as NS_slSupplemental from './slSupplemental.js';
+import slProductSeed from './data/slProductSeed.js';
 import * as NS_preconData from './preconData.js';
 import * as NS_preconTab from './preconTab.js';
 import * as NS_slWiki from './slWiki.js';
@@ -68,7 +71,7 @@ import { esc, fmt, fmtPct, toast, today } from './utils.js';
 // this preserves the classic-script contract. Remove as tabs migrate to
 // components with real event wiring.
 const WINDOW_DENYLIST = new Set(['window', 'document', 'location', 'top', 'parent', 'self', 'frames', 'length', 'name', 'status', 'history', 'origin', 'closed', 'opener', 'navigator', 'screen']);
-for (const ns of [NS_constants, NS_state, NS_logger, NS_utils, NS_csv, NS_storage, NS_importWizard, NS_prices, NS_statusbar, NS_sealedPricing, NS_analytics, NS_render, NS_ticker, NS_cardsTab, NS_briefing, NS_briefingState, NS_gallery, NS_slTab, NS_failures, NS_features, NS_sealedTab, NS_decks, NS_insights, NS_deckIO, NS_modals, NS_productPicker, NS_sealedModals, NS_exportModal, NS_settings, NS_updaterUI, NS_hover, NS_wantlist, NS_search, NS_slData, NS_slCountdown, NS_preconData, NS_preconTab, NS_slWiki, NS_slBonus, NS_slAnnouncements, NS_wizardsArticles, NS_slUpcoming, NS_slHelp, NS_helpCenter, NS_slIntelligence, NS_slHistorySeed, NS_firstRun, NS_dispatch]) {
+for (const ns of [NS_constants, NS_state, NS_logger, NS_utils, NS_csv, NS_storage, NS_importWizard, NS_prices, NS_statusbar, NS_sealedPricing, NS_analytics, NS_render, NS_ticker, NS_cardsTab, NS_briefing, NS_briefingState, NS_gallery, NS_slTab, NS_failures, NS_features, NS_sealedTab, NS_decks, NS_insights, NS_deckIO, NS_modals, NS_productPicker, NS_sealedModals, NS_exportModal, NS_settings, NS_updaterUI, NS_hover, NS_wantlist, NS_search, NS_slData, NS_slCountdown, NS_slSpecialProducts, NS_slSupplemental, NS_preconData, NS_preconTab, NS_slWiki, NS_slBonus, NS_slAnnouncements, NS_wizardsArticles, NS_slUpcoming, NS_slHelp, NS_helpCenter, NS_slIntelligence, NS_slHistorySeed, NS_firstRun, NS_dispatch]) {
   for (const [key, value] of Object.entries(ns)) {
     if (WINDOW_DENYLIST.has(key)) continue;
     try { window[key] = value; } catch { /* read-only window prop — skip */ }
@@ -172,13 +175,16 @@ async function init() {
   if (typeof loadSlDataFromCache === 'function') await loadSlDataFromCache();
   // Hand the persisted finish-aware product model (stashed by the cache load
   // above) to the slData registry so ownership/P&L can query per-SKU finishes.
-  const initialSlModel = NS_slCountdown.mergeSlCountdownProducts({ products: window.__slProductsCache || [] });
-  const countdownLegacy = NS_slData.projectLegacy({
-    products: NS_slCountdown.SL_COUNTDOWN_PRODUCTS,
-    scryfallToName: initialSlModel.scryfallToName,
+  const cachedProducts = window.__slProductsCache || [];
+  const cachedIds = new Set(cachedProducts.map(product => product.uuid));
+  const baseProducts = [...(slProductSeed.products || []).filter(product => !cachedIds.has(product.uuid)), ...cachedProducts];
+  const initialSlModel = NS_slSpecialProducts.mergeSlSpecialProducts({
+    products: baseProducts,
+    scryfallToName: slProductSeed.scryfallToName || {},
   });
+  const initialLegacy = NS_slData.projectLegacy(initialSlModel);
   if (typeof applySlDataUpdate === 'function') {
-    applySlDataUpdate(countdownLegacy.dropCards, countdownLegacy.scryfallToDrops, countdownLegacy.scryfallToName);
+    applySlDataUpdate(initialLegacy.dropCards, initialLegacy.scryfallToDrops, initialLegacy.scryfallToName);
   }
   NS_slData.setSlProducts(initialSlModel.products);
   delete window.__slProductsCache;
@@ -193,6 +199,7 @@ async function init() {
   await NS_wizardsArticles.loadWizardsArticlesFromSettings();
   await NS_briefingState.loadBriefingState();
   await NS_slUpcoming.loadSlUpcomingFromSettings();
+  await NS_slSupplemental.loadSlSupplementalFromSettings();
   // The persisted sealed index makes exact MTGJSON -> TCGCSV product-ID joins
   // available in the SL Explorer immediately, without waiting for Sealed tab.
   await NS_sealedPricing.loadTcgcsvCache();
