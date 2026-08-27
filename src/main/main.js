@@ -157,6 +157,8 @@ function buildMenu() {
     {
       label: '&Help',
       submenu: [
+        { label: 'Mana Ledger Guide', click: () => sendMenu('help:show') },
+        { type: 'separator' },
         { label: 'Open Database Folder', click: () => shell.openPath(app.getPath('userData')) },
         ...(SELF_UPDATES ? [{ label: 'Check for Updates…', click: () => sendMenu('updates:check') }] : []),
         { label: 'Secret Lair Data Guide', click: () => sendMenu('slhelp:show') },

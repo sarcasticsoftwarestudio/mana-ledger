@@ -40,6 +40,7 @@ import * as NS_slAnnouncements from './slAnnouncements.js';
 import * as NS_wizardsArticles from './wizardsArticles.js';
 import * as NS_slUpcoming from './slUpcoming.js';
 import * as NS_slHelp from './slHelp.js';
+import * as NS_helpCenter from './helpCenter.js';
 import * as NS_slIntelligence from './slIntelligence.js';
 import * as NS_slHistorySeed from './slHistorySeed.js';
 import * as NS_firstRun from './firstRun.js';
@@ -66,7 +67,7 @@ import { esc, fmt, fmtPct, toast, today } from './utils.js';
 // this preserves the classic-script contract. Remove as tabs migrate to
 // components with real event wiring.
 const WINDOW_DENYLIST = new Set(['window', 'document', 'location', 'top', 'parent', 'self', 'frames', 'length', 'name', 'status', 'history', 'origin', 'closed', 'opener', 'navigator', 'screen']);
-for (const ns of [NS_constants, NS_state, NS_logger, NS_utils, NS_csv, NS_storage, NS_importWizard, NS_prices, NS_statusbar, NS_sealedPricing, NS_analytics, NS_render, NS_ticker, NS_cardsTab, NS_briefing, NS_briefingState, NS_gallery, NS_slTab, NS_failures, NS_features, NS_sealedTab, NS_decks, NS_insights, NS_deckIO, NS_modals, NS_productPicker, NS_sealedModals, NS_exportModal, NS_settings, NS_updaterUI, NS_hover, NS_wantlist, NS_search, NS_slData, NS_preconData, NS_preconTab, NS_slWiki, NS_slBonus, NS_slAnnouncements, NS_wizardsArticles, NS_slUpcoming, NS_slHelp, NS_slIntelligence, NS_slHistorySeed, NS_firstRun, NS_dispatch]) {
+for (const ns of [NS_constants, NS_state, NS_logger, NS_utils, NS_csv, NS_storage, NS_importWizard, NS_prices, NS_statusbar, NS_sealedPricing, NS_analytics, NS_render, NS_ticker, NS_cardsTab, NS_briefing, NS_briefingState, NS_gallery, NS_slTab, NS_failures, NS_features, NS_sealedTab, NS_decks, NS_insights, NS_deckIO, NS_modals, NS_productPicker, NS_sealedModals, NS_exportModal, NS_settings, NS_updaterUI, NS_hover, NS_wantlist, NS_search, NS_slData, NS_preconData, NS_preconTab, NS_slWiki, NS_slBonus, NS_slAnnouncements, NS_wizardsArticles, NS_slUpcoming, NS_slHelp, NS_helpCenter, NS_slIntelligence, NS_slHistorySeed, NS_firstRun, NS_dispatch]) {
   for (const [key, value] of Object.entries(ns)) {
     if (WINDOW_DENYLIST.has(key)) continue;
     try { window[key] = value; } catch { /* read-only window prop — skip */ }
@@ -153,6 +154,7 @@ async function init() {
         case 'about:show':       showAbout(); break;
         case 'feedback:show':    showFeedback(); break;
         case 'shortcuts:show':   showShortcuts(); break;
+        case 'help:show':        NS_helpCenter.showHelpCenter(); break;
         case 'slhelp:show':      NS_slHelp.showSlDataGuide(); break;
         case 'logs:toggle':      toggleLogPanel(); break;
       }

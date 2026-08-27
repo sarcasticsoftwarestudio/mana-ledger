@@ -12,6 +12,9 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+### Added
+- **A complete searchable Mana Ledger Guide now lives in the Help menu.** Twenty-five plain-language guides cover every workspace and major workflow, including imports and exports, collection management, sales, pricing, decks, precons, Secret Lairs, Briefing, Insights, backups, privacy, and all optional settings. The Dashboard section documents every built-in panel, while a dedicated walkthrough explains how to create, choose, arrange, filter, and read custom charts. Experimental Upcoming Secret Lairs and offline Local Intelligence also receive clear setup instructions, practical uses, privacy boundaries, and limitations.
+
 ## [1.7.9] - 2026-08-27
 
 ### Added
