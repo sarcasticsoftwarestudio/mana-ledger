@@ -12,6 +12,8 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+## [1.7.13] - 2026-08-27
+
 ### Added
 - **The Secret Lair Explorer now covers the complete reviewed non-standard product family.** Both SLU Ultimate Editions are full completion-aware products; a new Promos & Related view separates all current SLP promos, serialized and standalone SLD promotions, PSSC Showcase Plane memorabilia, SLX Universes Within printings, and the 2019 Ponies precursor; and a Bundles view catalogs more than 200 composite Secret Lair and Festival-in-a-Box products without mislabeling them as normal drops.
 - **Fresh installs now ship with the current exact MTGJSON product model.** Recently released SLD products that lack reliable subset tags—such as Oishii! Tokens, Sakura Superstar variants, Astrology Lands, and The Strange Sands—appear immediately rather than waiting for a manual refresh.
