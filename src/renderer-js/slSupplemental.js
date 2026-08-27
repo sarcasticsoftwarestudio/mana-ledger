@@ -5,7 +5,16 @@
 // kept out of completion and drop P&L calculations.
 
 import seed from './data/slSupplementalSeed.js';
+import productSeed from './data/slProductSeed.js';
 import { netFetch } from './utils.js';
+
+const productSeedIds = new Set(Object.keys(productSeed.scryfallToName || {}));
+const recentSldStart = (() => {
+  const date = new Date(productSeed.generatedAt || Date.now());
+  date.setUTCDate(date.getUTCDate() - 180);
+  return date.toISOString().slice(0, 10);
+})();
+export const SL_RECENT_SLD_QUERY = `set:sld date>=${recentSldStart}`;
 
 export const SL_SUPPLEMENTAL_SET_SPECS = [
   {
@@ -24,19 +33,39 @@ export const SL_SUPPLEMENTAL_SET_SPECS = [
     sourceUrl: 'https://scryfall.com/search?q=set%3Asld+%28cn%3A908+or+cn%3A914+or+cn%3A918+or+cn%3A923%29&unique=prints',
   },
   {
-    code: 'pssc', name: 'Secret Lair Showcase: Planes', kind: 'memorabilia', order: 4,
+    code: 'sld-current', name: 'Recent SLD catalog additions', kind: 'current catalog bridge', order: 4, galleryOnly: true,
+    description: 'Recently published SLD printings that have reached Scryfall before the sealed-product catalog. They merge into the normal SLD Gallery and disappear from this bridge after the product seed catches up.',
+    sourceUrl: `https://scryfall.com/search?q=${encodeURIComponent(SL_RECENT_SLD_QUERY)}&unique=prints`,
+  },
+  {
+    code: 'slc', name: 'Secret Lair Countdown', kind: 'fixed-product printings', order: 5, galleryOnly: true,
+    description: 'Every published SLC printing, including normal, foil, alternative, and separately numbered cards. Fixed kit completion remains governed by each product contract.',
+    sourceUrl: 'https://scryfall.com/sets/slc',
+  },
+  {
+    code: 'slu', name: 'Secret Lair: Ultimate Edition', kind: 'fixed-product printings', order: 6, galleryOnly: true,
+    description: 'Every published SLU printing across both Ultimate Editions and the separately treated surprise bonus card.',
+    sourceUrl: 'https://scryfall.com/sets/slu',
+  },
+  {
+    code: 'pssc', name: 'Secret Lair Showcase: Planes', kind: 'memorabilia', order: 7,
     description: 'Oversized Showcase plane memorabilia. Shown for catalog completeness, but not treated as ordinary deck cards or a fixed drop.',
     sourceUrl: 'https://scryfall.com/sets/pssc',
   },
   {
-    code: 'slx', name: 'Universes Within', kind: 'related', order: 5,
+    code: 'slx', name: 'Universes Within', kind: 'related', order: 8,
     description: 'Magic-universe versions of mechanically unique Secret Lair cards. These are related replacement printings, not products purchased from Secret Lair.',
     sourceUrl: 'https://scryfall.com/sets/slx',
   },
   {
-    code: 'ptg', name: 'Ponies: The Galloping (2019 precursor)', kind: 'precursor', order: 6,
+    code: 'ptg', name: 'Ponies: The Galloping (2019 precursor)', kind: 'precursor', order: 9,
     description: 'A fixed three-card Hasbro Pulse charity set released before Secret Lair. It is shown as related history rather than relabeled as a Secret Lair drop.',
     sourceUrl: 'https://scryfall.com/sets/ptg',
+  },
+  {
+    code: 'slz', name: 'The Zeta Set', kind: 'upcoming storefront set', order: 10, galleryOnly: true, preview: true,
+    description: 'Every published SLZ preview. This is a set gallery, not a claim that all entries come in one purchase.',
+    sourceUrl: 'https://scryfall.com/sets/slz',
   },
 ];
 
@@ -90,7 +119,9 @@ function standaloneSldPromos(mtgjson) {
 export function buildSlSupplementalCatalog(setCards = {}, mtgjson = {}, generatedAt = new Date().toISOString()) {
   const sets = SL_SUPPLEMENTAL_SET_SPECS.map(spec => ({
     ...spec,
-    cards: (spec.code === 'sld-standalone' ? standaloneSldPromos(mtgjson) : (setCards[spec.code] || []))
+    cards: (spec.code === 'sld-standalone' ? standaloneSldPromos(mtgjson)
+      : spec.code === 'sld-current' ? (setCards[spec.code] || []).filter(card => !productSeedIds.has(String(card.id || '').toLowerCase()))
+        : (setCards[spec.code] || []))
       .map(c => c.collectorNumber ? c : cardRow(c, spec.code)),
   }));
   const bundles = (mtgjson?.data?.sealedProduct || [])
@@ -132,14 +163,15 @@ export async function loadSlSupplementalFromSettings() {
 
 export async function refreshSlSupplementalData(opts = {}) {
   try {
-    const [slp, pssc, slx, ptg, serialized, mtgResult] = await Promise.all([
+    const [slp, pssc, slx, ptg, slc, slu, slz, recentSld, serialized, mtgResult] = await Promise.all([
       fetchScryfallQuery('set:slp'), fetchScryfallQuery('set:pssc'), fetchScryfallQuery('set:slx'),
-      fetchScryfallQuery('set:ptg'), fetchScryfallQuery('set:sld is:serialized'),
+      fetchScryfallQuery('set:ptg'), fetchScryfallQuery('set:slc'), fetchScryfallQuery('set:slu'),
+      fetchScryfallQuery('set:slz'), fetchScryfallQuery(SL_RECENT_SLD_QUERY), fetchScryfallQuery('set:sld is:serialized'),
       opts.mtgjson ? Promise.resolve(opts.mtgjson) : netFetch('https://mtgjson.com/api/v5/SLD.json'),
     ]);
     if (!opts.mtgjson && !mtgResult.ok) throw new Error(`HTTP ${mtgResult.status} from MTGJSON`);
     const mtgjson = opts.mtgjson || await mtgResult.json();
-    const next = buildSlSupplementalCatalog({ slp, pssc, slx, ptg, 'sld-serialized': serialized }, mtgjson);
+    const next = buildSlSupplementalCatalog({ slp, pssc, slx, ptg, slc, slu, slz, 'sld-current': recentSld, 'sld-serialized': serialized }, mtgjson);
     if (!valid(next)) throw new Error('supplemental source coverage was unexpectedly small');
     data = next;
     await window.api?.settings?.set(SETTINGS_KEY, JSON.stringify(data));
@@ -155,5 +187,12 @@ export function slSupplementalSets() { return data?.sets || []; }
 export function slSupplementalBundles() { return data?.bundles || []; }
 export function slSupplementalCardCount() { return slSupplementalSets().reduce((n, set) => n + (set.cards || []).length, 0); }
 export function slSupplementalInfo() {
-  return { generatedAt: data?.generatedAt || null, sets: slSupplementalSets().length, cards: slSupplementalCardCount(), bundles: slSupplementalBundles().length };
+  const sets = slSupplementalSets();
+  return {
+    generatedAt: data?.generatedAt || null,
+    sets: sets.length,
+    cards: slSupplementalCardCount(),
+    relatedCards: sets.filter(set => !set.galleryOnly).reduce((n, set) => n + (set.cards || []).length, 0),
+    bundles: slSupplementalBundles().length,
+  };
 }

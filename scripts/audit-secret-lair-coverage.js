@@ -79,7 +79,9 @@ async function json(url) {
   console.log(`- Explorer regular drops: ${Object.keys(context.__audit.drops).length}`);
   console.log(`- Exact SLD product fallback: ${(productSeed.products || []).length} products`);
   console.log(`- Fixed special products: ${SL_SPECIAL_PRODUCTS.length} (${SL_SPECIAL_PRODUCTS.map(p => p.legacyDrop).join('; ')})`);
-  console.log(`- Supplemental galleries: ${supplemental.sets.length} · ${supplemental.sets.reduce((n, set) => n + set.cards.length, 0)} cards`);
+  const relatedSets = supplemental.sets.filter(set => !set.galleryOnly);
+  console.log(`- Set-code galleries: ${supplemental.sets.length} · ${supplemental.sets.reduce((n, set) => n + set.cards.length, 0)} cards`);
+  console.log(`- Promos & Related: ${relatedSets.length} · ${relatedSets.reduce((n, set) => n + set.cards.length, 0)} cards`);
   console.log(`- Bundle/Festival catalog: ${supplemental.bundles.length}`);
   console.log(`- MTGJSON product records: ${sourceCore.length} exact drops/decks · ${sourceBundles.length} bundles · ${sourceStandalone.length} standalone promos · ${unexpectedProducts.length} unclassified`);
   console.log(`- MTGJSON records absent from their catalog: ${uncatalogedCore.length + uncatalogedBundles.length + Math.max(0, sourceStandalone.length - standaloneCount)}`);

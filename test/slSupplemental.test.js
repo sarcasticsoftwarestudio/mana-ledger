@@ -21,8 +21,13 @@ describe('Secret Lair non-standard catalog coverage', () => {
 
   it('ships every reviewed promo and related set as a separated gallery', () => {
     const counts = Object.fromEntries(supplementalSeed.sets.map(set => [set.code, set.cards.length]));
-    expect(counts).toEqual({ slp: 54, 'sld-serialized': 6, 'sld-standalone': 4, pssc: 10, slx: 30, ptg: 3 });
-    expect(new Set(supplementalSeed.sets.flatMap(set => set.cards.map(card => card.id))).size).toBe(107);
+    expect(counts).toEqual({ slp: 54, 'sld-serialized': 6, 'sld-standalone': 4, 'sld-current': 1, slc: 84, slu: 16, pssc: 10, slx: 30, ptg: 3, slz: 270 });
+    expect(supplementalSeed.sets.filter(set => !set.galleryOnly).reduce((n, set) => n + set.cards.length, 0)).toBe(107);
+    expect(new Set(supplementalSeed.sets.flatMap(set => set.cards.map(card => card.id))).size).toBe(478);
+    expect(supplementalSeed.sets.find(set => set.code === 'slz')).toMatchObject({ galleryOnly: true, preview: true });
+    expect(supplementalSeed.sets.find(set => set.code === 'sld-current').cards[0]).toMatchObject({
+      name: "Trostani, Selesnya's Voice", collectorNumber: '2443',
+    });
   });
 
   it('ships the composite bundle catalog without turning bundles into drops', () => {

@@ -157,6 +157,27 @@ const check = (label, cond, detail) => {
   check('All Drops view has no superdrop note editor', !flat.includes('edit-sd-note'));
   sv.superdrop = '';
 
+  Object.assign(sv, { view: 'collector', gallerySet: 'slp', search: '', page: 0 });
+  const slpGallery = renderSlViewer();
+  check('Gallery offers a set-code filter with every reviewed code',
+    ['sld', 'slc', 'slu', 'slp', 'slx', 'pssc', 'ptg', 'slz'].every(code => slpGallery.includes(`value="${code}"`)));
+  check('SLP filter shows only the 54 Secret Lair Promo printings',
+    (slpGallery.match(/data-sl-card=/g) || []).length === 54
+      && (slpGallery.match(/>SLP #/g) || []).length === 54
+      && slpGallery.includes('value="slp" selected'));
+
+  Object.assign(sv, { gallerySet: 'sld', search: 'Trostani' });
+  const currentSldGallery = renderSlViewer();
+  check('Gallery bridges recent SLD printings while the product catalog catches up',
+    currentSldGallery.includes('SLD #2443') && (currentSldGallery.match(/data-sl-card=/g) || []).length === 1);
+
+  Object.assign(sv, { gallerySet: 'slz', search: '' });
+  const slzGallery = renderSlViewer();
+  check('SLZ filter shows all 270 Zeta previews and keeps preview treatment',
+    (slzGallery.match(/data-sl-card=/g) || []).length === 270
+      && (slzGallery.match(/>SLZ #/g) || []).length === 270
+      && (slzGallery.match(/sl-card-preview/g) || []).length >= 270);
+
   Object.assign(sv, { view: 'promos', search: '', page: 0 });
   const promos = renderSlViewer();
   check('Promos & Related renders every separated side catalog',

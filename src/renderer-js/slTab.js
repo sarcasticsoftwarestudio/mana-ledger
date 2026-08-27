@@ -358,6 +358,44 @@ function slCollectorSortKey(num) {
   return { group: 1, prefix: (pm && pm[1]) || core, n: pm && pm[2] ? parseInt(pm[2], 10) : 0, suffix: '', foil, s };
 }
 
+const SL_GALLERY_SET_ORDER = ['sld', 'slc', 'slu', 'slp', 'slx', 'pssc', 'ptg', 'slz'];
+const SL_GALLERY_SET_NAMES = {
+  sld: 'Secret Lair Drop', slc: 'Secret Lair Countdown', slu: 'Ultimate Edition',
+  slp: 'Secret Lair Promos', slx: 'Universes Within', pssc: 'Showcase Planes',
+  ptg: 'Ponies precursor', slz: 'The Zeta Set',
+};
+
+function gallerySetCode(code) {
+  const value = String(code || '').toLowerCase();
+  return value.startsWith('sld-') ? 'sld' : value;
+}
+
+export function slGalleryCatalog() {
+  const rows = new Map();
+  const names = typeof SL_SCRYFALL_TO_NAME !== 'undefined' ? SL_SCRYFALL_TO_NAME : {};
+  const numbers = typeof SL_SCRYFALL_TO_NUMBER !== 'undefined' ? SL_SCRYFALL_TO_NUMBER : {};
+  for (const [id, name] of Object.entries(names)) {
+    rows.set(id.toLowerCase(), {
+      id: id.toLowerCase(), name, num: String(numbers[id] || ''), setCode: 'sld',
+      setName: SL_GALLERY_SET_NAMES.sld, preview: false,
+    });
+  }
+  for (const set of slSupplementalSets()) {
+    const setCode = gallerySetCode(set.code);
+    for (const card of (set.cards || [])) {
+      const id = String(card.id || '').toLowerCase();
+      if (!id) continue;
+      const candidate = {
+        id, name: card.name || '', num: String(card.collectorNumber || ''), setCode,
+        setName: set.name || SL_GALLERY_SET_NAMES[setCode] || setCode.toUpperCase(),
+        releasedAt: card.releasedAt || '', preview: !!set.preview,
+      };
+      if (!rows.has(id)) rows.set(id, candidate);
+    }
+  }
+  return [...rows.values()];
+}
+
 // Shared card tile used by both the drop view and the collector-number view.
 // numLabel (collector number) is shown only when provided.
 // requiredFinish (optional, 'nonfoil'|'foil'|'etched') scopes the owned check
@@ -379,9 +417,12 @@ export function slCardTile(scryfallId, numLabel, requiredFinish, options = {}) {
   const reference = !!options.reference;
   const preview = !!options.preview && !owned && !reference;
   const sourcedPreview = preview || reference;
+  const catalogLabel = options.setCode
+    ? `${String(options.setCode).toUpperCase()}${numLabel ? ` #${numLabel}` : ''}`
+    : (numLabel ? `#${numLabel}` : '');
   const tooltip = (options.preview || reference) ? '' : (owned
     ? `Owned (qty: ${totalQty})`
-    : (wanted ? 'On your want list' : 'Not in collection')) + (numLabel ? ` · #${numLabel}` : '');
+    : (wanted ? 'On your want list' : 'Not in collection')) + (catalogLabel ? ` · ${catalogLabel}` : '');
   return `
     <div class="gallery-card${owned ? ' sl-card-owned' : (sourcedPreview ? ' sl-card-preview' : ' sl-card-missing')}${wanted ? ' sl-card-wanted' : ''}" data-sl-card="${esc(actionId)}"
       data-slact="card-modal" data-arg="${esc(actionId)}"${tooltip ? ` title="${esc(tooltip)}"` : ''}>
@@ -390,7 +431,7 @@ export function slCardTile(scryfallId, numLabel, requiredFinish, options = {}) {
         style="${owned || sourcedPreview ? '' : 'filter:grayscale(60%) brightness(0.65)'}">
       ${reference ? `<span class="sl-preview-badge sl-reference-badge">Reference</span>` : (owned ? `<span class="sl-owned-badge">✓ ${totalQty}</span>` : (wanted ? `<span class="sl-want-badge">★</span>` : (preview ? `<span class="sl-preview-badge">Exact preview</span>` : `<span class="sl-missing-badge">✗</span>`)))}
       ${val != null ? `<span class="gallery-price">${fmt(val)}</span>` : ''}
-      ${numLabel ? `<span style="position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,.72);color:#fff;font-size:10px;font-weight:600;padding:1px 5px;border-radius:4px;pointer-events:none">#${esc(numLabel)}</span>` : ''}
+      ${catalogLabel ? `<span style="position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,.72);color:#fff;font-size:10px;font-weight:600;padding:1px 5px;border-radius:4px;pointer-events:none">${esc(catalogLabel)}</span>` : ''}
       ${note ? `<span title="${esc(note)}" style="position:absolute;top:4px;left:4px;font-size:12px;pointer-events:none">📝</span>` : ''}
     </div>`;
 }
@@ -1140,7 +1181,7 @@ export function showSlBundleCatalogDetail(uuid) {
 }
 
 function renderSlPromosView() {
-  const sets = slSupplementalSets();
+  const sets = slSupplementalSets().filter(set => !set.galleryOnly);
   const q = String(ui.slViewer.search || '').trim().toLowerCase();
   const ownedIds = new Set(ownedCards().map(card => String(card.scryfallId || '').toLowerCase()).filter(Boolean));
   const sections = sets.map(set => {
@@ -1164,7 +1205,7 @@ function renderSlPromosView() {
     <section style="height:100%;overflow:auto;padding-right:3px">
       <header style="margin-bottom:12px"><div style="font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--accent2)">Collector side catalogs</div>
         <h2 style="margin:4px 0 6px">Promos, memorabilia, and related releases</h2>
-        <p style="margin:0;color:var(--text-muted);font-size:12px;line-height:1.55">${info.cards} exact printings across ${info.sets} clearly separated catalogs. Ownership is exact-printing aware, but these cards never inflate drop completion or guaranteed singles values.</p></header>
+        <p style="margin:0;color:var(--text-muted);font-size:12px;line-height:1.55">${info.relatedCards} exact printings across ${sets.length} clearly separated catalogs. Ownership is exact-printing aware, but these cards never inflate drop completion or guaranteed singles values.</p></header>
       <div style="display:flex;gap:8px;margin-bottom:14px"><input type="text" id="slPromoSearch" placeholder="Search promo name, collector number, code, artist, or type…" value="${esc(ui.slViewer.search || '')}" data-act="ui-set" data-path="slViewer.search" data-refocus="slPromoSearch" style="flex:1;min-width:180px;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text)">${ui.slViewer.search ? '<button class="btn btn-ghost" data-act="ui-set" data-path="slViewer.search" data-val="">Clear</button>' : ''}</div>
       ${sections || '<div style="padding:30px;text-align:center;color:var(--text-muted)">No supplemental cards match this search.</div>'}
     </section>`;
@@ -1460,7 +1501,7 @@ export function renderSlViewer() {
     const b = (id, label) => `<button class="btn ${v === id ? 'btn-primary' : 'btn-ghost'}" style="font-size:12px" data-act="ui-set" data-path="slViewer.view" data-val="${id}" data-also="slViewer.page=0">${label}</button>`;
     const upcomingCount = upcomingEnabled ? slUpcomingGroups().length : 0;
     const upcomingButton = upcomingEnabled ? b('upcoming', `Upcoming${upcomingCount ? ` · ${upcomingCount}` : ''}`) : '';
-    return `<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">${b('drops', '📦 By Superdrop')}${upcomingButton}${b('collector', '🔢 By Collector №')}${b('promos', '🎟 Promos & Related')}${b('bundles', '🧰 Bundles')}${b('pnl', '💰 P&L')}${b('index', '📈 Index')}${b('intel', '🧠 Intelligence')}${b('announcements', '📣 Announcements')}</div>`;
+    return `<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">${b('drops', '📦 By Superdrop')}${upcomingButton}${b('collector', '🖼 Gallery')}${b('promos', '🎟 Promos & Related')}${b('bundles', '🧰 Bundles')}${b('pnl', '💰 P&L')}${b('index', '📈 Index')}${b('intel', '🧠 Intelligence')}${b('announcements', '📣 Announcements')}</div>`;
   }
 
   if (sv.view === 'intel') return viewToggle() + renderSlIntelligenceView();
@@ -1652,20 +1693,31 @@ export function renderSlViewer() {
       </section>`;
   }
 
-  // Collector-number view — flat gallery of every SLD printing, ordered by number
+  // Gallery — one flat, set-code-filterable catalog spanning SLD products,
+  // fixed SLC/SLU printings, promos/related sets, and published SLZ previews.
   if ((sv.view || 'drops') === 'collector') {
-    const numbers = typeof SL_SCRYFALL_TO_NUMBER !== 'undefined' ? SL_SCRYFALL_TO_NUMBER : {};
-    let list = Object.keys(SL_SCRYFALL_TO_NAME).map(id => {
-      const num = String(numbers[id] || '');
-      return { id, num, key: slCollectorSortKey(num) };
+    const allCards = slGalleryCatalog();
+    const setCounts = new Map();
+    for (const card of allCards) setCounts.set(card.setCode, (setCounts.get(card.setCode) || 0) + 1);
+    const availableSets = [...setCounts.keys()].sort((a, b) => {
+      const ai = SL_GALLERY_SET_ORDER.indexOf(a), bi = SL_GALLERY_SET_ORDER.indexOf(b);
+      return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi) || a.localeCompare(b);
     });
+    const selectedSet = String(sv.gallerySet || 'all').toLowerCase();
+    let list = allCards.filter(card => selectedSet === 'all' || card.setCode === selectedSet);
     const q = (sv.search || '').toLowerCase().trim();
     if (q) list = list.filter(c =>
       c.num.toLowerCase().includes(q) ||
-      (SL_SCRYFALL_TO_NAME[c.id] || '').toLowerCase().includes(q) ||
+      c.name.toLowerCase().includes(q) ||
+      c.setCode.includes(q) ||
+      c.setName.toLowerCase().includes(q) ||
       slCardNote(c.id).toLowerCase().includes(q));
     list.sort((a, b) => {
-      const ka = a.key, kb = b.key;
+      const setA = SL_GALLERY_SET_ORDER.indexOf(a.setCode), setB = SL_GALLERY_SET_ORDER.indexOf(b.setCode);
+      const orderA = setA < 0 ? 99 : setA, orderB = setB < 0 ? 99 : setB;
+      if (orderA !== orderB) return orderA - orderB;
+      if (a.setCode !== b.setCode) return a.setCode.localeCompare(b.setCode);
+      const ka = slCollectorSortKey(a.num), kb = slCollectorSortKey(b.num);
       if (ka.group !== kb.group) return ka.group - kb.group;           // digit-leading numbers before letter-prefixed specials
       if (ka.group === 0) return ka.n - kb.n || ka.suffix.localeCompare(kb.suffix) || ka.foil - kb.foil || ka.s.localeCompare(kb.s);
       return ka.prefix.localeCompare(kb.prefix) || ka.n - kb.n || ka.foil - kb.foil || ka.s.localeCompare(kb.s);
@@ -1673,16 +1725,23 @@ export function renderSlViewer() {
     const ownedN = list.reduce((n, c) => n + (ownedIds.has(c.id) ? 1 : 0), 0);
     const v = sv.view || 'drops';
     const tb = (id, label) => `<button class="btn ${v === id ? 'btn-primary' : 'btn-ghost'}" style="font-size:12px;white-space:nowrap" data-act="ui-set" data-path="slViewer.view" data-val="${id}" data-also="slViewer.page=0">${label}</button>`;
-    // One merged control bar: view toggle + search + owned count, all on a single row.
+    const setOptions = availableSets.map(code => `<option value="${esc(code)}" ${selectedSet === code ? 'selected' : ''}>${esc(code.toUpperCase())} · ${esc(SL_GALLERY_SET_NAMES[code] || code.toUpperCase())} (${setCounts.get(code).toLocaleString()})</option>`).join('');
     const headerBar = `
-      <div style="display:flex;gap:10px;align-items:center;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
-        <div style="display:flex;gap:6px;flex-shrink:0">${tb('drops', '📦 By Superdrop')}${tb('collector', '🔢 By Collector №')}${tb('promos', '🎟 Promos')}${tb('bundles', '🧰 Bundles')}${tb('pnl', '💰 P&L')}${tb('index', '📈 Index')}${tb('intel', '🧠 Intelligence')}${tb('announcements', '📣 Announcements')}</div>
-        <input type="text" id="slSearchInput" placeholder="Search by collector number, card name, or note…"
-          value="${esc(sv.search || '')}"
-          data-act="ui-set" data-path="slViewer.search" data-refocus="slSearchInput"
-          style="flex:1;min-width:160px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:inherit">
-        ${sv.search ? `<button class="btn btn-ghost" style="font-size:12px;padding:4px 10px" data-act="ui-set" data-path="slViewer.search" data-val="">✕</button>` : ''}
-        <span style="color:var(--text-muted);font-size:12px;white-space:nowrap;flex-shrink:0">${ownedN.toLocaleString()} / ${list.length.toLocaleString()} owned</span>
+      <div style="display:flex;flex-direction:column;gap:8px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
+        <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:1px">${tb('drops', '📦 By Superdrop')}${tb('collector', '🖼 Gallery')}${tb('promos', '🎟 Promos')}${tb('bundles', '🧰 Bundles')}${tb('pnl', '💰 P&L')}${tb('index', '📈 Index')}${tb('intel', '🧠 Intelligence')}${tb('announcements', '📣 Announcements')}</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <label style="display:flex;gap:6px;align-items:center;font-size:11px;font-weight:700;color:var(--text-muted);white-space:nowrap">Set code
+            <select aria-label="Filter gallery by set code" data-act="ui-set" data-path="slViewer.gallerySet" data-also="slViewer.page=0" style="min-width:190px;font-size:12px">
+              <option value="all" ${selectedSet === 'all' ? 'selected' : ''}>All set codes (${allCards.length.toLocaleString()})</option>${setOptions}
+            </select>
+          </label>
+          <input type="text" id="slSearchInput" placeholder="Search card, collector number, set code, or note…"
+            value="${esc(sv.search || '')}"
+            data-act="ui-set" data-path="slViewer.search" data-refocus="slSearchInput"
+            style="flex:1;min-width:190px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:inherit">
+          ${sv.search ? `<button class="btn btn-ghost" style="font-size:12px;padding:4px 10px" data-act="ui-set" data-path="slViewer.search" data-val="">✕</button>` : ''}
+          <span style="color:var(--text-muted);font-size:12px;white-space:nowrap;flex-shrink:0">${ownedN.toLocaleString()} / ${list.length.toLocaleString()} owned</span>
+        </div>
       </div>`;
     // Fixed header + its own scroll region: the merged bar never moves and nothing
     // can peek above it. The gallery loads every printing at once (no pagination);
@@ -1694,7 +1753,8 @@ export function renderSlViewer() {
         </div>
         <div style="flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;padding-top:10px">
           <div class="gallery-grid">
-            ${list.map(c => slCardTile(c.id, c.num)).join('')}
+            ${list.length ? list.map(c => slCardTile(c.id, c.num, undefined, { setCode: c.setCode, preview: c.preview })).join('')
+              : '<div style="grid-column:1/-1;padding:36px;text-align:center;color:var(--text-muted)">No cards match this set and search.</div>'}
           </div>
         </div>
       </div>`;
@@ -1705,7 +1765,7 @@ export function renderSlViewer() {
     const tbi = (id, label) => `<button class="btn ${sv.view === id ? 'btn-primary' : 'btn-ghost'}" style="font-size:12px;white-space:nowrap" data-act="ui-set" data-path="slViewer.view" data-val="${id}" data-also="slViewer.page=0">${label}</button>`;
     const idxHeader = `
       <div style="display:flex;gap:6px;align-items:center;padding:8px 12px;margin-bottom:14px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
-        ${tbi('drops', '📦 By Superdrop')}${tbi('collector', '🔢 By Collector №')}${tbi('promos', '🎟 Promos')}${tbi('bundles', '🧰 Bundles')}${tbi('pnl', '💰 P&L')}${tbi('index', '📈 Index')}${tbi('intel', '🧠 Intelligence')}${tbi('announcements', '📣 Announcements')}
+        ${tbi('drops', '📦 By Superdrop')}${tbi('collector', '🖼 Gallery')}${tbi('promos', '🎟 Promos')}${tbi('bundles', '🧰 Bundles')}${tbi('pnl', '💰 P&L')}${tbi('index', '📈 Index')}${tbi('intel', '🧠 Intelligence')}${tbi('announcements', '📣 Announcements')}
       </div>`;
     return idxHeader + renderSlIndexBody(computeSlIndex());
   }
@@ -1727,7 +1787,7 @@ export function renderSlViewer() {
 
     const headerBar = `
       <div style="display:flex;gap:10px;align-items:center;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
-        <div style="display:flex;gap:6px;flex-shrink:0">${tb('drops', '📦 By Superdrop')}${tb('collector', '🔢 By Collector №')}${tb('promos', '🎟 Promos')}${tb('bundles', '🧰 Bundles')}${tb('pnl', '💰 P&L')}${tb('index', '📈 Index')}${tb('intel', '🧠 Intelligence')}${tb('announcements', '📣 Announcements')}</div>
+        <div style="display:flex;gap:6px;flex-shrink:0">${tb('drops', '📦 By Superdrop')}${tb('collector', '🖼 Gallery')}${tb('promos', '🎟 Promos')}${tb('bundles', '🧰 Bundles')}${tb('pnl', '💰 P&L')}${tb('index', '📈 Index')}${tb('intel', '🧠 Intelligence')}${tb('announcements', '📣 Announcements')}</div>
         <span style="margin-left:auto;font-size:12px;color:var(--text-muted)">
           ${rows.length} drop${rows.length !== 1 ? 's' : ''} · paid <strong style="color:var(--text)">${money(tot.cost)}</strong> · now <strong style="color:var(--text)">${money(tot.value)}</strong> ·
           <strong style="color:${gcol(totGain)}">${totGain >= 0 ? '+' : ''}${fmt(totGain)}${totPct != null ? ` (${pct(totPct)})` : ''}</strong>
