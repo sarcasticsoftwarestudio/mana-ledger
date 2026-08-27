@@ -176,4 +176,25 @@ describe('upcoming Secret Lair source join', () => {
     }], '2099-07-01');
     expect(groups[0]).toMatchObject({ drop: 'Unrevealed Drop', status: 'announced', cards: [] });
   });
+
+  it('builds an official-storefront gallery for a verified standalone set code', () => {
+    const specialCards = [
+      { id: '11111111-1111-1111-1111-111111111111', name: 'All That Glitters', released_at: '2099-09-02', set: 'slz', collector_number: '1' },
+      { id: '22222222-2222-2222-2222-222222222222', name: 'All That Glitters', released_at: '2099-09-02', set: 'slz', collector_number: '122' },
+    ];
+    const groups = buildUpcomingLairs(specialCards, [], [], '2099-08-26', [], [{
+      code: 'slz', name: 'The Zeta Set', releasedAt: '2099-09-02',
+      storeTitle: 'Secret Lair x MSCHF: The Zeta Set',
+      storeUrl: 'https://secretlair.wizards.com/us/#cv_thezetaset',
+    }]);
+
+    expect(groups).toHaveLength(1);
+    expect(groups[0]).toMatchObject({
+      drop: 'Secret Lair x MSCHF: The Zeta Set', releaseDate: '2099-09-02',
+      setCode: 'slz', status: 'catalogued', specialSet: true, variableContents: true,
+      matchedCount: 2, expectedCount: 0,
+    });
+    expect(groups[0].cards.map(card => card.collectorNumber)).toEqual(['1', '122']);
+    expect(groups[0].summary).toContain('SLZ');
+  });
 });

@@ -1353,14 +1353,15 @@ export function renderSlViewer() {
     const groups = slUpcomingGroups();
     const q = String(sv.search || '').trim().toLowerCase();
     const filtered = groups.filter(group => !q || [group.drop, group.superdrop, group.summary,
-      ...group.expectedCards.map(card => `${card.name} ${card.displayName}`)]
+      ...group.expectedCards.map(card => `${card.name} ${card.displayName}`),
+      ...group.cards.map(card => `${card.name} ${card.flavorName || ''}`)]
       .some(value => String(value || '').toLowerCase().includes(q)));
     const daysUntil = raw => {
       const target = new Date(`${raw}T00:00:00Z`).getTime();
       const current = new Date(`${today()}T00:00:00Z`).getTime();
       return Number.isFinite(target) ? Math.max(0, Math.ceil((target - current) / 86400000)) : null;
     };
-    const statusText = status => ({ full: 'Full exact preview', partial: 'Partially matched', outlined: 'Card list ready', pending: 'Names parsed', announced: 'Announced' }[status] || 'Announced');
+    const statusText = status => ({ full: 'Full exact preview', partial: 'Partially matched', outlined: 'Card list ready', pending: 'Names parsed', catalogued: 'Storefront set', announced: 'Announced' }[status] || 'Announced');
     const selected = groups.find(group => group.drop === sv.upcomingDrop);
 
     if (selected) {
@@ -1396,14 +1397,18 @@ export function renderSlViewer() {
           <strong>${esc(card.displayName || card.name)}</strong>
           <span>${card.quantity > 1 ? `${card.quantity} ${card.variantGroup ? 'additional variants' : 'copies'} · ` : ''}Card image and ID pending</span>
         </div>`).join('');
-      const unrevealedTile = !totalExpected && !officialPreviews.length ? `
+      const unrevealedTile = !totalExpected && !officialPreviews.length && !selected.cards.length ? `
         <div class="sl-upcoming-card-placeholder sl-upcoming-unrevealed">
           <div class="sl-upcoming-placeholder-mark">?</div>
           <strong>Contents not revealed yet</strong>
           <span>This drop is official. Card names and artwork will appear here as sources publish them.</span>
         </div>` : '';
       const singlesPricing = slUpcomingPricing.has(selected.drop);
-      const singlesPrice = singlesPricing
+      const singlesPrice = selected.variableContents
+        ? `<div class="sl-upcoming-price-head">
+             <span><strong>Set gallery — no fixed singles total</strong><small>The official storefront establishes this release, but does not provide a guaranteed card list for one purchase. Mana Ledger will not treat the entire set as one product.</small></span>
+           </div>`
+        : singlesPricing
         ? '<div class="sl-upcoming-price-head"><span class="sl-upcoming-price-working">⏳ Finding cheapest printings…</span></div>'
         : singlesEstimate
           ? `<div class="sl-upcoming-price-head">
@@ -1424,14 +1429,16 @@ export function renderSlViewer() {
               <h2>${esc(selected.drop)}</h2>
               <p>${esc(selected.superdrop)} · <span class="${selected.releaseDate ? '' : 'sl-upcoming-date-missing'}">${esc(upcomingSaleDateLabel(selected.releaseDate))}${waitDays != null ? ` · ${waitDays} day${waitDays === 1 ? '' : 's'} away` : ''}</span></p>
             </div>
-            ${selected.url ? `<a href="#" class="btn btn-ghost" data-act="open-url" data-arg="${esc(selected.url)}">Official announcement &rarr;</a>` : ''}
+            ${selected.url ? `<a href="#" class="btn btn-ghost" data-act="open-url" data-arg="${esc(selected.url)}">${selected.specialSet ? 'Official storefront' : 'Official announcement'} &rarr;</a>` : ''}
           </div>
           ${selected.summary ? `<p class="sl-upcoming-summary">${esc(selected.summary)}</p>` : ''}
           <div class="sl-upcoming-price">${singlesPrice}</div>
           <div class="sl-upcoming-coverage">
             <strong>${officialPreviews.length || (selected.matchedCount ?? selected.cards.length)}${totalExpected ? ` of ${totalExpected}` : ''}</strong>
             <span>${officialPreviews.length ? `${officialPreviews.length} official preview artwork${officialPreviews.length === 1 ? '' : 's'} · ` : ''}${totalExpected ? `${selected.cards.length} exact Secret Lair ID${selected.cards.length === 1 ? '' : 's'} · ${selected.referenceCount ?? selected.referenceCards.length} name match${(selected.referenceCount ?? selected.referenceCards.length) === 1 ? '' : 'es'}` : 'card printing IDs available so far'}</span>
-            <small>Official Wizards artwork is shown immediately. Scryfall name matches supply rules details; both the hover and singles estimate use the cheapest available printing. Mechanically unique or unmatched previews remain visible without a guessed identity.</small>
+            <small>${selected.specialSet
+              ? `This is a standalone ${esc(String(selected.setCode || '').toUpperCase())} set verified against the official storefront. Published Scryfall entries are shown as a set gallery; availability in any individual purchase is not assumed.`
+              : 'Official Wizards artwork is shown immediately. Scryfall name matches supply rules details; both the hover and singles estimate use the cheapest available printing. Mechanically unique or unmatched previews remain visible without a guessed identity.'}</small>
           </div>
           <div class="gallery-grid sl-upcoming-card-grid">${officialTiles}${previewTiles}${referenceTiles}${placeholderTiles}${unrevealedTile}</div>
         </section>`;
@@ -1441,6 +1448,7 @@ export function renderSlViewer() {
     const referenceCards = groups.reduce((sum, group) => sum + group.referenceCards.length, 0);
     const officialArtwork = groups.reduce((sum, group) => sum + (group.officialPreviews?.length || 0), 0);
     const fullPreviews = groups.filter(group => group.status === 'full').length;
+    const storefrontSets = groups.filter(group => group.specialSet).length;
     const cards = filtered.map(group => {
       const hero = (group.officialPreviews || []).find(card => card.imageUrl)
         || [...group.cards, ...group.referenceCards].find(card => card.artCrop || card.imageUri);
@@ -1468,7 +1476,7 @@ export function renderSlViewer() {
           <div>
             <div class="sl-upcoming-eyebrow">Release horizon</div>
             <h2>Explore upcoming Secret Lairs</h2>
-            <p>Official announcements become structured drop lists. Exact future printings appear when available; announced names use clearly labeled reference printings until then.</p>
+            <p>Official announcements become structured drop lists. Standalone set codes verified against the official storefront appear as set galleries, while announced names use clearly labeled reference printings until exact IDs exist.</p>
           </div>
           <div class="sl-upcoming-stats">
             <span><strong>${groups.length}</strong> upcoming drop${groups.length === 1 ? '' : 's'}</span>
@@ -1476,6 +1484,7 @@ export function renderSlViewer() {
             <span><strong>${referenceCards}</strong> reference card${referenceCards === 1 ? '' : 's'}</span>
             <span><strong>${officialArtwork}</strong> official artwork${officialArtwork === 1 ? '' : 's'}</span>
             <span><strong>${fullPreviews}</strong> fully exact drop${fullPreviews === 1 ? '' : 's'}</span>
+            ${storefrontSets ? `<span><strong>${storefrontSets}</strong> storefront set${storefrontSets === 1 ? '' : 's'}</span>` : ''}
           </div>
         </header>
         <div class="sl-upcoming-search">
@@ -1876,7 +1885,7 @@ export async function showSlViewerModal(scryfallId) {
         `).join('') : ''}
         ${upcomingInfo ? `
           <span style="color:var(--text-muted)">Upcoming drop</span><span class="sl-type-badge">${esc(upcomingInfo.drop)}</span>
-          <span style="color:var(--text-muted)">Releases</span><span class="${upcomingInfo.releaseDate ? '' : 'sl-upcoming-date-missing'}">${esc(upcomingSaleDateLabel(upcomingInfo.releaseDate))} · ${upcomingInfo.matchType === 'reference' ? 'reference printing; final Secret Lair ID pending' : 'exact preview printing'}</span>
+          <span style="color:var(--text-muted)">Releases</span><span class="${upcomingInfo.releaseDate ? '' : 'sl-upcoming-date-missing'}">${esc(upcomingSaleDateLabel(upcomingInfo.releaseDate))} · ${upcomingInfo.matchType === 'reference' ? 'reference printing; final Secret Lair ID pending' : (upcomingInfo.specialSet ? `${esc(String(upcomingInfo.setCode || '').toUpperCase())} storefront set printing` : 'exact preview printing')}</span>
         ` : ''}
         ${(typeof preconsContaining === 'function' ? preconsContaining(scryfallId) : []).slice(0, 3).map(p => `
           <span style="color:var(--text-muted)">Precon</span>

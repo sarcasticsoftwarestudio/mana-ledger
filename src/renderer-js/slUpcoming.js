@@ -5,6 +5,7 @@
 // joins those two sources without pretending that unrevealed cards exist.
 
 import { refreshSlAnnouncements, slAnnouncements } from './slAnnouncements.js';
+import { loadSlStorefrontFromSettings, refreshSlStorefrontData, slStorefrontInfo, slStorefrontSpecialSets } from './slStorefront.js';
 import { upcomingSlDrops } from './slWiki.js';
 import { netFetch, today } from './utils.js';
 
@@ -72,6 +73,7 @@ const sanitizeCache = value => ({
 let upcomingData = null; // { fetchedAt, cards, references }
 
 export async function loadSlUpcomingFromSettings() {
+  await loadSlStorefrontFromSettings();
   try {
     const raw = await window.api?.settings?.get(SETTINGS_KEY);
     if (raw) upcomingData = sanitizeCache(JSON.parse(raw));
@@ -82,16 +84,23 @@ export async function loadSlUpcomingFromSettings() {
 
 export async function refreshSlUpcomingData(opts = {}) {
   try {
-    const query = encodeURIComponent(`set:sld date>=${today()}`);
-    let url = `https://api.scryfall.com/cards/search?q=${query}&order=released&dir=asc&unique=prints`;
+    if (!opts.skipStorefront) await refreshSlStorefrontData({ silent: true });
+    const queries = [
+      `set:sld date>=${today()}`,
+      ...slStorefrontSpecialSets().filter(set => set.releasedAt >= today()).map(set => `set:${set.code}`),
+    ];
     const cards = [];
-    for (let page = 0; url && page < MAX_PAGES; page++) {
-      const response = await netFetch(url, { headers: { Accept: 'application/json' } });
-      if (response.status === 404 && page === 0) break; // Valid "no future printings" search result.
-      if (!response.ok) throw new Error(`HTTP ${response.status} from Scryfall`);
-      const json = await response.json();
-      cards.push(...(json.data || []).map(compactUpcomingScryfallCard));
-      url = json.has_more ? json.next_page : null;
+    for (const rawQuery of [...new Set(queries)]) {
+      const query = encodeURIComponent(rawQuery);
+      let url = `https://api.scryfall.com/cards/search?q=${query}&order=released&dir=asc&unique=prints`;
+      for (let page = 0; url && page < MAX_PAGES; page++) {
+        const response = await netFetch(url, { headers: { Accept: 'application/json' } });
+        if (response.status === 404 && page === 0) break; // Valid "no future printings" search result.
+        if (!response.ok) throw new Error(`HTTP ${response.status} from Scryfall`);
+        const json = await response.json();
+        cards.push(...(json.data || []).map(compactUpcomingScryfallCard));
+        url = json.has_more ? json.next_page : null;
+      }
     }
     const announcedNames = [];
     const seenNames = new Set();
@@ -139,17 +148,20 @@ export async function refreshSlUpcomingData(opts = {}) {
 }
 
 export async function refreshUpcomingSources(opts = {}) {
-  const announcementsOk = await refreshSlAnnouncements({ silent: true });
-  const previewsOk = await refreshSlUpcomingData({ silent: true });
-  if (!opts.silent && (!announcementsOk || !previewsOk)) {
+  const [announcementsOk, storefrontOk] = await Promise.all([
+    refreshSlAnnouncements({ silent: true }),
+    refreshSlStorefrontData({ silent: true }),
+  ]);
+  const previewsOk = await refreshSlUpcomingData({ silent: true, skipStorefront: true });
+  if (!opts.silent && (!announcementsOk || !storefrontOk || !previewsOk)) {
     window.logger?.warn?.('SL', 'Upcoming preview refresh completed with a source unavailable; last-good cache retained where possible');
   }
-  return announcementsOk && previewsOk;
+  return announcementsOk && storefrontOk && previewsOk;
 }
 
 const articleGroupName = title => clean(title, 240).replace(/^Secret Lair\s*:\s*/i, '') || 'Upcoming Secret Lair';
 
-export function buildUpcomingLairs(cards, announcements = [], wikiRows = [], asOf = today(), referenceCards = []) {
+export function buildUpcomingLairs(cards, announcements = [], wikiRows = [], asOf = today(), referenceCards = [], specialSets = []) {
   const futureCards = (Array.isArray(cards) ? cards : [])
     .map(compactUpcomingScryfallCard)
     .filter(card => card.id && card.releasedAt >= asOf);
@@ -305,6 +317,46 @@ export function buildUpcomingLairs(cards, announcements = [], wikiRows = [], asO
     seen.add(key);
   }
 
+  for (const rawSet of (Array.isArray(specialSets) ? specialSets : [])) {
+    const setCode = clean(rawSet?.code, 12).toLowerCase();
+    const setName = clean(rawSet?.name, 180);
+    const storeTitle = clean(rawSet?.storeTitle || setName, 240);
+    const releaseDate = clean(rawSet?.releasedAt || rawSet?.released_at, 10);
+    if (!setCode || setCode === 'sld' || !storeTitle || !releaseDate || releaseDate < asOf) continue;
+    const overlaps = groups.some(group => {
+      const groupName = norm(group.drop);
+      return group.releaseDate === releaseDate && (groupName.includes(norm(setName)) || norm(storeTitle).includes(groupName));
+    });
+    if (overlaps) continue;
+    const setCards = futureCards.filter(card => card.setCode === setCode && card.releasedAt === releaseDate)
+      .sort((a, b) => a.collectorNumber.localeCompare(b.collectorNumber, undefined, { numeric: true }));
+    groups.push({
+      drop: storeTitle,
+      superdrop: 'Official storefront special release',
+      releaseDate,
+      releaseDateStatus: 'known',
+      url: clean(rawSet?.storeUrl, 500),
+      summary: `Official Secret Lair storefront release with standalone Scryfall set code ${setCode.toUpperCase()}. The gallery shows published set entries without assuming every card is included in one purchase.`,
+      cards: setCards,
+      referenceCards: [],
+      officialPreviews: [],
+      expectedCards: [],
+      unmatchedCards: [],
+      expectedCount: 0,
+      matchedCount: setCards.length,
+      referenceCount: 0,
+      pendingCount: 0,
+      officialPreviewCount: 0,
+      status: setCards.length ? 'catalogued' : 'announced',
+      source: 'Official storefront + Scryfall',
+      specialSet: true,
+      variableContents: true,
+      setCode,
+      setName,
+      publishedCardCount: setCards.length,
+    });
+  }
+
   return groups.sort((a, b) => {
     // Known dates stay chronological; undated official announcements remain
     // visible at the end instead of sorting ahead of every dated release.
@@ -338,7 +390,7 @@ export function sumUpcomingCheapest(expectedCards, cheapestByName = {}) {
 }
 
 export function slUpcomingGroups() {
-  return buildUpcomingLairs(upcomingData?.cards || [], slAnnouncements(), upcomingSlDrops(), today(), upcomingData?.references || []);
+  return buildUpcomingLairs(upcomingData?.cards || [], slAnnouncements(), upcomingSlDrops(), today(), upcomingData?.references || [], slStorefrontSpecialSets());
 }
 
 export function slUpcomingCardContext(scryfallId) {
@@ -354,6 +406,7 @@ export function slUpcomingCardContext(scryfallId) {
 
 export function slUpcomingInfo() {
   const groups = slUpcomingGroups();
+  const storefront = slStorefrontInfo();
   return upcomingData ? {
     fetchedAt: upcomingData.fetchedAt,
     printingCount: upcomingData.cards.length,
@@ -361,5 +414,8 @@ export function slUpcomingInfo() {
     matchedCount: groups.reduce((sum, group) => sum + group.cards.length, 0),
     referenceCount: groups.reduce((sum, group) => sum + group.referenceCards.length, 0),
     officialPreviewCount: groups.reduce((sum, group) => sum + group.officialPreviews.length, 0),
+    storefrontFetchedAt: storefront?.fetchedAt || '',
+    storefrontProductCount: storefront?.productCount || 0,
+    specialSetCount: storefront?.specialSetCount || 0,
   } : null;
 }

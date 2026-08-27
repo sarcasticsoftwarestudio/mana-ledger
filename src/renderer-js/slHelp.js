@@ -54,7 +54,8 @@ export function showSlDataGuide() {
             ${row('mtg.wiki Drop Series', 'Curated release structure', 'Superdrop grouping, release date, nonfoil MSRP, foil MSRP, and announced-but-unreleased rows.', 'With SL sync')}
             ${row('mtg.wiki Bonus Cards', 'Supplemental insert catalog', 'SLD collector number, type, card, variant, explicit drop exclusivity, notes and chase/random signals. Bonus rows never count as guaranteed contents.', 'With SL sync')}
             ${row('Wizards announcements', 'Official launch context', 'Up to 20 recent official articles with publication date, sale date/time, bundle headings, promotion and WPN/store notes. Article prices are intentionally not parsed because they can belong to one SKU rather than the titled superdrop.', 'With SL sync')}
-            ${row('Scryfall future SLD + name lookup', 'Upcoming printing previews', 'Future SLD IDs, release dates, collector numbers, finishes and art. Wizards contents provide the drop grouping; announced names without future IDs use clearly labeled reference printings.', 'With SL sync')}
+            ${row('Scryfall future sets + name lookup', 'Upcoming printing previews', 'Future SLD IDs plus standalone set codes verified against official Secret Lair storefront listings; release dates, collector numbers, finishes and art. Announced names without future IDs use clearly labeled reference printings.', 'With SL sync')}
+            ${row('Official Secret Lair storefront', 'Special-release verification', 'Upcoming storefront product titles are conservatively matched to Scryfall set names. A non-SLD set is included only after this official-source match; set galleries never imply fixed booster contents.', 'With SL sync')}
             ${row('MTGJSON AllPrices seed', 'New-install card history', 'A reviewed build-time Secret Lair-only slice of TCGplayer/Card Kingdom USD retail history. The app never downloads the global payload; local/live points win on overlapping dates.', 'Weekly app-data build')}
             ${row('CardTrader (optional)', 'Cross-market sealed listings', 'Lowest in-stock listings by exact CardTrader blueprint ID, kept in the returned currency. Requires the user’s CardTrader profile API token.', 'On demand')}
             ${row('PriceCharting (optional)', 'Second sealed estimate', 'Current new/sealed or loose value returned for a user-selected product. Requires the user’s paid API token; it is not historical data.', 'On demand')}
@@ -95,7 +96,7 @@ export function showSlDataGuide() {
         <div style="padding:9px 11px;background:var(--surface);border-radius:7px"><strong style="color:var(--text)">Drop Series wiki</strong><br>${wiki?.count?.toLocaleString() || 0} rows · ${esc(when(wiki?.fetchedAt))}</div>
         <div style="padding:9px 11px;background:var(--surface);border-radius:7px"><strong style="color:var(--text)">Bonus catalog</strong><br>${bonus?.count?.toLocaleString() || 0} rows · ${esc(when(bonus?.fetchedAt))}</div>
         <div style="padding:9px 11px;background:var(--surface);border-radius:7px"><strong style="color:var(--text)">Official articles</strong><br>${official?.count?.toLocaleString() || 0} rows · ${esc(when(official?.fetchedAt))}</div>
-        <div style="padding:9px 11px;background:var(--surface);border-radius:7px"><strong style="color:var(--text)">Upcoming previews</strong><br>${upcoming?.matchedCount?.toLocaleString() || 0} exact · ${upcoming?.referenceCount?.toLocaleString() || 0} reference across ${upcoming?.groupCount?.toLocaleString() || 0} drops · ${esc(when(upcoming?.fetchedAt))}</div>
+        <div style="padding:9px 11px;background:var(--surface);border-radius:7px"><strong style="color:var(--text)">Upcoming previews</strong><br>${upcoming?.matchedCount?.toLocaleString() || 0} exact · ${upcoming?.referenceCount?.toLocaleString() || 0} reference across ${upcoming?.groupCount?.toLocaleString() || 0} drops${upcoming?.specialSetCount ? ` · ${upcoming.specialSetCount.toLocaleString()} storefront set${upcoming.specialSetCount === 1 ? '' : 's'}` : ''} · ${esc(when(upcoming?.fetchedAt))}</div>
         <div style="padding:9px 11px;background:var(--surface);border-radius:7px"><strong style="color:var(--text)">TCGCSV products</strong><br>${tcgcsvCache.sealedProducts.length.toLocaleString()} rows · ${esc(when(tcgcsvCache.lastRefresh))}</div>
         <div id="sl-help-scryfall-health" style="padding:9px 11px;background:var(--surface);border-radius:7px"><strong style="color:var(--text)">Scryfall bulk index</strong><br>Checking local index…</div>
         <div style="padding:9px 11px;background:var(--surface);border-radius:7px"><strong style="color:var(--text)">History seed</strong><br>${historySeed.series.toLocaleString()} series · ${esc(when(historySeed.generatedAt))}</div>
@@ -116,7 +117,8 @@ export function showSlDataGuide() {
         <a href="#" data-act="open-url" data-arg="https://tcgcsv.com">TCGCSV</a> ·
         <a href="#" data-act="open-url" data-arg="https://www.cardtrader.com/docs/api/full/reference">CardTrader API</a> ·
         <a href="#" data-act="open-url" data-arg="https://mtg.wiki/page/Secret_Lair/Drop_Series">mtg.wiki</a> ·
-        <a href="#" data-act="open-url" data-arg="https://magic.wizards.com/en/news/announcements?search=Secret+Lair">Wizards</a>.
+        <a href="#" data-act="open-url" data-arg="https://magic.wizards.com/en/news/announcements?search=Secret+Lair">Wizards</a> ·
+        <a href="#" data-act="open-url" data-arg="https://secretlair.wizards.com/us/en">Secret Lair storefront</a>.
       </p>
       <div style="display:flex;justify-content:flex-end"><button class="btn btn-primary" data-act="hideModal">Close</button></div>
     </div>`, 'xl');

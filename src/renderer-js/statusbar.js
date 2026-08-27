@@ -106,6 +106,7 @@ export function showAbout() {
       SL drop data via <a href="#" data-act="open-url" data-arg="https://mtgjson.com">MTGJSON</a> ·
       SL grouping, MSRP, and bonus catalog via <a href="#" data-act="open-url" data-arg="https://mtg.wiki">mtg.wiki</a> ·
       launch context via <a href="#" data-act="open-url" data-arg="https://magic.wizards.com/en/news/announcements?search=Secret+Lair">Wizards</a> ·
+      special-release verification via the <a href="#" data-act="open-url" data-arg="https://secretlair.wizards.com/us/en">official Secret Lair storefront</a> ·
       sealed prices via TCGCSV and PriceCharting (optional paid token in Settings).
     </p>
     <p style="font-size:10.5px;color:var(--text-muted);line-height:1.5;margin-bottom:14px">

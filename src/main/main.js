@@ -262,6 +262,7 @@ const ALLOWED_FETCH_HOSTS = new Set([
   'api.cardtrader.com',  // optional authenticated cross-market sealed listings
   'mtg.wiki',           // Drop Series table: superdrop grouping + per-drop MSRPs + upcoming drops
   'magic.wizards.com',  // official Magic news, release notes, announcements and Secret Lair context
+  'secretlair.wizards.com', // official storefront upcoming products and special set-code verification
 ]);
 
 // ── IPC handlers ─────────────────────────────────────────────────────────────
