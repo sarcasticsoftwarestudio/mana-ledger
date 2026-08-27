@@ -3281,6 +3281,84 @@ body[data-binder-open="true"]::before {
 }
 .sl-upcoming-drop-foot span:last-child { color: var(--accent2); font-weight: 650; }
 .sl-upcoming-back { margin-bottom: 12px; }
+
+/* Contextual Secret Lair singles pricing */
+.sl-singles-price-section {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid var(--border);
+}
+.sl-singles-price-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 7px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.sl-singles-price-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 7px;
+}
+.sl-singles-price-tier {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--bg2);
+  overflow: hidden;
+}
+.sl-singles-price-tier[open] { border-color: var(--border2); }
+.sl-singles-price-tier summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 10px;
+  cursor: pointer;
+  list-style: none;
+}
+.sl-singles-price-tier summary::-webkit-details-marker { display: none; }
+.sl-singles-price-tier summary::before { content: '›'; color: var(--text-muted); font-size: 15px; transition: transform .12s ease; }
+.sl-singles-price-tier[open] summary::before { transform: rotate(90deg); }
+.sl-singles-price-tier summary:hover { background: var(--surface2); }
+.sl-singles-price-label,
+.sl-singles-price-total { min-width: 0; }
+.sl-singles-price-label b,
+.sl-singles-price-label small,
+.sl-singles-price-total strong,
+.sl-singles-price-total small,
+.sl-singles-price-row b,
+.sl-singles-price-row small { display: block; }
+.sl-singles-price-label b { color: var(--text); font-size: 11px; }
+.sl-singles-price-label small { margin-top: 2px; color: var(--text-muted); font-size: 9px; line-height: 1.35; }
+.sl-singles-price-total { color: var(--text); font-family: var(--font-mono); text-align: right; white-space: nowrap; }
+.sl-singles-price-total strong { font-size: 12px; }
+.sl-singles-price-total small { margin-top: 2px; color: var(--text-muted); font-family: var(--font-sans); font-size: 8.5px; }
+.sl-singles-price-rows {
+  max-height: 330px;
+  overflow-y: auto;
+  border-top: 1px solid var(--border);
+}
+.sl-singles-price-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  font-size: 10px;
+}
+.sl-singles-price-row:last-child { border-bottom: 0; }
+.sl-singles-price-row > span:last-child { min-width: 76px; font-family: var(--font-mono); text-align: right; white-space: nowrap; }
+.sl-singles-price-row b { color: var(--text); overflow-wrap: anywhere; }
+.sl-singles-price-row small { margin-top: 2px; color: var(--text-muted); font-family: var(--font-sans); font-size: 8.5px; line-height: 1.35; }
+.sl-singles-price-unavailable { color: var(--text-muted); font-family: var(--font-sans) !important; }
+
 .sl-upcoming-detail-head {
   display: flex;
   align-items: flex-start;

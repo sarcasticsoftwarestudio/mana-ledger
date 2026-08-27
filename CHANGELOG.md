@@ -12,6 +12,9 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+### Added
+- **“Price the singles” now shows the useful range instead of one ambiguous total.** Every Secret Lair product compares the cheapest playable versions across all sets with its exact included printings and card-by-card sources. Variable-finish products add separate nonfoil, foil, and available premium-treatment totals such as Halo foil, while dedicated foil/nonfoil products remain isolated from their sibling SKU and incomplete finish coverage is clearly labeled as a subtotal.
+
 ## [1.7.16] - 2026-08-27
 
 ### Fixed

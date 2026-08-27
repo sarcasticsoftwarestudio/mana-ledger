@@ -154,7 +154,8 @@ function lookup(ids) {
   return { found, missing };
 }
 
-// names → { found: { [name]: { price, set, set_name, finish } }, missing: [names] }.
+// names → { found: { [name]: { price, id, set, set_name,
+// collector_number, finish } }, missing: [names] }.
 // "Cheapest print" = the lowest price across every printing of that name in
 // the index, any finish. Used to estimate printings that have no price yet
 // (an upcoming Secret Lair) from the cheapest version you could buy today.
@@ -172,7 +173,14 @@ function buildCheapestByName() {
     }
     if (min === Infinity) continue;
     const cur = cheapestByNameMap.get(c.name);
-    if (!cur || min < cur.price) cheapestByNameMap.set(c.name, { price: min, set: c.set, set_name: c.set_name, finish });
+    if (!cur || min < cur.price) cheapestByNameMap.set(c.name, {
+      price: min,
+      id: c.id,
+      set: c.set,
+      set_name: c.set_name,
+      collector_number: c.collector_number,
+      finish,
+    });
   }
 }
 

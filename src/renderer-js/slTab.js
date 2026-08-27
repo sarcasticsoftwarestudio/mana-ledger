@@ -670,19 +670,23 @@ export function computeSlIndex() {
   // Sealed crack-vs-keep rollup — uses already-priced singles from the in-memory
   // cache (the "Price sealed singles" button fills it on demand; no auto-fetch).
   const heldDrops = sealedHeldDrops();
-  let keepTotal = 0, crackTotal = 0, pricedCount = 0;
+  let keepTotal = 0, crackTotal = 0, pricedCount = 0, attemptedCount = 0, incompleteCount = 0;
   for (const drop of heldDrops) {
     const k = sealedKeepValue(drop);
     if (k && k.value != null) keepTotal += k.value;
     const cached = slDropSinglesCache.get(drop);
-    if (cached) { crackTotal += cached.value; pricedCount++; }
+    if (cached) {
+      attemptedCount++;
+      if (cached.complete) { crackTotal += cached.value; pricedCount++; }
+      else incompleteCount++;
+    }
   }
 
   return {
     dropCount: rows.length, cost, value, unrealized, unrealizedPct,
     realized, realizedCount, totalReturn, totalReturnPct,
     best, worst, ranked, buckets, withPct, winners,
-    crackVsKeep: { heldCount: heldDrops.length, pricedCount, keepTotal, crackTotal, drops: heldDrops },
+    crackVsKeep: { heldCount: heldDrops.length, pricedCount, attemptedCount, incompleteCount, keepTotal, crackTotal, drops: heldDrops },
   };
 }
 
@@ -873,8 +877,9 @@ export function renderSlIndexBody(idx) {
   const cvk = idx.crackVsKeep;
   let crackKeep = '';
   if (cvk.heldCount > 0) {
-    const allPriced = cvk.pricedCount >= cvk.heldCount;
-    const verdict = !allPriced ? ''
+    const allAttempted = cvk.attemptedCount >= cvk.heldCount;
+    const allComparable = cvk.pricedCount >= cvk.heldCount;
+    const verdict = !allComparable ? ''
       : cvk.crackTotal > cvk.keepTotal
         ? `<span style="margin-left:auto;color:var(--green);font-weight:600">Cracking wins by ${fmt(cvk.crackTotal - cvk.keepTotal)}</span>`
         : `<span style="margin-left:auto;color:var(--text);font-weight:600">Keeping wins by ${fmt(cvk.keepTotal - cvk.crackTotal)}</span>`;
@@ -882,8 +887,8 @@ export function renderSlIndexBody(idx) {
       <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 16px">
         <span style="font-size:13px;font-weight:700">📦 ${cvk.heldCount} sealed drop${cvk.heldCount === 1 ? '' : 's'} held</span>
         <span style="font-size:13px;color:var(--text-muted)">Keep <strong style="color:var(--text)">${fmt(cvk.keepTotal)}</strong></span>
-        <span style="font-size:13px;color:var(--text-muted)">Crack ${cvk.pricedCount ? `<strong style="color:var(--text)">${fmt(cvk.crackTotal)}</strong>` : '<span style="color:var(--text-muted)">— not priced</span>'}</span>
-        ${allPriced ? verdict : `<button class="btn btn-ghost" style="font-size:12px;margin-left:auto" data-act="priceAllSealedDropsSingles">Price sealed singles (${cvk.heldCount - cvk.pricedCount} left)</button>`}
+        <span style="font-size:13px;color:var(--text-muted)">Crack ${cvk.pricedCount ? `<strong style="color:var(--text)">${fmt(cvk.crackTotal)}</strong> <small>(${cvk.pricedCount}/${cvk.heldCount} complete)</small>` : '<span style="color:var(--text-muted)">— no complete exact total</span>'}</span>
+        ${!allAttempted ? `<button class="btn btn-ghost" style="font-size:12px;margin-left:auto" data-act="priceAllSealedDropsSingles">Price sealed singles (${cvk.heldCount - cvk.attemptedCount} left)</button>` : cvk.incompleteCount ? `<span style="margin-left:auto;color:var(--text-muted);font-size:11px">${cvk.incompleteCount} incomplete exact total${cvk.incompleteCount === 1 ? '' : 's'} excluded</span>` : verdict}
       </div>`;
   }
 
@@ -902,7 +907,7 @@ export function renderSlIndexBody(idx) {
 // Singles for an unopened drop usually aren't in your collection, so their prices
 // are fetched on demand from Scryfall and cached in memory (not price history).
 // ─────────────────────────────────────────────────────────────────────────────
-const slDropSinglesCache = new Map();  // drop -> { value, priced, names, at }
+const slDropSinglesCache = new Map();  // drop -> { value, priced, names, complete, tiers, at }
 const slDropPricing = new Set();        // drops with a fetch in flight
 const slUpcomingSinglesCache = new Map(); // announced drop -> cheapest-print estimate
 const slUpcomingPricing = new Set();      // announced drops with a lookup in flight
@@ -1042,38 +1047,247 @@ export function sumDropSingles(cards, finish = 'normal') {
   return { value: Object.values(byName).reduce((a, b) => a + b, 0), priced: Object.keys(byName).length, byName };
 }
 
+const SL_EXACT_FINISHES = {
+  nonfoil: { label: 'Nonfoil', priceKey: 'usd', order: 10 },
+  foil:    { label: 'Foil', priceKey: 'usd_foil', order: 20 },
+  etched:  { label: 'Etched foil', priceKey: 'usd_etched', order: 30 },
+};
+
+// Scryfall represents premium treatments such as Halo foil as separate card
+// identities whose price still lives in usd_foil. Keep those treatments apart
+// from ordinary foil when a variable-finish product explicitly links them as
+// alternatives for the same guaranteed slot.
+const SL_PREMIUM_FINISHES = {
+  halofoil:        'Halo foil',
+  rainbowfoil:     'Rainbow foil',
+  confettifoil:    'Confetti foil',
+  galaxyfoil:      'Galaxy foil',
+  surgefoil:       'Surge foil',
+  raisedfoil:      'Raised foil',
+  fracturefoil:    'Fracture foil',
+  textured:        'Textured foil',
+  gilded:          'Gilded foil',
+  neonink:         'Neon ink foil',
+  stepandcompleat: 'Step-and-compleat foil',
+};
+
+function numericPrice(value) {
+  const price = parseFloat(value);
+  return Number.isFinite(price) ? price : null;
+}
+
+function premiumFinish(card) {
+  for (const raw of (card?.promo_types || [])) {
+    const key = String(raw || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (SL_PREMIUM_FINISHES[key]) return { key: `premium:${key}`, label: SL_PREMIUM_FINISHES[key], order: 40 };
+    if (key.endsWith('foil') && key !== 'foil') {
+      const words = key.slice(0, -4).replace(/([a-z])([A-Z])/g, '$1 $2');
+      return { key: `premium:${key}`, label: `${words.charAt(0).toUpperCase()}${words.slice(1)} foil`, order: 40 };
+    }
+  }
+  return null;
+}
+
+function exactPriceOptions(card) {
+  if (!card) return [];
+  const prices = card.prices || {};
+  const options = [];
+  const nonfoil = numericPrice(prices.usd);
+  const foil = numericPrice(prices.usd_foil);
+  const etched = numericPrice(prices.usd_etched);
+  if (nonfoil != null) options.push({ ...SL_EXACT_FINISHES.nonfoil, key: 'nonfoil', price: nonfoil, card });
+  if (foil != null) {
+    const premium = premiumFinish(card);
+    options.push({ ...(premium || SL_EXACT_FINISHES.foil), key: premium?.key || 'foil', priceKey: 'usd_foil', price: foil, card });
+  }
+  if (etched != null) options.push({ ...SL_EXACT_FINISHES.etched, key: 'etched', price: etched, card });
+  return options;
+}
+
+function cheapestChoice(choices) {
+  return (choices || []).filter(choice => choice?.price != null)
+    .sort((a, b) => a.price - b.price || String(a.card?.collector_number || '').localeCompare(String(b.card?.collector_number || '')))[0] || null;
+}
+
+function makeSinglesTier({ key, label, description, slots, choose }) {
+  let value = 0, priced = 0, total = 0;
+  const rows = [];
+  for (const slot of slots) {
+    const quantity = Math.max(1, Number(slot.count) || 1);
+    const choice = choose(slot);
+    total += quantity;
+    if (choice?.price != null) {
+      value += choice.price * quantity;
+      priced += quantity;
+    }
+    rows.push({
+      name: slot.name || choice?.card?.name || 'Unknown card',
+      quantity,
+      unitPrice: choice?.price ?? null,
+      subtotal: choice?.price != null ? choice.price * quantity : null,
+      scryfallId: choice?.card?.id || choice?.id || null,
+      setCode: choice?.card?.set || choice?.set || '',
+      setName: choice?.card?.set_name || choice?.set_name || '',
+      collectorNumber: choice?.card?.collector_number || choice?.collector_number || '',
+      finish: choice?.label || cheapestFinishLabel(choice?.finish) || '',
+    });
+  }
+  return { key, label, description, value, priced, total, complete: total > 0 && priced === total, rows };
+}
+
+// Build the contextual comparison shown after "Price the singles".
+// - Every product gets a cheapest-playable total across all sets/finishes.
+// - Fixed SKUs get only their own required finish (never a sibling SKU's).
+// - Variable-finish products get a lowest-exact total plus every exact finish
+//   represented by their linked card identities (including premium variants).
+export function buildDropSinglesPricing(product, fetchedCards, cheapestByName = {}) {
+  const cardsById = new Map((fetchedCards || []).filter(card => card?.id).map(card => [String(card.id).toLowerCase(), card]));
+  const slots = (product?.cards || []).map((slot, index) => ({
+    ...slot,
+    slotKey: `${slot.scryfallId || slot.name || 'slot'}:${index}`,
+    scryfallId: (slot.scryfallId || '').toLowerCase(),
+    alternateScryfallIds: (slot.alternateScryfallIds || []).map(id => String(id).toLowerCase()),
+  }));
+  const total = slots.reduce((sum, slot) => sum + Math.max(1, Number(slot.count) || 1), 0);
+  if (!slots.length) return { value: 0, priced: 0, names: 0, complete: false, tiers: [], at: Date.now() };
+
+  const cardsForSlot = slot => [slot.scryfallId, ...(slot.alternateScryfallIds || [])]
+    .map(id => cardsById.get(id)).filter(Boolean);
+  const variable = product?.variableFinish === true || product?.finish === 'mixed' || slots.some(slot => slot.finish === 'any');
+
+  const cheapest = makeSinglesTier({
+    key: 'cheapest',
+    label: 'Cheapest playable',
+    description: 'Lowest-priced printing or finish of each card, from any set.',
+    slots,
+    choose: slot => {
+      const hit = cheapestByName[slot.name];
+      const price = numericPrice(hit?.price);
+      return price == null ? null : { ...hit, price, label: cheapestFinishLabel(hit.finish) };
+    },
+  });
+
+  const actualFinishes = new Set(slots.map(slot => slot.finish).filter(finish => finish && finish !== 'any'));
+  const exactLabel = variable
+    ? 'Exact printing · Lowest finish'
+    : actualFinishes.size > 1
+      ? 'Exact printing · As released'
+      : `Exact printing · ${product?.finishLabel || SL_EXACT_FINISHES[[...actualFinishes][0] || product?.finish]?.label || 'As released'}`;
+  const exact = makeSinglesTier({
+    key: 'exact',
+    label: exactLabel,
+    description: variable
+      ? 'Cheapest available finish for each exact Secret Lair card in this product.'
+      : 'Exact Secret Lair cards in this product’s required finish.',
+    slots,
+    choose: slot => {
+      const candidates = cardsForSlot(slot);
+      if (variable || slot.finish === 'any') return cheapestChoice(candidates.flatMap(exactPriceOptions));
+      const meta = SL_EXACT_FINISHES[slot.finish] || SL_EXACT_FINISHES[product?.finish] || SL_EXACT_FINISHES.nonfoil;
+      return cheapestChoice(candidates.slice(0, 1).map(card => {
+        const price = numericPrice(card?.prices?.[meta.priceKey]);
+        return price == null ? null : { ...meta, price, card };
+      }));
+    },
+  });
+
+  const variants = [];
+  if (variable) {
+    const categories = new Map();
+    for (const slot of slots) {
+      for (const option of cardsForSlot(slot).flatMap(exactPriceOptions)) {
+        if (!categories.has(option.key)) categories.set(option.key, { key: option.key, label: option.label, order: option.order || 99 });
+      }
+    }
+    for (const category of [...categories.values()].sort((a, b) => a.order - b.order || a.label.localeCompare(b.label))) {
+      variants.push(makeSinglesTier({
+        key: `exact:${category.key}`,
+        label: `Exact printing · ${category.label}`,
+        description: `Exact Secret Lair cards priced only in ${category.label.toLowerCase()}.`,
+        slots,
+        choose: slot => cheapestChoice(cardsForSlot(slot).flatMap(exactPriceOptions).filter(option => option.key === category.key)),
+      }));
+    }
+  }
+
+  return {
+    value: exact.value,
+    priced: exact.priced,
+    names: total,
+    complete: exact.complete,
+    tiers: [cheapest, exact, ...variants],
+    at: Date.now(),
+  };
+}
+
+export function renderDropSinglesPricing(pricing) {
+  const tiers = Array.isArray(pricing?.tiers) ? pricing.tiers : [];
+  if (!tiers.length) return '';
+  return `<div class="sl-singles-price-grid" aria-label="Singles price comparisons">
+    ${tiers.map(tier => {
+      const amount = !tier.priced
+        ? '<strong class="sl-singles-price-unavailable">Unavailable</strong>'
+        : tier.complete
+          ? `<strong>${fmt(tier.value)}</strong>`
+          : `<strong>Subtotal ${fmt(tier.value)}</strong>`;
+      return `<details class="sl-singles-price-tier">
+        <summary>
+          <span class="sl-singles-price-label"><b>${esc(tier.label)}</b><small>${esc(tier.description || '')}</small></span>
+          <span class="sl-singles-price-total">${amount}<small>${tier.priced}/${tier.total} cards priced${tier.complete ? '' : ' · incomplete'}</small></span>
+        </summary>
+        <div class="sl-singles-price-rows">
+          ${(tier.rows || []).map(row => {
+            const source = row.unitPrice == null
+              ? 'No price found for this comparison'
+              : [row.setName || (row.setCode ? String(row.setCode).toUpperCase() : ''), row.collectorNumber ? `#${row.collectorNumber}` : '', row.finish].filter(Boolean).join(' · ');
+            const amountCell = row.unitPrice == null
+              ? '<strong class="sl-singles-price-unavailable">Unavailable</strong>'
+              : row.quantity > 1
+                ? `<strong>${row.quantity} × ${fmt(row.unitPrice)}</strong><small>${fmt(row.subtotal)} subtotal</small>`
+                : `<strong>${fmt(row.unitPrice)}</strong>`;
+            return `<div class="sl-singles-price-row">
+              <span><b>${esc(row.name)}</b><small>${esc(source)}</small></span>
+              <span>${amountCell}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </details>`;
+    }).join('')}
+  </div>`;
+}
+
 // Fetch + cache the sum-of-singles for a drop (Scryfall batch, on demand).
 export async function priceSlDropSingles(drop) {
   if (slDropPricing.has(drop)) return;
-  const ids = (typeof SL_DROP_TO_SCRYFALL_IDS !== 'undefined' && SL_DROP_TO_SCRYFALL_IDS[drop]) || [];
+  const product = slProductForDrop(drop);
+  const productIds = (product?.cards || []).flatMap(card => [card.scryfallId, ...(card.alternateScryfallIds || [])]).filter(Boolean);
+  const ids = productIds.length
+    ? productIds
+    : ((typeof SL_DROP_TO_SCRYFALL_IDS !== 'undefined' && SL_DROP_TO_SCRYFALL_IDS[drop]) || []);
   if (!ids.length) { toast('No cards are mapped to this drop yet — try "Check for New Cards".', 'info'); return; }
   slDropPricing.add(drop);
   render();
   try {
-    const uniq = [...new Set(ids.map(id => id.toLowerCase()))];
+    const uniq = [...new Set(ids.map(id => String(id).toLowerCase()))];
     const cards = [];
     for (let i = 0; i < uniq.length; i += 75) {
       const data = await fetchScryfallBatch(uniq.slice(i, i + 75));
       for (const c of (data.data || [])) cards.push(c);
     }
-    const { value, priced, byName } = sumDropSingles(cards, dropFinish(drop));
-    const totalNames = (typeof SL_DROP_CARDS !== 'undefined' && SL_DROP_CARDS[drop]?.length) || priced;
-    // Names the drop's own printings couldn't price (an upcoming drop's SLD
-    // cards have no prices yet) — estimate each from the cheapest print of the
-    // same card that exists today, so the total answers "what would these
-    // cards cost right now?" instead of showing $0.00.
-    const namesList = (typeof SL_DROP_CARDS !== 'undefined' && SL_DROP_CARDS[drop]?.length)
-      ? SL_DROP_CARDS[drop] : cards.map(c => c.name);
-    const unpriced = [...new Set(namesList)].filter(n => byName[n] == null);
-    let estValue = 0, est = 0;
-    if (unpriced.length) {
-      const cheapest = await fetchCheapestPrints(unpriced);
-      for (const n of unpriced) {
-        const hit = cheapest[n];
-        if (hit && hit.price != null) { estValue += hit.price; est++; }
-      }
-    }
-    slDropSinglesCache.set(drop, { value: value + estValue, priced: priced + est, est, names: totalNames, at: Date.now() });
+    const fallbackNames = (typeof SL_DROP_CARDS !== 'undefined' && SL_DROP_CARDS[drop]?.length)
+      ? SL_DROP_CARDS[drop] : cards.map(card => card.name);
+    const pricingProduct = product || {
+      legacyDrop: drop,
+      finish: dropFinish(drop) === 'normal' ? 'nonfoil' : dropFinish(drop),
+      finishLabel: '',
+      cards: [...new Set(fallbackNames)].map((name, index) => {
+        const card = cards.find(candidate => candidate.name === name);
+        return { scryfallId: card?.id || `unmapped:${index}`, name, finish: dropFinish(drop) === 'normal' ? 'nonfoil' : dropFinish(drop), count: 1 };
+      }),
+    };
+    const names = [...new Set(pricingProduct.cards.map(card => card.name).filter(Boolean))];
+    const cheapest = await fetchCheapestPrints(names);
+    slDropSinglesCache.set(drop, buildDropSinglesPricing(pricingProduct, cards, cheapest));
   } catch (e) {
     toast(`Couldn't price singles: ${e.message}`, 'error');
   } finally {
@@ -1118,23 +1332,23 @@ function dropEconomicsBanner(drop) {
   const landedBasis = lotBasis || linkedBasis;
   const bonusCount = slBonusCardsForDrop(drop).length;
 
-  const estNote = crack?.est
-    ? ` · <span title="${crack.est} card${crack.est === 1 ? ' has' : 's have'} no Secret Lair price yet — estimated from the cheapest available printing">${crack.est} est. from cheapest print</span>`
-    : '';
   const singlesCell = pricing
     ? `<span style="color:var(--text-muted)">⏳ Pricing…</span>`
     : crack
-      ? `<strong style="color:var(--text)">${crack.est ? '≈ ' : ''}${fmt(crack.value)}</strong> <span style="font-size:11px;color:var(--text-muted)">(${crack.priced}/${crack.names} cards${estNote})</span>
-         <button class="btn btn-ghost" style="font-size:11px;padding:2px 8px;margin-left:4px" data-slact="price-singles" data-arg="${esc(drop)}">↻</button>`
+      ? renderDropSinglesPricing(crack)
       : `<button class="btn btn-sm" data-slact="price-singles" data-arg="${esc(drop)}">💰 Price the singles</button>`;
+  const repriceButton = crack && !pricing
+    ? `<button class="btn btn-ghost" style="font-size:11px;padding:2px 8px" data-slact="price-singles" data-arg="${esc(drop)}">↻ Reprice</button>`
+    : '';
 
   const sealedCell = sealed
     ? `<strong style="color:var(--text)">${fmt(sealed.price)}</strong>${sealed.source === 'tcgcsv' ? ` <span style="font-size:11px;color:var(--text-muted)" title="${esc(sealed.name || '')}">≈ TCGCSV</span>` : ''}`
     : `<span style="color:var(--text-muted)">— <span style="font-size:11px">(sync TCGCSV, or add &amp; link the sealed product)</span></span>`;
 
+  const comparableSingles = crack?.complete ? crack.value : null;
   let verdict = '';
-  if (crack && sealed) {
-    const netCrack = Math.max(0, crack.value * (1 - feeRate) - outboundShipping);
+  if (comparableSingles != null && sealed) {
+    const netCrack = Math.max(0, comparableSingles * (1 - feeRate) - outboundShipping);
     const netSealed = Math.max(0, sealed.price * (1 - feeRate) - outboundShipping);
     const diff = netCrack - netSealed;   // estimated net singles minus net sealed
     const pct = sealed.price > 0 ? Math.round(Math.abs(diff) / sealed.price * 100) : null;
@@ -1155,18 +1369,21 @@ function dropEconomicsBanner(drop) {
       <div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap">
         <span style="font-weight:700;color:var(--text)">💎 ${held ? 'Crack or Keep' : 'Singles vs. Sealed'}</span>
         ${held ? `<span style="color:var(--text-muted);font-size:12px">You hold ${held.qty} sealed</span>` : ''}
-        <span style="margin-left:auto"><span style="color:var(--text-muted)">As singles</span> ${singlesCell}</span>
-        <span><span style="color:var(--text-muted)">As sealed box</span> ${sealedCell}</span>
+        <span style="margin-left:auto"><span style="color:var(--text-muted)">As sealed box</span> ${sealedCell}</span>
+      </div>
+      <div class="sl-singles-price-section">
+        <div class="sl-singles-price-heading"><span>As singles</span>${repriceButton}</div>
+        ${singlesCell}
       </div>
       ${verdict}
-      ${(crack && sealed) ? `<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:7px;font-size:11px;color:var(--text-muted)">
-        <span>Net singles ≈ <strong style="color:var(--text)">${fmt(Math.max(0, crack.value * (1 - feeRate) - outboundShipping))}</strong></span>
+      ${(comparableSingles != null && sealed) ? `<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:7px;font-size:11px;color:var(--text-muted)">
+        <span>Net singles ≈ <strong style="color:var(--text)">${fmt(Math.max(0, comparableSingles * (1 - feeRate) - outboundShipping))}</strong></span>
         <span>Net sealed ≈ <strong style="color:var(--text)">${fmt(Math.max(0, sealed.price * (1 - feeRate) - outboundShipping))}</strong></span>
         ${landedBasis ? `<span>Landed basis <strong style="color:var(--text)">${fmt(landedBasis)}</strong></span>` : ''}
         <span>${(feeRate * 100).toFixed(1)}% fees + ${fmt(outboundShipping)} outbound shipping</span>
         <button class="btn btn-ghost" style="font-size:10px;padding:1px 6px" data-act="showSlEconomicsSettings">Edit assumptions</button>
       </div>` : ''}
-      <div style="font-size:10.5px;color:var(--text-muted);margin-top:6px">Guaranteed contents only. ${bonusCount ? `${bonusCount} documented bonus candidate${bonusCount === 1 ? '' : 's'} provide unpriced upside; no odds are assumed.` : 'No explicit drop-exclusive bonus candidates are included.'}</div>
+      <div style="font-size:10.5px;color:var(--text-muted);margin-top:6px">Cheapest playable may use any set or finish; exact totals never borrow a sibling foil/nonfoil product. Incomplete finish totals are labeled as subtotals. Guaranteed contents only. ${bonusCount ? `${bonusCount} documented bonus candidate${bonusCount === 1 ? '' : 's'} provide unpriced upside; no odds are assumed.` : 'No explicit drop-exclusive bonus candidates are included.'}</div>
     </div>`;
 }
 

@@ -184,7 +184,8 @@ export async function fetchScryfallBatch(ids) {
 // upcoming Secret Lair), estimate from the lowest-priced version of the card
 // that exists today, any set, any finish. Bulk index first (instant); a
 // per-name Scryfall prints search only for names the index doesn't know.
-// Returns { [name]: { price, set_name, finish } } — names with no priced print are omitted.
+// Returns { [name]: { price, id, set, set_name, collector_number, finish } }
+// — names with no priced print are omitted.
 export async function fetchCheapestPrints(names) {
   let out = {}, missing = [...new Set(names || [])];
   if (!missing.length) return out;
@@ -205,7 +206,14 @@ export async function fetchCheapestPrints(names) {
         const p = c.prices || {};
         for (const k of ['usd', 'usd_foil', 'usd_etched']) {
           const v = parseFloat(p[k]);
-          if (!isNaN(v) && (!best || v < best.price)) best = { price: v, set_name: c.set_name, finish: k };
+          if (!isNaN(v) && (!best || v < best.price)) best = {
+            price: v,
+            id: c.id,
+            set: c.set,
+            set_name: c.set_name,
+            collector_number: c.collector_number,
+            finish: k,
+          };
         }
       }
       if (best) out[name] = best;
