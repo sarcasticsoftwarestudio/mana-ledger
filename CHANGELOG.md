@@ -12,6 +12,8 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+## [1.7.14] - 2026-08-27
+
 ### Added
 - **The Secret Lair card Gallery now filters by set code.** Browse every available printing together or narrow the visual grid to SLD, SLC, SLU, SLP, SLX, PSSC, PTG, or SLZ; cards show both code and collector number, searches work across every catalog, and future SLZ entries remain clearly labeled previews.
 
