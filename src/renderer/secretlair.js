@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-08-26 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-08-28 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 106 superdrops/standalones · 368 drops · 2642 printings (1958 drop-mapped, 106 foil-backfilled)
+// 106 superdrops/standalones · 368 drops · 2643 printings (1959 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -1643,6 +1643,7 @@ const SL_SCRYFALL_TO_DROPS = {
   "9137168d-ec86-4460-910c-d786a30df744": ["They Grow Up So Fast"],
   "913f0aca-ac61-4377-b3b1-cd556b950df2": ["Aether Drifters"],
   "91bdfd40-dbc7-42a8-a122-5834193b8f5e": ["Special Guest: Kozyndan - Another Story"],
+  "91e7ccb4-703e-48cb-ae73-1cd953529cd5": ["Hatsune Miku"],
   "92195708-cc07-44bf-85d8-6c5d6f0d789e": ["Eldraine Wonderland"],
   "923c3656-5cdd-4be8-a158-5d5801f8e382": ["Chucky"],
   "9249230d-6cd4-4f2e-8f8b-c046824a1c72": ["Artist Series: Victor Adame Minguez"],
@@ -4015,6 +4016,7 @@ const SL_SCRYFALL_TO_NAME = {
   "9163f38c-e217-44cf-8eb7-cc60941a30e2": "Bottomless Pit",
   "91bdfd40-dbc7-42a8-a122-5834193b8f5e": "Demonic Consultation",
   "91e08306-5028-41d6-b19c-a8ce96b70279": "Sedge Sliver",
+  "91e7ccb4-703e-48cb-ae73-1cd953529cd5": "Trostani, Selesnya's Voice",
   "91ede26e-8784-4631-b9e7-f8f97b2904ac": "Bountiful Promenade",
   "92195708-cc07-44bf-85d8-6c5d6f0d789e": "Snow-Covered Forest",
   "9232b03e-2f8c-4b21-88e9-6244370fab95": "Slime Against Humanity",
@@ -6660,6 +6662,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "9163f38c-e217-44cf-8eb7-cc60941a30e2": "2775",
   "91bdfd40-dbc7-42a8-a122-5834193b8f5e": "1127",
   "91e08306-5028-41d6-b19c-a8ce96b70279": "642",
+  "91e7ccb4-703e-48cb-ae73-1cd953529cd5": "2443",
   "91ede26e-8784-4631-b9e7-f8f97b2904ac": "2440",
   "92195708-cc07-44bf-85d8-6c5d6f0d789e": "5",
   "9232b03e-2f8c-4b21-88e9-6244370fab95": "7083",
