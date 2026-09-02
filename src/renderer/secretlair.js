@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-09-01 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-09-02 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 109 superdrops/standalones · 384 drops · 2686 printings (2041 drop-mapped, 106 foil-backfilled)
+// 109 superdrops/standalones · 385 drops · 2686 printings (2046 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -113,7 +113,7 @@ const SL_SUPERDROPS = [
   { superdrop: "Wild in Bloom", date: "2026-07", drops: ["Wild in Bloom"] },
   { superdrop: "A Marvelous Mathoms Superdrop", date: "2026-08", drops: ["The Hobbit: Desolation","The Hobbit: He Who Walks Unseen","The Hobbit: Over the Edge of the Wild","The Hobbit: Smaug's Spoils"] },
   { superdrop: "A Perfectly Normal Superdrop", date: "2026-08", drops: ["Artist Series: Ian Miller","Cosmic Chill by Robin Eisenberg","Featuring: Gene Luen Yang","Lofi Girl: Beats to Cast To 💫","Marvel: Dan Hipp","Marvel: Earth's Mightiest Pets","Marvel: Hulk Smash!","Marvel: True Believers in Love"] },
-  { superdrop: "The Most Powerful Superdrop in the Universe", date: "2026-09", drops: ["Masters of the Universe: Allies and Enemies of Eternia","Masters of the Universe: By the Power of Grayskull!","Masters of the Universe: She-Ra, Princess of Power","Masters of the Universe: Sold Separately"] },
+  { superdrop: "The Most Powerful Superdrop in the Universe", date: "2026-09", drops: ["Masters of the Universe: Allies and Enemies of Eternia","Masters of the Universe: By the Power of Grayskull!","Masters of the Universe: Nyah-ha-ha!","Masters of the Universe: She-Ra, Princess of Power","Masters of the Universe: Sold Separately"] },
 ];
 
 // ── Drop → cards mapping (MTGJSON SLD v5.3) ──────────────────────────────────
@@ -338,6 +338,7 @@ const SL_DROP_CARDS = {
   "Marvel: True Believers in Love": ["Grave Pact","Happily Ever After","Run Away Together","Savor the Moment","Thrill of Possibility","True Love's Kiss"],
   "Masters of the Universe: Allies and Enemies of Eternia": ["Derevi, Empyrial Tactician","Ertai Resurrected","Kona, Rescue Beastie","Sakashima the Impostor","Samut, Voice of Dissent","Tetsuo, Imperial Champion"],
   "Masters of the Universe: By the Power of Grayskull!": ["Bruenor Battlehammer","Crackle with Power","Delina, Wild Mage","Konda's Banner","Winota, Joiner of Forces"],
+  "Masters of the Universe: Nyah-ha-ha!": ["Bottomless Pit","Breach the Multiverse","Necrogen Mists","Tasha's Hideous Laughter","Tinybones, the Pickpocket"],
   "Masters of the Universe: She-Ra, Princess of Power": ["Emiel the Blessed","Hajar, Loyal Bodyguard","Kutzil, Malamet Exemplar","Silence","Sisay, Weatherlight Captain","Sol Ring"],
   "Masters of the Universe: Sold Separately": ["Fortune, Loyal Steed","Sword of War and Peace","The Gitrog, Ravenous Ride","Throne of the God-Pharaoh"],
   "Math is for Blockers": ["Brazen Borrower // Petty Theft","Meandering Towershell","Ohran Frostfang","Thragtusk","Vindictive Lich"],
@@ -581,6 +582,7 @@ const SL_SCRYFALL_TO_DROPS = {
   "056f1559-cca9-4aae-810b-a7db56c214e9": ["Doctor Who: The Dalek Lands"],
   "05712bcb-eb67-4e84-a640-7e507675756a": ["The Godzilla Lands"],
   "0596b5ac-0d95-430a-a747-332abdd30139": ["The Hobbit: Smaug's Spoils"],
+  "05adb3cf-0804-490a-92a0-baadfb11439d": ["Masters of the Universe: Nyah-ha-ha!"],
   "05b50907-41e2-4613-b030-7c6556874bd2": ["Return to the Mystical Archive"],
   "05fab477-5e35-4a47-a972-441bbddc3302": ["Aether Drifters"],
   "06025c01-1d70-4e8d-b030-60a773631b54": ["Every Dog Has Its Day"],
@@ -1077,6 +1079,7 @@ const SL_SCRYFALL_TO_DROPS = {
   "3fd8a7bf-c679-470a-8e56-d3f59b7ba488": ["The Eyes Have It"],
   "3fed589f-8635-44a5-9978-d68c2bd1071b": ["Look at the Kitties"],
   "3ff751c7-34c9-498a-bd9f-c6b0c8a194f4": ["Special Guest: Matt Jukes"],
+  "4009a644-a0d1-474c-b62f-7f74d0d56811": ["Masters of the Universe: Nyah-ha-ha!"],
   "404b3e0f-994e-49c8-b18a-ebbf418e741a": ["Everyone's Invited!"],
   "4077e3d5-e0b6-4d2f-8c94-e1f78433c05c": ["Seeing Visions"],
   "408158b0-bc33-4588-9bf9-634a7e61452a": ["Aether Drifters"],
@@ -1161,6 +1164,7 @@ const SL_SCRYFALL_TO_DROPS = {
   "4a9c4a7d-9a48-4388-b0af-6fc509f74523": ["Marvel's Deadpool"],
   "4ab6089b-b213-43cb-964f-4b558bba5fe7": ["Iron Maiden: Eddie Unchained"],
   "4acf970d-d2d7-413d-aba7-587ee53d8d5c": ["Culture Shocks: Naya"],
+  "4b303db8-cff1-4c7c-b1d5-f31b495095fb": ["Masters of the Universe: Nyah-ha-ha!"],
   "4b3eb87a-8f77-4859-95fd-10988f03da7b": ["Post Malone: The Lands"],
   "4b535df5-f79c-4ab5-9b2f-cbbb5adad70a": ["Flower Power"],
   "4b811d9b-1815-4219-9fc8-706dff705d4a": ["Teenage Mutant Ninja Turtles: VHS Villains"],
@@ -1288,6 +1292,7 @@ const SL_SCRYFALL_TO_DROPS = {
   "5c4e9151-d8b7-43f6-ac21-a8760cc04c7a": ["Kamigawa: The Manga: The Cards"],
   "5c4fb7f9-a551-4253-a46e-f6284d355388": ["Prints Charming"],
   "5c68c630-c0e1-4e94-8352-b65631cc2caa": ["The Walking Dead"],
+  "5cee9449-90c1-4e41-a6d6-6feae81c2f10": ["Masters of the Universe: Nyah-ha-ha!"],
   "5d0c1d5d-767d-4d64-81b0-0d0fb09d6b31": ["Showcase: Midnight Hunt"],
   "5d5835dd-f789-481e-b9dd-a0910af61326": ["Alien Auroras"],
   "5d58cb4d-2091-40c8-b97c-09bf9c022a8b": ["Read the Fine Print"],
@@ -1704,6 +1709,7 @@ const SL_SCRYFALL_TO_DROPS = {
   "912e30e7-9b8b-4c27-af3a-ffdcfe8b6feb": ["Special Guest: Kozyndan - The Lands"],
   "9137168d-ec86-4460-910c-d786a30df744": ["They Grow Up So Fast"],
   "913f0aca-ac61-4377-b3b1-cd556b950df2": ["Aether Drifters"],
+  "9163f38c-e217-44cf-8eb7-cc60941a30e2": ["Masters of the Universe: Nyah-ha-ha!"],
   "91bdfd40-dbc7-42a8-a122-5834193b8f5e": ["Special Guest: Kozyndan - Another Story"],
   "91e7ccb4-703e-48cb-ae73-1cd953529cd5": ["Hatsune Miku"],
   "92195708-cc07-44bf-85d8-6c5d6f0d789e": ["Eldraine Wonderland"],
