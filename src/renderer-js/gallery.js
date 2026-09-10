@@ -11,6 +11,13 @@ import { esc, escJs, fmt } from './utils.js';
 // (cardsTab.js, ui.cards.view === 'gallery'); this module keeps the per-card
 // detail modal that both the grid and other tiles open.
 // ─────────────────────────────────────────────────────────────────────────────
+export function openCardSetTab(cardId) {
+  const card = collection.cards.find(c => String(c.id) === String(cardId));
+  if (card?.setCode && typeof window.openSetTab === 'function') {
+    window.openSetTab(card.setCode, card.setName || '');
+  }
+}
+
 export function showGalleryModal(cardId) {
   const card = collection.cards.find(c => c.id === cardId);
   if (!card) return;
@@ -75,6 +82,7 @@ export function showGalleryModal(cardId) {
         <div class="card-detail-actions">
           <button class="btn btn-ghost" style="font-size:12px" data-act="viewInCollection" data-arg="${esc(card.name)}">View in collection →</button>
           <button class="btn btn-ghost" style="font-size:12px" data-act="openPrintingsTab" data-arg="${esc(card.name)}">View all printings ◇</button>
+          ${card.setCode ? `<button class="btn btn-ghost" style="font-size:12px" data-act="openCardSetTab" data-arg="${esc(card.id)}">View set ▦</button>` : ''}
           ${scryfallUrl ? `<a href="${esc(scryfallUrl)}" target="_blank" class="btn btn-ghost" style="font-size:12px;text-decoration:none">View on Scryfall ↗</a>` : ''}
         </div>
       </div>

@@ -6,7 +6,8 @@
 //
 // Data notes:
 //  - Cards/binders/sealed/decks/want list live on `collection` (state.js).
-//  - Binders + sets are not entities; they're distinct values across cards.
+//  - Binders are not entities; sets are browsed live by their stable Scryfall
+//    set code so promo families do not depend on collector-number conventions.
 //  - The SL catalog is exposed as globals by secretlair.js: SL_SUPERDROPS,
 //    SL_DROP_TO_SUPERDROP, SL_DROP_CARDS (accessed bare, with typeof guards,
 //    exactly as slTab.js does).
@@ -399,6 +400,7 @@ function flashCard(cardId) {
 // Frozen, closeable, persisted result tabs in the Search Results view. Two kinds:
 //   'query'     — a full search (collection + SL + live Scryfall + live TCGCSV)
 //   'printings' — every printing of one card (live Scryfall, unique=prints)
+//   'set'       — every card in one exact Scryfall set (live, paginated)
 // Tab descriptors persist to localStorage; results live in memory and re-run on
 // load (prices change, so stale snapshots aren't worth persisting).
 // ─────────────────────────────────────────────────────────────────────────────
@@ -414,7 +416,10 @@ function newId() { return 't' + Date.now().toString(36) + Math.random().toString
 function persistTabs() {
   try {
     const s = ensureSearchState();
-    const slim = s.tabs.map(t => ({ id: t.id, kind: t.kind, query: t.query, cardName: t.cardName, label: t.label, createdAt: t.createdAt }));
+    const slim = s.tabs.map(t => ({
+      id: t.id, kind: t.kind, query: t.query, cardName: t.cardName,
+      setCode: t.setCode, setName: t.setName, label: t.label, createdAt: t.createdAt,
+    }));
     localStorage.setItem(TABS_KEY, JSON.stringify({ tabs: slim, activeId: s.activeId }));
   } catch { /* localStorage unavailable — tabs stay session-only */ }
 }
@@ -433,8 +438,10 @@ export function loadPersistedTabs() {
 function addTab(tab) {
   const s = ensureSearchState();
   // De-dupe: same kind + same target → activate the existing tab instead
-  const existing = s.tabs.find(t => t.kind === tab.kind &&
-    (tab.kind === 'query' ? norm(t.query) === norm(tab.query) : norm(t.cardName) === norm(tab.cardName)));
+  const tabTarget = t => t.kind === 'query' ? norm(t.query)
+    : t.kind === 'set' ? norm(t.setCode)
+      : norm(t.cardName);
+  const existing = s.tabs.find(t => t.kind === tab.kind && tabTarget(t) === tabTarget(tab));
   if (existing) { s.activeId = existing.id; persistTabs(); return existing; }
   s.tabs.push(tab);
   while (s.tabs.length > MAX_TABS) s.tabs.shift();   // drop oldest past the cap
@@ -457,6 +464,33 @@ export function openPrintingsTab(cardName) {
   const name = (cardName || '').trim();
   if (!name) return;
   const tab = addTab({ id: newId(), kind: 'printings', cardName: name, label: `${name} · printings`, createdAt: Date.now(), status: 'idle', results: null });
+  goToTab('search');
+  if (tab.status !== 'done') runTab(tab.id);
+}
+
+// Scryfall set codes are stable catalog identities. Keep the display name for
+// humans, but never infer membership from a set name, card name, promo flag, or
+// collector-number prefix (PURL/PMEI promos are a good example of why).
+export function normalizeSetTarget(setCode, setName = '') {
+  const code = norm(setCode);
+  if (!/^[a-z0-9]{1,16}$/.test(code)) return null;
+  const name = String(setName || '').trim();
+  return {
+    code,
+    name,
+    label: name ? `${name} · ${code.toUpperCase()}` : code.toUpperCase(),
+    query: `set:${code}`,
+  };
+}
+
+export function openSetTab(setCode, setName = '') {
+  hideModal();
+  const target = normalizeSetTarget(setCode, setName);
+  if (!target) return;
+  const tab = addTab({
+    id: newId(), kind: 'set', setCode: target.code, setName: target.name,
+    label: target.label, createdAt: Date.now(), status: 'idle', results: null,
+  });
   goToTab('search');
   if (tab.status !== 'done') runTab(tab.id);
 }
@@ -496,7 +530,9 @@ async function runTab(id) {
   tab.status = 'loading'; tab.error = null;
   if (ui.activeTab === 'search' && s.activeId === id) render();
   try {
-    tab.results = tab.kind === 'printings' ? await fetchPrintings(tab.cardName) : await fetchQuery(tab.query);
+    if (tab.kind === 'printings') tab.results = await fetchPrintings(tab.cardName);
+    else if (tab.kind === 'set') tab.results = await fetchSetCards(tab.setCode);
+    else tab.results = await fetchQuery(tab.query);
     tab.status = 'done';
   } catch (e) {
     tab.status = 'error';
@@ -525,6 +561,32 @@ async function fetchPrintings(cardName) {
   if (!resp.ok) return { prints: [] };
   const d = await resp.json();
   return { prints: d.data || [] };
+}
+
+export async function fetchSetCards(setCode) {
+  const target = normalizeSetTarget(setCode);
+  if (!target) throw new Error('Invalid Scryfall set code');
+  let url = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(target.query)}&unique=prints&order=set`;
+  const cards = [];
+  const seenPages = new Set();
+  // Following next_page is essential: Scryfall search pages are capped. Guard
+  // against a malformed pagination loop, but fail visibly instead of returning
+  // a set that looks complete when it is not.
+  while (url) {
+    if (seenPages.has(url) || seenPages.size >= 100) throw new Error('Invalid Scryfall pagination');
+    seenPages.add(url);
+    const resp = await netFetch(url);
+    if (resp.status === 404 && seenPages.size === 1) return { cards: [], setCode: target.code, setName: '' };
+    if (!resp.ok) throw new Error(`Scryfall HTTP ${resp.status}`);
+    const data = await resp.json();
+    cards.push(...(data.data || []));
+    url = data.has_more ? data.next_page : null;
+  }
+  return {
+    cards,
+    setCode: target.code,
+    setName: cards.find(card => card.set_name)?.set_name || '',
+  };
 }
 
 // ── Dropdown open/close + wiring ─────────────────────────────────────────────
@@ -624,12 +686,14 @@ export function renderSearchTab() {
 
   const strip = `<div class="srt-strip">${s.tabs.map(t => `
     <div class="srt-tab${t.id === active.id ? ' active' : ''}" data-tabid="${t.id}" title="${esc(t.label)}">
-      <span class="srt-tab-kind">${t.kind === 'printings' ? '◇' : '⌕'}</span>
+      <span class="srt-tab-kind">${t.kind === 'printings' ? '◇' : t.kind === 'set' ? '▦' : '⌕'}</span>
       <span class="srt-tab-label">${esc(t.label)}</span>
       <span class="srt-tab-close" data-close="${t.id}" title="Close tab">✕</span>
     </div>`).join('')}</div>`;
 
-  const body = active.kind === 'printings' ? renderPrintingsBody(active) : renderQueryBody(active);
+  const body = active.kind === 'printings' ? renderPrintingsBody(active)
+    : active.kind === 'set' ? renderSetBody(active)
+      : renderQueryBody(active);
   return `<div class="srt">${strip}<div class="srt-body">${body}</div></div>`;
 }
 
@@ -696,6 +760,21 @@ function printRow(c, ownedIds) {
   </div>`;
 }
 
+function setCardRow(c, ownedIds) {
+  const id = (c.id || '').toLowerCase();
+  const price = c.prices?.usd ?? c.prices?.usd_foil ?? c.prices?.usd_etched;
+  const finishes = (c.finishes || []).join(' / ') || '—';
+  const idx = pushRow({ type: 'print', scryfallId: id, name: c.name, catalogCard: c });
+  return `<div class="sr-row" data-idx="${idx}" data-scryfall-id="${esc(id)}">
+    ${ownDot(ownedIds.has(id))}
+    <span class="sr-row-name">${esc(c.name || '')}</span>
+    <span class="sr-row-sub">${esc((c.set || '').toUpperCase())} #${esc(c.collector_number || '?')} · ${esc(finishes)}</span>
+    <span class="sr-row-meta">${price != null ? '$' + price : '—'}</span>
+    <button class="sr-print-link" data-add-owned-idx="${idx}" title="Add this exact printing to your collection">＋ add</button>
+    <button class="sr-print-link" data-printings="${esc(c.name || '')}" title="View all printings">◇ printings</button>
+  </div>`;
+}
+
 function renderQueryBody(tab) {
   let html = `<div class="sr-page"><div class="sr-page-head"><span class="sr-page-q">Results for “${esc(tab.query)}”</span></div>`;
   if (tab.status === 'loading' || tab.status === 'idle') return html + loadingHtml(`“${tab.query}”`) + '</div>';
@@ -740,5 +819,24 @@ function renderPrintingsBody(tab) {
   const ownedIds = ownedIdSet();
   const rows = prints.map(c => printRow(c, ownedIds)).join('');
   html += sectionHtml(`${prints.length} printing${prints.length !== 1 ? 's' : ''}`, null, rows);
+  return html + '</div>';
+}
+
+function renderSetBody(tab) {
+  const code = String(tab.setCode || '').toUpperCase();
+  const knownName = tab.results?.setName || tab.setName || '';
+  const title = knownName ? `${knownName} · ${code}` : code;
+  let html = `<div class="sr-page"><div class="sr-page-head">
+    <span class="sr-page-q">All cards in set · ${esc(title)}</span>
+    <span class="sr-page-note">Exact Scryfall set membership · all result pages</span>
+  </div>`;
+  if (tab.status === 'loading' || tab.status === 'idle') return html + loadingHtml(`set ${code}`) + '</div>';
+  if (tab.status === 'error') return html + errorHtml(tab.error) + '</div>';
+
+  const cards = tab.results?.cards || [];
+  if (!cards.length) return html + `<div class="empty-state" style="padding:24px">No cards found for set ${esc(code)}.</div></div>`;
+  const ownedIds = ownedIdSet();
+  const rows = cards.map(c => setCardRow(c, ownedIds)).join('');
+  html += sectionHtml(`${cards.length} card${cards.length !== 1 ? 's' : ''}`, null, rows);
   return html + '</div>';
 }

@@ -8,6 +8,7 @@ import { hideCardHoverPreview } from './hover.js';
 import { fetchScryfallBatch, getCurrentPrice, storePriceSnapshot } from './prices.js';
 import { showProductPicker } from './productPicker.js';
 import { render } from './render.js';
+import { openSetTab } from './search.js';
 import { showAddSealedModal, showUpdatePriceModal } from './sealedModals.js';
 import { showSlViewerModal } from './slTab.js';
 import { collection, ui } from './state.js';
@@ -492,6 +493,7 @@ export function copyToClipboard(text, what = 'Copied') {
 
 export function showCardContextMenu(x, y, card) {
   const qty = card.quantity || 1;
+  const setLabel = card.setName || (card.setCode ? card.setCode.toUpperCase() : 'set');
   // Sold entries get a slimmed menu — they're a realized-gains record, not a live card.
   if (card.status === 'sold') {
     showContextMenu(x, y, [
@@ -499,6 +501,7 @@ export function showCardContextMenu(x, y, card) {
       { icon: '👁', label: 'View details', action: () => showGalleryModal(card.id) },
       { icon: '↩', label: 'Undo sale (back to collection)', action: () => undoCardSale(card) },
       '---',
+      { icon: '▦', label: `View all cards in ${setLabel}`, disabled: !card.setCode, action: () => openSetTab(card.setCode, card.setName) },
       { icon: '🌐', label: 'View on Scryfall', action: () => openCardOnScryfall(card) },
       { icon: '📋', label: 'Copy name', action: () => copyToClipboard(card.name, 'Name') },
       '---',
@@ -520,6 +523,7 @@ export function showCardContextMenu(x, y, card) {
     { icon: '✎', label: 'Edit Scryfall ID', action: () => showEditScryfallModal(card.id) },
     '---',
     { icon: '💵', label: qty > 1 ? `Sell / dispose (${qty} copies)…` : 'Sell / dispose…', action: () => showSellCardModal(card) },
+    { icon: '▦', label: `View all cards in ${setLabel}`, disabled: !card.setCode, action: () => openSetTab(card.setCode, card.setName) },
     { icon: '🌐', label: 'View on Scryfall', action: () => openCardOnScryfall(card) },
     { icon: '📋', label: 'Copy name', action: () => copyToClipboard(card.name, 'Name') },
     '---',

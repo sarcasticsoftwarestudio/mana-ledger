@@ -12,6 +12,9 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+### Added
+- **Browse every card in an exact set directly from any card.** Right-click an owned card and choose “View all cards in…,” or use “View set” in card details, to open a persistent, fully paginated Scryfall set tab with ownership, prices, previews, exact-printing acquisition, and printing comparisons. Promo membership follows the real set code rather than collector-number patterns, so Kirk opens URL/Convention Promos while the related Spock and Picard promos correctly open Media and Collaboration Promos.
+
 ## [1.7.17] - 2026-08-27
 
 ### Added

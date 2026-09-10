@@ -201,7 +201,7 @@ export const HELP_GUIDES = [
         <p>Opening full results creates a search tab so you can keep several searches available. Close a tab with its ×. Collection results reflect your entries; Scryfall and TCGCSV results come from their current catalogs.</p>
       </section>
       <section class="help-section"><h3>Choose the right printing</h3>
-        <p>Select <b>printings</b> beside a result to compare versions. Use <b>add</b> on the exact printing you own, then choose its finish and collection details. This improves pricing, Secret Lair completion, precon matching, and card art throughout the app.</p>
+        <p>Select <b>printings</b> beside a result to compare versions. Use <b>add</b> on the exact printing you own, then choose its finish and collection details. To browse a whole release or promo family, right-click an owned card and choose <b>View all cards in…</b>, or use <b>View set</b> in card details. Set browsing follows the exact Scryfall set code, including promo sets whose collector numbers use unrelated formats.</p>
       </section>`,
     related: ['cards', 'decks', 'want-list'],
   },

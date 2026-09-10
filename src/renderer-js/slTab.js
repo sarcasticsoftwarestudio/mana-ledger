@@ -55,6 +55,7 @@ const SL_ACTIONS = {
   'toggle-want':    (a, el) => { toggleSlCardWant(a); el.innerHTML = isCardWanted(a) ? '★ On want list' : '☆ Add to want list'; },
   'add-owned':      a => { if (typeof window !== 'undefined' && window.showAddOwnedCardModal) window.showAddOwnedCardModal(a); },
   'open-printings': a => { if (typeof window !== 'undefined' && window.openPrintingsTab) window.openPrintingsTab(a); },
+  'open-set':       (a, el) => { if (typeof window !== 'undefined' && window.openSetTab) window.openSetTab(a, el.dataset.setName || ''); },
   'open-precon':    a => { hideModal(); ui.precons.line = ''; ui.precons.deck = a; ui.activeTab = 'precons'; render(); },
   'open-sl-bundle': a => showSlBundleCatalogDetail(a),
 };
@@ -2326,6 +2327,7 @@ export async function showSlViewerModal(scryfallId) {
       <div class="card-detail-actions">
         <a href="${esc(scryfallUrl)}" target="_blank" class="btn btn-ghost" style="font-size:12px;text-decoration:none">View on Scryfall ↗</a>
         <button class="btn btn-ghost" style="font-size:12px" data-slact="open-printings" data-arg="${esc(data.name || '')}">View all printings ◇</button>
+        ${data.set ? `<button class="btn btn-ghost" style="font-size:12px" data-slact="open-set" data-arg="${esc(data.set)}" data-set-name="${esc(data.set_name || '')}">View set ▦</button>` : ''}
         <button class="btn btn-primary" style="font-size:12px" data-slact="add-owned" data-arg="${esc(scryfallId)}">＋ Add owned copy</button>
         <button class="btn btn-ghost" style="font-size:12px" data-slact="toggle-want" data-arg="${esc(scryfallId)}">${isCardWanted(scryfallId) ? '★ On want list' : '☆ Add to want list'}</button>
         <button class="btn btn-ghost" style="font-size:12px" data-slact="edit-card-note" data-arg="${esc(scryfallId)}">✎ ${slCardNote(scryfallId) ? 'Edit' : 'Add'} note</button>
