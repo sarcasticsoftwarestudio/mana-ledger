@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-09-12 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-09-14 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 109 superdrops/standalones · 385 drops · 2686 printings (2046 drop-mapped, 106 foil-backfilled)
+// 109 superdrops/standalones · 385 drops · 2687 printings (2046 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -4098,6 +4098,7 @@ const SL_SCRYFALL_TO_NAME = {
   "8c4e1fdc-9e6c-4377-8e5b-cb4c036267ce": "Patchwork Banner",
   "8c6150f2-cc6c-405d-9812-bbbc524ce450": "Diabolic Tutor",
   "8cbd3935-f02e-4508-895e-4ca86b6f8723": "Pitiless Plunderer",
+  "8cf804e1-5bf3-4a04-bd1c-a99a9561fdc4": "Command Tower",
   "8d102a60-383c-45f1-ab1b-be0ab9b87332": "Door of Destinies",
   "8d2f3838-26b8-41ad-af75-75c269f79a2c": "Sheltered Thicket",
   "8d40ae44-df41-4a1e-b3c9-3b000335ac26": "Phyrexian Crusader",
@@ -6787,6 +6788,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "8c4e1fdc-9e6c-4377-8e5b-cb4c036267ce": "2466",
   "8c6150f2-cc6c-405d-9812-bbbc524ce450": "721",
   "8cbd3935-f02e-4508-895e-4ca86b6f8723": "1431",
+  "8cf804e1-5bf3-4a04-bd1c-a99a9561fdc4": "7191",
   "8d102a60-383c-45f1-ab1b-be0ab9b87332": "1631",
   "8d2f3838-26b8-41ad-af75-75c269f79a2c": "2522",
   "8d40ae44-df41-4a1e-b3c9-3b000335ac26": "847",
