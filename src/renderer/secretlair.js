@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-09-14 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-09-15 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 109 superdrops/standalones · 385 drops · 2687 printings (2046 drop-mapped, 106 foil-backfilled)
+// 109 superdrops/standalones · 385 drops · 2688 printings (2047 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -340,7 +340,7 @@ const SL_DROP_CARDS = {
   "Masters of the Universe: By the Power of Grayskull!": ["Bruenor Battlehammer","Crackle with Power","Delina, Wild Mage","Konda's Banner","Winota, Joiner of Forces"],
   "Masters of the Universe: Nyah-ha-ha!": ["Bottomless Pit","Breach the Multiverse","Necrogen Mists","Tasha's Hideous Laughter","Tinybones, the Pickpocket"],
   "Masters of the Universe: She-Ra, Princess of Power": ["Emiel the Blessed","Hajar, Loyal Bodyguard","Kutzil, Malamet Exemplar","Silence","Sisay, Weatherlight Captain","Sol Ring"],
-  "Masters of the Universe: Sold Separately": ["Fortune, Loyal Steed","Sword of War and Peace","The Gitrog, Ravenous Ride","Throne of the God-Pharaoh"],
+  "Masters of the Universe: Sold Separately": ["Command Tower // Command Tower","Fortune, Loyal Steed","Sword of War and Peace","The Gitrog, Ravenous Ride","Throne of the God-Pharaoh"],
   "Math is for Blockers": ["Brazen Borrower // Petty Theft","Meandering Towershell","Ohran Frostfang","Thragtusk","Vindictive Lich"],
   "Meditations on Nature": ["Forest","Island","Mountain","Plains","Swamp"],
   "Mirrodinsanity": ["Ancient Den","Great Furnace","Seat of the Synod","Tree of Tales","Vault of Whispers"],
@@ -1949,6 +1949,7 @@ const SL_SCRYFALL_TO_DROPS = {
   "aebf5362-f9b9-451e-a2eb-b0e0fae1f974": ["Everything is on Fire"],
   "aed9a072-fd0b-45f2-8962-9d601840c7c3": ["Showcase: Midnight Hunt"],
   "af1d1476-7778-4743-804a-e3f497d38d77": ["Paradise Frost"],
+  "af609bad-083f-42e4-a102-7a0da8e7a85f": ["Masters of the Universe: Sold Separately"],
   "af9a4b1e-f6c0-489b-878b-533dd46cdd1a": ["Black is Magic"],
   "afd3abf1-7641-4f5f-99d3-0c9ae65ba5fe": ["Showcase: Dominaria United"],
   "afdc2b0b-9e39-46fc-83f6-472cb0837682": ["Garden Buds"],
@@ -4457,6 +4458,7 @@ const SL_SCRYFALL_TO_NAME = {
   "aed9a072-fd0b-45f2-8962-9d601840c7c3": "Slayers' Stronghold",
   "af1d1476-7778-4743-804a-e3f497d38d77": "Snow-Covered Forest",
   "af542837-77a1-462e-8dd6-b4fa8b21bb33": "Halo Fountain",
+  "af609bad-083f-42e4-a102-7a0da8e7a85f": "Command Tower // Command Tower",
   "af9a4b1e-f6c0-489b-878b-533dd46cdd1a": "Cultivate",
   "afac914c-3277-4907-b10d-6ac1b92e605d": "Wilhelt, the Rotcleaver",
   "afb59eef-385b-4a9d-b70c-952387b30310": "Plains",
@@ -7147,6 +7149,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "aed9a072-fd0b-45f2-8962-9d601840c7c3": "356",
   "af1d1476-7778-4743-804a-e3f497d38d77": "1477★",
   "af542837-77a1-462e-8dd6-b4fa8b21bb33": "2431",
+  "af609bad-083f-42e4-a102-7a0da8e7a85f": "2794",
   "af9a4b1e-f6c0-489b-878b-533dd46cdd1a": "246",
   "afac914c-3277-4907-b10d-6ac1b92e605d": "862",
   "afb59eef-385b-4a9d-b70c-952387b30310": "390",
