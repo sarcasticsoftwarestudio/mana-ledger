@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-09-15 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-09-16 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 109 superdrops/standalones · 385 drops · 2688 printings (2047 drop-mapped, 106 foil-backfilled)
+// 109 superdrops/standalones · 385 drops · 2689 printings (2047 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -4848,6 +4848,7 @@ const SL_SCRYFALL_TO_NAME = {
   "d65f7c03-647f-4e5a-98b1-1faa3d330e7b": "Forest",
   "d67a5aac-dbda-4e5d-ae4a-eb78dec6765b": "Thalia, Guardian of Thraben",
   "d6a1907c-59c4-4c72-b0f0-9e2402c05719": "Counterspell",
+  "d6ac5a7f-0e73-45d1-9b20-6ae1a60fa7cf": "Shivan Dragon",
   "d7147b73-a7fa-4ecf-b9a1-a3f4851a5bef": "Plains",
   "d727c345-4c96-4087-bfe3-f54b47b01da6": "Veil of Summer",
   "d741a56f-c490-4e7f-b1d9-f12f37efdfdd": "Gonti, Lord of Luxury",
@@ -7539,6 +7540,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "d65f7c03-647f-4e5a-98b1-1faa3d330e7b": "690",
   "d67a5aac-dbda-4e5d-ae4a-eb78dec6765b": "40",
   "d6a1907c-59c4-4c72-b0f0-9e2402c05719": "7117",
+  "d6ac5a7f-0e73-45d1-9b20-6ae1a60fa7cf": "7180",
   "d7147b73-a7fa-4ecf-b9a1-a3f4851a5bef": "1382",
   "d727c345-4c96-4087-bfe3-f54b47b01da6": "1024",
   "d741a56f-c490-4e7f-b1d9-f12f37efdfdd": "1566",
