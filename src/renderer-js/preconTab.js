@@ -5,7 +5,7 @@
 
 import {
   addPreconMissingToWantList, ensurePreconCards, ensurePreconDetails,
-  ensurePreconSetNames, ownedFinishKeySet, preconCardsFor, preconMsrpDefault,
+  ensurePreconSetNames, ownedFinishKeySet, preconCardsFor, preconLine, preconMsrpDefault,
   preconOwnedStats, preconSetName, preconState, refreshPreconData, rowPrice,
   sealedPriceForPrecon,
 } from './preconData.js';
@@ -15,7 +15,9 @@ import { esc, escJs, fmt } from './utils.js';
 
 // Curated product-line order — the lines people actually shop, then history.
 const LINE_ORDER = [
-  'Commander Deck', 'Challenger Deck', 'Pioneer Challenger Deck', 'Duel Deck',
+  // A literal, not SL_COMMANDER_LINE: preconData ↔ preconTab import each other
+  // (via render.js), so an imported const isn't initialized at module load.
+  'Commander Deck', 'Secret Lair Commander Deck', 'Challenger Deck', 'Pioneer Challenger Deck', 'Duel Deck',
   'Theme Deck', 'Intro Pack', 'Planeswalker Deck', 'Event Deck', 'Brawl Deck',
   'Guild Kit', 'Game Night Deck', 'Premium Deck', 'Archenemy Deck',
   'Planechase Deck', 'Clash Pack', 'Starter Deck', 'Starter Kit',
@@ -42,7 +44,7 @@ export function organizePrecons(decks, opts = {}, { setName = c => c || '', comp
   if (q) list = list.filter(d =>
     d.name.toLowerCase().includes(q) || (d.commander || '').toLowerCase().includes(q) ||
     (d.code || '').toLowerCase().includes(q) || setName(d.code).toLowerCase().includes(q) ||
-    (d.type || '').toLowerCase().includes(q));
+    preconLine(d).toLowerCase().includes(q));
 
   const byName = (a, b) => a.name.localeCompare(b.name);
   const byDate = (dir) => (a, b) => {
@@ -64,7 +66,7 @@ export function organizePrecons(decks, opts = {}, { setName = c => c || '', comp
   const keyOf = {
     set:  d => (d.code || '').toUpperCase() || '—',
     year: d => (d.date || '').slice(0, 4) || 'Undated',
-    line: d => d.type || 'Other',
+    line: d => preconLine(d) || 'Other',
   }[group] || (() => '');
   const groups = new Map();
   for (const d of list) {
@@ -201,7 +203,7 @@ function breadcrumb(pv, deck) {
     // (from global search / insights) the deck's own line.
     const [label, path, val] = pv.line ? [pv.line, 'precons.deck', '']
       : pv.browse === 'all' ? ['All decks', 'precons.deck', '']
-      : [deck.type || 'Decks', 'precons.line', deck.type || ''];
+      : [preconLine(deck) || 'Decks', 'precons.line', preconLine(deck)];
     const line = `<a class="bc-link" data-act="ui-set" data-path="${path}" data-val="${esc(val)}" data-also="precons.deck=">${esc(label)}</a>`;
     return `<nav class="sl-breadcrumb">${root}${sep}${line}${sep}<span class="bc-current">${esc(deck.name)}</span></nav>`;
   }
@@ -234,7 +236,7 @@ function deckTile(d, s, showLine) {
         ${colorPips(d.colors)}
         <span title="${esc(preconSetName(d.code))}">${esc(d.code || '')} · ${d.date || '—'} · ${d.cardCount} cards</span>
       </div>
-      ${showLine ? `<div class="sl-superdrop-meta" style="margin-top:2px">${esc(d.type || '')}</div>` : ''}
+      ${showLine ? `<div class="sl-superdrop-meta" style="margin-top:2px">${esc(preconLine(d))}</div>` : ''}
       ${d.commander ? `<div class="sl-superdrop-meta" style="margin-top:2px">👑 ${esc(d.commander)}</div>` : ''}
       <div class="sl-progress-bar"><div class="sl-progress-fill" style="width:${pc}%"></div></div>
       <div class="sl-superdrop-count" style="color:${s.owned === s.total && s.total > 0 ? 'var(--green)' : 'var(--text-muted)'}">${s.owned} / ${s.total} owned</div>
@@ -415,11 +417,11 @@ export function renderPreconTab() {
         <div class="gallery-filter-row">
           ${pv.line || pv.browse === 'all'
             ? `<button class="btn btn-ghost" style="font-size:12px" data-act="ui-set" data-path="precons.deck" data-val="">← Back to ${esc(pv.line || 'all decks')}</button>`
-            : `<button class="btn btn-ghost" style="font-size:12px" data-act="ui-set" data-path="precons.line" data-val="${esc(deck.type || '')}" data-also="precons.deck=">← Back to ${esc(deck.type || 'decks')}</button>`}
+            : `<button class="btn btn-ghost" style="font-size:12px" data-act="ui-set" data-path="precons.line" data-val="${esc(preconLine(deck))}" data-also="precons.deck=">← Back to ${esc(preconLine(deck) || 'decks')}</button>`}
           ${viewBtn('gallery', '🖼 Gallery')}${viewBtn('table', '📊 Table')}
           ${missing.length ? `<button class="btn btn-ghost" style="font-size:12px" data-act="addPreconMissingToWantList" data-arg="${esc(deck.file)}" title="Add this deck's missing cards to your want list">★ Want ${missing.length} missing</button>` : ''}
           <span style="display:flex;align-items:center;gap:6px;margin-left:8px">${colorPips(deck.colors)}</span>
-          <span style="font-size:12px;color:var(--text-muted)">${esc(deck.type || '')} · ${esc(preconSetName(deck.code) !== (deck.code || '').toUpperCase() ? `${preconSetName(deck.code)} (${deck.code})` : (deck.code || ''))} ·${esc(deck.date || '—')}${base ? ` · variant of ${esc(base.name)}` : ''}</span>
+          <span style="font-size:12px;color:var(--text-muted)">${esc(preconLine(deck))} · ${esc(preconSetName(deck.code) !== (deck.code || '').toUpperCase() ? `${preconSetName(deck.code)} (${deck.code})` : (deck.code || ''))} · ${esc(deck.date || '—')}${base ? ` · variant of ${esc(base.name)}` : ''}</span>
           ${deck.commander ? `<span style="font-size:12px;color:var(--text-muted)">👑 ${esc(deck.commander)}</span>` : ''}
           <span style="margin-left:auto;font-size:13px;font-weight:700;color:${stats.owned === stats.total && stats.total > 0 ? 'var(--green)' : 'var(--text-muted)'}">
             ${stats.owned} / ${stats.total} cards owned (${pct}%)
@@ -432,14 +434,15 @@ export function renderPreconTab() {
 
   // ── Line view (one product line's decks) ───────────────────────────────────
   if (pv.line) {
-    const decks = preconState.decks.filter(d => d.type === pv.line);
+    const decks = preconState.decks.filter(d => preconLine(d) === pv.line);
     return refreshBar() + breadcrumb(pv) + deckListView(pv, decks, statsFor, { allLines: false });
   }
 
   const byType = new Map();
   for (const d of preconState.decks) {
-    if (!byType.has(d.type)) byType.set(d.type, []);
-    byType.get(d.type).push(d);
+    const line = preconLine(d);
+    if (!byType.has(line)) byType.set(line, []);
+    byType.get(line).push(d);
   }
   // Jumpstart is 570 half-decks — off by default, revealed by the toggle.
   const jumpstartCount = byType.get('Jumpstart')?.length || 0;

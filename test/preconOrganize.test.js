@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { preconLine } from '../src/renderer-js/preconData.js';
 import { organizePrecons } from '../src/renderer-js/preconTab.js';
 
 const decks = [
@@ -39,6 +40,15 @@ describe('organizePrecons', () => {
   it('groups by year and by product line', () => {
     expect(organizePrecons(decks, { group: 'year' }, env).map(g => g.key)).toEqual(['2023', '2021', '2020', 'Undated']);
     expect(organizePrecons(decks, { group: 'line' }, env).map(g => g.label)).toEqual(['Commander Decks', 'Duel Decks', 'Box Sets']);
+  });
+
+  it('files Secret Lair Commander decks under their own product line', () => {
+    const sl = { file: 's', name: 'Goblin Storm', type: 'Commander Deck', code: 'SLD', date: '2026-05-18' };
+    expect(preconLine(sl)).toBe('Secret Lair Commander Deck');
+    expect(preconLine(decks[0])).toBe('Commander Deck');
+    expect(organizePrecons([...decks, sl], { group: 'line' }, env).map(g => g.label))
+      .toEqual(['Commander Decks', 'Secret Lair Commander Decks', 'Duel Decks', 'Box Sets']);
+    expect(flat(organizePrecons([...decks, sl], { search: 'secret lair' }, env))).toEqual(['s']);
   });
 
   it('filters by set code and searches set names, commanders, and lines', () => {

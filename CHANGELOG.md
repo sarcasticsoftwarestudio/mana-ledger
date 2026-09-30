@@ -12,6 +12,12 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+### Added
+- **Secret Lair Commander Decks now have their own tile in the Precon Explorer.** The seven full 100-card Secret Lair Commander decks, from Heads I Win, Tails You Lose through Goblin Storm, were previously mixed in with about 190 retail Commander precons. They now sit on a tile of their own next to Commander Decks, and the Group by product line option and search (“secret lair”) pick them up too.
+
+### Fixed
+- Restored the missing space before the release date in a precon deck’s header.
+
 ## [1.7.19] - 2026-09-30
 
 ### Added

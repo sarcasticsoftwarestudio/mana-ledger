@@ -15,7 +15,7 @@
 import { cardCurrentValue } from './analytics.js';
 import { filteredCards } from './cardsTab.js';
 import { hideModal, showAddOwnedCardModal } from './modals.js';
-import { ensurePreconCards, preconNameIndex, preconState } from './preconData.js';
+import { ensurePreconCards, preconLine, preconNameIndex, preconState } from './preconData.js';
 import { render } from './render.js';
 import { showSlViewerModal } from './slTab.js';
 import { collection, tcgcsvCache, ui } from './state.js';
@@ -171,8 +171,8 @@ export function quickSearch(query, cap = CAP) {
   const precons = [];
   const seenPrecon = new Set();
   for (const d of (preconState.decks || [])) {
-    if (match(d.name, d.commander, d.code, d.type)) {
-      precons.push({ type: 'precon', name: d.name, sub: `${d.type || 'Precon'}${d.date ? ' · ' + d.date.slice(0, 4) : ''}`, file: d.file });
+    if (match(d.name, d.commander, d.code, preconLine(d))) {
+      precons.push({ type: 'precon', name: d.name, sub: `${preconLine(d) || 'Precon'}${d.date ? ' · ' + d.date.slice(0, 4) : ''}`, file: d.file });
       seenPrecon.add(d.file);
     }
   }
@@ -188,7 +188,7 @@ export function quickSearch(query, cap = CAP) {
         seenPrecon.add(file);
         const d = preconState.byFile.get(file);
         if (!d) continue;
-        precons.push({ type: 'precon', name: d.name, sub: `${d.type || 'Precon'}${d.date ? ' · ' + d.date.slice(0, 4) : ''}`, file, viaCard: entry.name, scryfallId: entry.sid });
+        precons.push({ type: 'precon', name: d.name, sub: `${preconLine(d) || 'Precon'}${d.date ? ' · ' + d.date.slice(0, 4) : ''}`, file, viaCard: entry.name, scryfallId: entry.sid });
         if (++viaCount >= PRECON_VIA_CAP) break;
       }
     }

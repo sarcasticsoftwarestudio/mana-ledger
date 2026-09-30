@@ -93,6 +93,17 @@ export const PRECON_SCOPE_TYPES = new Set([
   'Jumpstart',   // hidden behind the Explorer's Jumpstart toggle (off by default)
 ]);
 
+// The product line a deck is browsed under. Usually MTGJSON's type, but the
+// Secret Lair Commander decks (typed "Commander Deck", set SLD) get a line of
+// their own so they aren't buried among ~190 retail Commander precons. Display
+// only — MSRP defaults and the sync scope still key off the raw type.
+export const SL_COMMANDER_LINE = 'Secret Lair Commander Deck';
+export function preconLine(deck) {
+  if (!deck) return '';
+  if (deck.type === 'Commander Deck' && (deck.code || '').toUpperCase() === 'SLD') return SL_COMMANDER_LINE;
+  return deck.type || '';
+}
+
 // ── state ────────────────────────────────────────────────────────────────────
 
 export const preconState = {
