@@ -11,7 +11,8 @@ import { fetchCheapestPrints } from './prices.js';
 import { render } from './render.js';
 import { showAddSealedModal, showUpdatePriceModal } from './sealedModals.js';
 import { refreshTcgcsvCache } from './sealedPricing.js';
-import { showSlViewerModal } from './slTab.js';
+import { finishGroup } from './slData.js';
+import { exactPriceOptions, showSlViewerModal } from './slTab.js';
 import { collection, ui } from './state.js';
 import { autoSave } from './storage.js';
 import { esc, fmt, netFetch, toast } from './utils.js';
@@ -33,7 +34,38 @@ export function findCollectionCardById(id) {
   return collection.cards.find(c => c.id === id);
 }
 
-export function buildCardHoverHtml(card) {
+// Every priced finish of one printing (Scryfall card object), the finish that
+// matters in context first. `preferred` is that finish — a precon's foil slot,
+// an owned copy's finish ('nonfoil'|'normal'|'foil'|'etched') — or '' when
+// unknown, which leads with nonfoil like the rest of the app. If the preferred
+// finish has no price, the main entry falls back (and is labeled as what it
+// really is). Premium foils (Halo, Galaxy…) price from usd_foil and count as
+// foil; they keep their own label. Returns null when nothing is priced.
+const PRICE_KEY_FINISH = { usd: 'nonfoil', usd_foil: 'foil', usd_etched: 'etched' };
+export function finishPriceBreakdown(data, preferred = '') {
+  const options = exactPriceOptions(data);
+  if (!options.length) return null;
+  const want = finishGroup(preferred === '' ? 'normal' : preferred);
+  const order = want === 'foil' ? ['foil', 'nonfoil', 'etched']
+    : want === 'etched' ? ['etched', 'foil', 'nonfoil'] : ['nonfoil', 'foil', 'etched'];
+  const finishOf = o => PRICE_KEY_FINISH[o.priceKey] || 'nonfoil';
+  let main = null;
+  for (const f of order) { main = options.find(o => finishOf(o) === f); if (main) break; }
+  const pick = o => ({ label: o.label, finish: finishOf(o), price: o.price });
+  return {
+    main: pick(main),
+    others: options.filter(o => o !== main).sort((a, b) => a.order - b.order).map(pick),
+  };
+}
+
+// The "other finishes" line under a hover's main price.
+function otherFinishesHtml(others) {
+  if (!others?.length) return '';
+  return `<div class="chp-finishes">${others.map(o =>
+    `<span class="chp-finish"><span class="lbl">${esc(o.label)}</span> ${fmt(o.price)}</span>`).join('')}</div>`;
+}
+
+export function buildCardHoverHtml(card, data = null) {
   if (!card) return '';
   const id = (card.scryfallId || '').toLowerCase();
   const img = id ? `https://cards.scryfall.io/normal/front/${id[0]}/${id[1]}/${id}.jpg` : '';
@@ -41,15 +73,24 @@ export function buildCardHoverHtml(card) {
   const oracle = meta?.oracle_text || '';
   const typeLine = meta?.type_line || '';
   const price = cardCurrentValue(card);
+  const qty = card.quantity || 1;
   const foilBadge = card.foil && card.foil !== 'normal'
     ? `<span class="badge badge-${card.foil}" style="font-size:9.5px;padding:1px 5px;border-radius:99px;margin-left:4px">${FOIL_LABEL[card.foil] || card.foil}</span>`
     : '';
+  // Main price stays the tracked value of the copies you own; the Scryfall
+  // fetch (when it lands) adds this printing's other finishes underneath.
+  const ownFinish = finishGroup(card.foil);
+  const breakdown = data ? finishPriceBreakdown(data, card.foil) : null;
+  const ownLabel = breakdown?.main.finish === ownFinish ? breakdown.main.label
+    : ({ nonfoil: 'Nonfoil', foil: 'Foil', etched: 'Etched foil' })[ownFinish];
+  const others = (breakdown ? [breakdown.main, ...breakdown.others] : []).filter(o => o.finish !== ownFinish);
 
   return `
     ${img ? `<img class="chp-img" src="${esc(img)}" alt="${esc(card.name)}" data-imgerr="hide">` : ''}
     <div class="chp-name">${esc(card.name)}${foilBadge}</div>
     <div class="chp-sub">${esc(card.setName || '')} · ${esc((card.setCode||'').toUpperCase())} · #${esc(card.collectorNumber || '?')}</div>
-    ${price != null ? `<div class="chp-price">${fmt(price)}</div>` : ''}
+    ${price != null ? `<div class="chp-price">${fmt(price)} <span class="chp-price-finish">${esc(ownLabel)}${qty > 1 ? ` · ${qty} × ${fmt(price / qty)}` : ''}</span></div>` : ''}
+    ${otherFinishesHtml(others)}
     <div class="chp-grid">
       ${typeLine ? `<span class="lbl">Type</span><span>${esc(typeLine)}</span>` : ''}
       <span class="lbl">Rarity</span><span style="text-transform:capitalize">${esc(card.rarity || '—')}</span>
@@ -132,12 +173,24 @@ export function showCardHoverPreview(el, card) {
   if (!preview) return;
   clearTimeout(_hoverShowTimer);
   _hoverShowTimer = setTimeout(() => {
-    _hoverToken++;
+    const myToken = ++_hoverToken;
+    const sid = card.scryfallId;
+    const cached = sid ? (_slHoverData.get(sid) || null) : null;
     preview.classList.remove('source-image-preview');
-    preview.innerHTML = buildCardHoverHtml(card);
+    preview.innerHTML = buildCardHoverHtml(card, cached);
     preview.classList.add('visible');
     // Defer until after browser reflow so offsetHeight is accurate
     requestAnimationFrame(() => positionHoverPreview(el));
+    // Upgrade in place with the printing's other finishes once Scryfall answers.
+    if (sid && !cached) {
+      fetchSlCardData(sid).then(data => {
+        if (!data || _hoverToken !== myToken) return;
+        const p = document.getElementById('card-hover-preview');
+        if (!p || !p.classList.contains('visible')) return;
+        p.innerHTML = buildCardHoverHtml(card, data);
+        requestAnimationFrame(() => positionHoverPreview(el));
+      });
+    }
   }, 200);
 }
 
@@ -282,7 +335,7 @@ function fetchSlCardData(scryfallId) {
 // Build the hover body for an UNOWNED SL printing. `data` is the Scryfall card
 // object once fetched, or null for the instant partial (MTGJSON name + drop info)
 // shown while the fetch is in flight.
-function buildSlUnownedHoverHtml(scryfallId, data) {
+export function buildSlUnownedHoverHtml(scryfallId, data, finish = '') {
   const id = (scryfallId || '').toLowerCase();
   const img = id ? `https://cards.scryfall.io/normal/front/${id[0]}/${id[1]}/${id}.jpg` : '';
   const num = (typeof SL_SCRYFALL_TO_NUMBER !== 'undefined' && SL_SCRYFALL_TO_NUMBER[scryfallId]) || '';
@@ -301,8 +354,9 @@ function buildSlUnownedHoverHtml(scryfallId, data) {
   const sub = data
     ? `${esc(data.set_name || 'Secret Lair')} · ${esc((data.set || 'SLD').toUpperCase())} · #${esc(data.collector_number || num || '?')}`
     : (slInfo.length ? `Secret Lair · SLD${num ? ` · #${esc(num)}` : ''}` : `Scryfall printing${num ? ` · #${esc(num)}` : ''}`);
-  // Single, etched, or foil — match the live refresh's price fallback order.
-  const priceNum = data ? parseFloat(data.prices?.usd ?? data.prices?.usd_foil ?? data.prices?.usd_etched) : NaN;
+  // Lead with the finish this screen is about (e.g. a precon's foil slot),
+  // then list the printing's other finishes.
+  const breakdown = data ? finishPriceBreakdown(data, finish) : null;
 
   const rows = [];
   if (typeLine) rows.push(`<span class="lbl">Type</span><span>${esc(typeLine)}</span>`);
@@ -319,7 +373,8 @@ function buildSlUnownedHoverHtml(scryfallId, data) {
     ${img ? `<img class="chp-img" src="${esc(img)}" alt="${esc(name)}" data-imgerr="hide">` : ''}
     <div class="chp-name">${esc(name)}</div>
     <div class="chp-sub">${sub}</div>
-    ${Number.isFinite(priceNum) ? `<div class="chp-price">${fmt(priceNum)}</div>` : ''}
+    ${breakdown ? `<div class="chp-price">${fmt(breakdown.main.price)} <span class="chp-price-finish">${esc(breakdown.main.label)}</span></div>` : ''}
+    ${otherFinishesHtml(breakdown?.others)}
     <div class="chp-grid">${rows.join('')}</div>
     ${oracle
       ? `<div class="chp-oracle">${esc(oracle)}</div>`
@@ -332,7 +387,12 @@ function buildSlUnownedHoverHtml(scryfallId, data) {
 // artist, price, drop) pulled from Scryfall — an instant partial preview renders
 // first, then upgrades in place once the fetch (cached after first time) returns.
 export function showSlTileHoverPreview(el, scryfallId) {
-  const owned = collection.cards.find(c => c.scryfallId === scryfallId);
+  // Tiles / rows that know which finish they stand for carry data-finish (a
+  // precon's foil slot, a drop's foil SKU). An owned copy only counts when
+  // it's that finish — otherwise show the printing's prices led by that finish.
+  const finish = el?.dataset?.finish || '';
+  const owned = collection.cards.find(c => c.scryfallId === scryfallId
+    && c.status !== 'sold' && (!finish || finishGroup(c.foil) === finish));
   if (owned) { showCardHoverPreview(el, owned); return; }
 
   const preview = document.getElementById('card-hover-preview');
@@ -342,7 +402,7 @@ export function showSlTileHoverPreview(el, scryfallId) {
     const myToken = ++_hoverToken;
     const cached = _slHoverData.get(scryfallId) || null;
     preview.classList.remove('source-image-preview');
-    preview.innerHTML = buildSlUnownedHoverHtml(scryfallId, cached);
+    preview.innerHTML = buildSlUnownedHoverHtml(scryfallId, cached, finish);
     preview.classList.add('visible');
     requestAnimationFrame(() => positionHoverPreview(el));
 
@@ -352,7 +412,7 @@ export function showSlTileHoverPreview(el, scryfallId) {
         if (!data || _hoverToken !== myToken) return;
         const p = document.getElementById('card-hover-preview');
         if (!p || !p.classList.contains('visible')) return;
-        p.innerHTML = buildSlUnownedHoverHtml(scryfallId, data);
+        p.innerHTML = buildSlUnownedHoverHtml(scryfallId, data, finish);
         requestAnimationFrame(() => positionHoverPreview(el));
       });
     }

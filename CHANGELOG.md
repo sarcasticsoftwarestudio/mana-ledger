@@ -12,6 +12,9 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+### Improved
+- **Card hover previews now show every finish's price.** The main price is the finish that matters where you're looking, such as a precon's foil slot or the finish of your own copies. Every other priced finish of that printing (nonfoil, foil, etched, and premium treatments like Galaxy foil) is listed right underneath. Previously a foil card in a precon could show its nonfoil price on hover, which didn't match the deck table. Hovering cards you own also shows the finish and the per-copy math (e.g. “Foil · 2 × $29.94”).
+
 ## [1.7.20] - 2026-09-30
 
 ### Added

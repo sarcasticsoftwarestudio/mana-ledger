@@ -460,7 +460,7 @@ export function slCardTile(scryfallId, numLabel, requiredFinish, options = {}) {
     ? `Owned (qty: ${totalQty})`
     : (wanted ? 'On your want list' : 'Not in collection')) + (catalogLabel ? ` · ${catalogLabel}` : '');
   return `
-    <div class="gallery-card${owned ? ' sl-card-owned' : (sourcedPreview ? ' sl-card-preview' : ' sl-card-missing')}${wanted ? ' sl-card-wanted' : ''}" data-sl-card="${esc(actionId)}"
+    <div class="gallery-card${owned ? ' sl-card-owned' : (sourcedPreview ? ' sl-card-preview' : ' sl-card-missing')}${wanted ? ' sl-card-wanted' : ''}" data-sl-card="${esc(actionId)}"${requiredFinish ? ` data-finish="${esc(requiredFinish)}"` : ''}
       data-slact="card-modal" data-arg="${esc(actionId)}"${tooltip ? ` title="${esc(tooltip)}"` : ''}>
       <img src="${esc(img)}" alt="" loading="lazy"
         data-imgerr="hide-card"
@@ -1089,7 +1089,7 @@ function premiumFinish(card) {
   return null;
 }
 
-function exactPriceOptions(card) {
+export function exactPriceOptions(card) {
   if (!card) return [];
   const prices = card.prices || {};
   const options = [];

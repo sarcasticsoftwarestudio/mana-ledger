@@ -3649,6 +3649,24 @@ tr.want-hit td { border-bottom-color: rgba(123, 216, 159, 0.18); }
   color: var(--accent);
   margin-bottom: 8px;
 }
+.chp-price-finish {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--text-muted);
+  margin-left: 4px;
+}
+/* Other finishes of the same printing, under the main price. */
+.chp-finishes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  margin: -4px 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+.chp-finish .lbl { color: var(--text-muted); font-weight: 500; }
 .chp-price-note {
   color: var(--text-muted);
   font-size: 10px;

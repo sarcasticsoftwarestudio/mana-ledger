@@ -160,7 +160,7 @@ function deckTable(deck, ownedKeys) {
   };
 
   const body = rows.map(r => `
-    <tr data-precon-sid="${esc(r.sid)}" style="cursor:pointer${r.owned ? '' : ';opacity:.62'}" data-act="showSlViewerModal" data-arg="${esc(r.sid)}">
+    <tr data-precon-sid="${esc(r.sid)}" data-finish="${esc(r.finish)}" style="cursor:pointer${r.owned ? '' : ';opacity:.62'}" data-act="showSlViewerModal" data-arg="${esc(r.sid)}">
       <td>${r.owned ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--text-muted)">✗</span>'}</td>
       <td style="font-weight:600;color:var(--text)">${esc(r.name)}${r.board === 'commander' ? ' <span title="Commander">👑</span>' : ''}${r.board === 'side' ? ' <span style="font-size:10px;color:var(--text-muted)">(SB)</span>' : ''}</td>
       <td style="font-family:var(--mono,monospace);font-size:12px;white-space:nowrap">${esc(r.manaCost)}</td>

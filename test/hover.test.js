@@ -1,5 +1,48 @@
 import { describe, expect, it } from 'vitest';
-import { buildSourceImageHoverHtml, buildUpcomingPreviewHoverHtml } from '../src/renderer-js/hover.js';
+import {
+  buildSlUnownedHoverHtml, buildSourceImageHoverHtml, buildUpcomingPreviewHoverHtml, finishPriceBreakdown,
+} from '../src/renderer-js/hover.js';
+
+// Zndrsplt, Eye of Wisdom (SLD #379): nonfoil is the pricier finish.
+const zndrsplt = { name: 'Zndrsplt, Eye of Wisdom', set: 'sld', collector_number: '379', prices: { usd: '35.73', usd_foil: '29.94', usd_etched: null } };
+
+describe('finish price breakdown', () => {
+  it('leads with the finish in context and lists the others', () => {
+    const b = finishPriceBreakdown(zndrsplt, 'foil');
+    expect(b.main).toMatchObject({ finish: 'foil', label: 'Foil', price: 29.94 });
+    expect(b.others).toEqual([{ finish: 'nonfoil', label: 'Nonfoil', price: 35.73 }]);
+  });
+
+  it('leads with nonfoil when the context finish is unknown or normal', () => {
+    expect(finishPriceBreakdown(zndrsplt, '').main.price).toBe(35.73);
+    expect(finishPriceBreakdown(zndrsplt, 'normal').main.price).toBe(35.73);
+  });
+
+  it('falls back to a priced finish and labels it truthfully', () => {
+    const b = finishPriceBreakdown({ prices: { usd_foil: '4.00' } }, 'etched');
+    expect(b.main).toMatchObject({ finish: 'foil', label: 'Foil', price: 4 });
+    expect(b.others).toEqual([]);
+  });
+
+  it('labels premium foils by their treatment and counts them as foil', () => {
+    const b = finishPriceBreakdown({ promo_types: ['galaxyfoil'], prices: { usd: '1.00', usd_foil: '9.00' } }, 'foil');
+    expect(b.main).toMatchObject({ finish: 'foil', label: 'Galaxy foil', price: 9 });
+  });
+
+  it('returns null when nothing is priced', () => {
+    expect(finishPriceBreakdown({ prices: {} }, 'foil')).toBeNull();
+  });
+});
+
+describe('unowned printing hover', () => {
+  it('shows the precon slot finish first and the other finishes under it', () => {
+    const html = buildSlUnownedHoverHtml('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', zndrsplt, 'foil');
+    const main = html.indexOf('$29.94'), other = html.indexOf('$35.73');
+    expect(main).toBeGreaterThan(-1);
+    expect(other).toBeGreaterThan(main);
+    expect(html).toContain('chp-finishes');
+  });
+});
 
 describe('unmatched source-image hover', () => {
   it('builds an enlarged preview without claiming a card match', () => {
