@@ -5,8 +5,9 @@
 
 import {
   addPreconMissingToWantList, ensurePreconCards, ensurePreconDetails,
-  ownedFinishKeySet, preconCardsFor, preconMsrpDefault, preconOwnedStats,
-  preconState, refreshPreconData, rowPrice, sealedPriceForPrecon,
+  ensurePreconSetNames, ownedFinishKeySet, preconCardsFor, preconMsrpDefault,
+  preconOwnedStats, preconSetName, preconState, refreshPreconData, rowPrice,
+  sealedPriceForPrecon,
 } from './preconData.js';
 import { slCardTile } from './slTab.js';
 import { ui } from './state.js';
@@ -23,7 +24,76 @@ const LINE_ORDER = [
   'Advanced Deck', 'Advanced Pack', 'Dandan Deck',
 ];
 
-const PIP_COLORS = { W: '#e8e3c9', U: '#4e8fd1', B: '#8a7f91', R: '#d34a3f', G: '#3f9d5d' };
+const lineRank = (type) => { const i = LINE_ORDER.indexOf(type); return i < 0 ? 999 : i; };
+
+// Filter, sort, and (optionally) group a deck list for the line / All-decks
+// views. Pure — setName and completion are injected so tests can drive it.
+//   opts: { search, sort, group, setFilter }
+//   sort:  date_desc | date_asc | name_asc | name_desc | set_asc | own_desc
+//   group: none | set | year | line
+// Returns [{ key, label, date, decks }] — a single unlabeled group when
+// group is 'none'. Undated decks sort after dated ones in either direction.
+export function organizePrecons(decks, opts = {}, { setName = c => c || '', completion = () => 0 } = {}) {
+  const sort = opts.sort || 'date_desc';
+  const group = opts.group || 'none';
+  const q = (opts.search || '').toLowerCase().trim();
+  let list = decks;
+  if (opts.setFilter) list = list.filter(d => (d.code || '').toUpperCase() === opts.setFilter.toUpperCase());
+  if (q) list = list.filter(d =>
+    d.name.toLowerCase().includes(q) || (d.commander || '').toLowerCase().includes(q) ||
+    (d.code || '').toLowerCase().includes(q) || setName(d.code).toLowerCase().includes(q) ||
+    (d.type || '').toLowerCase().includes(q));
+
+  const byName = (a, b) => a.name.localeCompare(b.name);
+  const byDate = (dir) => (a, b) => {
+    if (!a.date !== !b.date) return a.date ? -1 : 1;   // undated last
+    return ((a.date || '').localeCompare(b.date || '')) * dir || byName(a, b);
+  };
+  const cmp = {
+    date_desc: byDate(-1),
+    date_asc:  byDate(1),
+    name_asc:  byName,
+    name_desc: (a, b) => -byName(a, b),
+    set_asc:   (a, b) => setName(a.code).localeCompare(setName(b.code)) || byDate(-1)(a, b),
+    own_desc:  (a, b) => completion(b) - completion(a) || byName(a, b),
+  }[sort] || byDate(-1);
+  list = [...list].sort(cmp);
+
+  if (group === 'none') return [{ key: '', label: '', date: '', decks: list }];
+
+  const keyOf = {
+    set:  d => (d.code || '').toUpperCase() || '—',
+    year: d => (d.date || '').slice(0, 4) || 'Undated',
+    line: d => d.type || 'Other',
+  }[group] || (() => '');
+  const groups = new Map();
+  for (const d of list) {
+    const k = keyOf(d);
+    if (!groups.has(k)) groups.set(k, { key: k, label: '', date: '', decks: [] });
+    const g = groups.get(k);
+    g.decks.push(d);
+    if (d.date && (!g.date || d.date < g.date)) g.date = d.date;   // group date = earliest release
+  }
+  for (const g of groups.values()) {
+    g.label = group === 'set' ? (g.key === '—' ? 'No set' : setName(g.key))
+      : group === 'line' ? `${g.key}s` : g.key;
+  }
+  // Group order follows the chosen sort: chronological sorts order groups by
+  // date, the Set / Name sorts alphabetically, product lines keep LINE_ORDER.
+  const out = [...groups.values()];
+  const dateDir = sort === 'date_asc' ? 1 : -1;
+  const byGroupDate = (a, b) => {
+    if (!a.date !== !b.date) return a.date ? -1 : 1;
+    return a.date.localeCompare(b.date) * dateDir || a.label.localeCompare(b.label);
+  };
+  if (group === 'line') out.sort((a, b) => lineRank(a.key) - lineRank(b.key) || a.key.localeCompare(b.key));
+  else if (sort === 'set_asc' || sort === 'name_asc') out.sort((a, b) => a.label.localeCompare(b.label));
+  else if (sort === 'name_desc') out.sort((a, b) => b.label.localeCompare(a.label));
+  else out.sort(byGroupDate);
+  return out;
+}
+
+const PIP_COLORS ={ W: '#e8e3c9', U: '#4e8fd1', B: '#8a7f91', R: '#d34a3f', G: '#3f9d5d' };
 function colorPips(colors) {
   if (!colors) return `<span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#9aa0a6;opacity:.7" title="Colorless"></span>`;
   return colors.split('').map(c =>
@@ -127,11 +197,119 @@ function breadcrumb(pv, deck) {
   const root = `<a class="bc-link" data-act="ui-set" data-path="precons.line" data-val="" data-also="precons.deck=">Precon Explorer</a>`;
   const sep = `<span class="bc-sep">›</span>`;
   if (deck) {
-    const line = `<a class="bc-link" data-act="ui-set" data-path="precons.deck" data-val="">${esc(deck.type || 'Decks')}</a>`;
+    // Back goes wherever the deck was opened from: its line, All decks, or
+    // (from global search / insights) the deck's own line.
+    const [label, path, val] = pv.line ? [pv.line, 'precons.deck', '']
+      : pv.browse === 'all' ? ['All decks', 'precons.deck', '']
+      : [deck.type || 'Decks', 'precons.line', deck.type || ''];
+    const line = `<a class="bc-link" data-act="ui-set" data-path="${path}" data-val="${esc(val)}" data-also="precons.deck=">${esc(label)}</a>`;
     return `<nav class="sl-breadcrumb">${root}${sep}${line}${sep}<span class="bc-current">${esc(deck.name)}</span></nav>`;
   }
   if (pv.line) return `<nav class="sl-breadcrumb">${root}${sep}<span class="bc-current">${esc(pv.line)}</span></nav>`;
+  if (pv.browse === 'all') return `<nav class="sl-breadcrumb">${root}${sep}<span class="bc-current">All decks</span></nav>`;
   return `<nav class="sl-breadcrumb"><span class="bc-current">Precon Explorer</span></nav>`;
+}
+
+// Product lines ↔ All decks, plus the Jumpstart reveal — the landing's top bar.
+function browseBar(pv, jumpstartCount) {
+  const btn = (id, label) =>
+    `<button class="btn ${pv.browse === id ? 'btn-primary' : 'btn-ghost'}" style="font-size:12px" data-act="ui-set" data-path="precons.browse" data-val="${id}" data-also="precons.setFilter=">${label}</button>`;
+  return `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:6px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
+      ${btn('lines', '📦 Product lines')}${btn('all', '🗂 All decks')}
+      ${jumpstartCount ? `
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text-muted);margin-left:auto">
+        <input type="checkbox" ${pv.showJumpstart ? 'checked' : ''} data-act="ui-set" data-path="precons.showJumpstart">
+        Show Jumpstart (${jumpstartCount} half-decks)
+      </label>` : ''}
+    </div>`;
+}
+
+function deckTile(d, s, showLine) {
+  const pc = s.total ? Math.round(s.owned / s.total * 100) : 0;
+  return `
+    <div class="sl-superdrop-card" data-act="ui-set" data-path="precons.deck" data-val="${esc(d.file)}">
+      <div class="sl-superdrop-name">${esc(d.name)}</div>
+      <div class="sl-superdrop-meta" style="display:flex;align-items:center;gap:6px">
+        ${colorPips(d.colors)}
+        <span title="${esc(preconSetName(d.code))}">${esc(d.code || '')} · ${d.date || '—'} · ${d.cardCount} cards</span>
+      </div>
+      ${showLine ? `<div class="sl-superdrop-meta" style="margin-top:2px">${esc(d.type || '')}</div>` : ''}
+      ${d.commander ? `<div class="sl-superdrop-meta" style="margin-top:2px">👑 ${esc(d.commander)}</div>` : ''}
+      <div class="sl-progress-bar"><div class="sl-progress-fill" style="width:${pc}%"></div></div>
+      <div class="sl-superdrop-count" style="color:${s.owned === s.total && s.total > 0 ? 'var(--green)' : 'var(--text-muted)'}">${s.owned} / ${s.total} owned</div>
+    </div>`;
+}
+
+// The searchable / sortable / groupable deck grid shared by a product line's
+// view and the All decks view.
+function deckListView(pv, decks, statsFor, { allLines }) {
+  pv.setFilter = String(pv.setFilter || '');
+  pv.group = pv.group || 'none';
+  const completion = d => { const s = statsFor(d.file); return s.total ? s.owned / s.total : 0; };
+  // A set filter left over from another line may not apply here — drop it.
+  const setCodes = new Map();
+  for (const d of decks) {
+    const c = (d.code || '').toUpperCase();
+    if (!c) continue;
+    const e = setCodes.get(c) || { code: c, date: d.date || '', count: 0 };
+    e.count++;
+    if (d.date && (!e.date || d.date < e.date)) e.date = d.date;
+    setCodes.set(c, e);
+  }
+  if (pv.setFilter && !setCodes.has(pv.setFilter.toUpperCase())) pv.setFilter = '';
+  if (!allLines && pv.group === 'line') pv.group = 'none';
+
+  const groups = organizePrecons(decks, pv, { setName: preconSetName, completion });
+  const shown = groups.reduce((n, g) => n + g.decks.length, 0);
+
+  const sortOpts = [
+    ['date_desc', 'Newest → Oldest'], ['date_asc', 'Oldest → Newest'],
+    ['name_asc', 'Name A → Z'], ['name_desc', 'Name Z → A'],
+    ['set_asc', 'Set (A → Z)'], ['own_desc', 'Most complete'],
+  ];
+  const groupOpts = [['none', 'No grouping'], ['set', 'Set'], ['year', 'Year'], ...(allLines ? [['line', 'Product line']] : [])];
+  const setOpts = [...setCodes.values()]
+    .sort((a, b) => b.date.localeCompare(a.date) || a.code.localeCompare(b.code))
+    .map(s => {
+      const name = preconSetName(s.code);
+      const label = `${name !== s.code ? `${name} (${s.code})` : s.code}${s.date ? ` · ${s.date.slice(0, 4)}` : ''} · ${s.count}`;
+      return `<option value="${esc(s.code)}"${pv.setFilter.toUpperCase() === s.code ? ' selected' : ''}>${esc(label)}</option>`;
+    }).join('');
+  const select = (path, opts, cur) => `
+    <select data-act="ui-set" data-path="${path}" style="font-size:12px">
+      ${opts.map(([v, l]) => `<option value="${v}"${cur === v ? ' selected' : ''}>${l}</option>`).join('')}
+    </select>`;
+  const label = (t) => `<span style="color:var(--text-muted);font-size:11px;white-space:nowrap">${t}</span>`;
+
+  const toolbar = `
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
+      <input type="text" id="preconSearchInput" placeholder="Search decks, commanders, sets…"
+        value="${esc(pv.search || '')}"
+        data-act="ui-set" data-path="precons.search" data-refocus="preconSearchInput"
+        style="flex:1;min-width:200px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:inherit">
+      ${pv.search ? `<button class="btn btn-ghost" style="font-size:12px;padding:4px 10px" data-act="ui-set" data-path="precons.search" data-val="">✕</button>` : ''}
+      ${label('Sort:')}${select('precons.sort', sortOpts, pv.sort)}
+      ${label('Group:')}${select('precons.group', groupOpts, pv.group)}
+      ${label('Set:')}
+      <select data-act="ui-set" data-path="precons.setFilter" style="font-size:12px;max-width:260px">
+        <option value=""${pv.setFilter ? '' : ' selected'}>All sets (${setCodes.size})</option>
+        ${setOpts}
+      </select>
+      <span style="color:var(--text-muted);font-size:11px;white-space:nowrap">${shown.toLocaleString()} deck${shown !== 1 ? 's' : ''}</span>
+    </div>`;
+
+  if (!shown) {
+    const why = pv.search ? `No decks match "${esc(pv.search)}".` : 'No decks match these filters.';
+    return toolbar + `<div style="padding:30px;text-align:center;color:var(--text-muted);font-size:13px">${why}</div>`;
+  }
+  const grid = (list) => `<div class="sl-superdrop-grid">${list.map(d => deckTile(d, statsFor(d.file), allLines && pv.group !== 'line')).join('')}</div>`;
+  return toolbar + groups.map(g => g.label ? `
+    <div style="margin:16px 0 8px;display:flex;align-items:baseline;gap:8px;border-bottom:1px solid var(--border);padding-bottom:4px">
+      <span style="font-size:14px;font-weight:700;color:var(--text)">${esc(g.label)}</span>
+      ${pv.group === 'set' && g.key !== '—' && g.label !== g.key ? `<span style="font-size:12px;color:var(--text-muted)">${esc(g.key)}</span>` : ''}
+      <span style="font-size:12px;color:var(--text-muted)">${pv.group !== 'year' && g.date ? `${g.date.slice(0, 4)} · ` : ''}${g.decks.length} deck${g.decks.length !== 1 ? 's' : ''}</span>
+    </div>${grid(g.decks)}` : grid(g.decks)).join('');
 }
 
 // Economics banner: assumed MSRP vs. singles-now vs. sealed market.
@@ -202,6 +380,7 @@ export function renderPreconTab() {
     </div>`;
   }
 
+  ensurePreconSetNames();
   const ownedKeys = ownedFinishKeySet();
   const statsFor = (file) => preconOwnedStats(file, ownedKeys);
 
@@ -234,11 +413,13 @@ export function renderPreconTab() {
     return refreshBar() + breadcrumb(pv, deck) + `
       <div class="gallery-filters">
         <div class="gallery-filter-row">
-          <button class="btn btn-ghost" style="font-size:12px" data-act="ui-set" data-path="precons.deck" data-val="">← Back to ${esc(deck.type || 'decks')}</button>
+          ${pv.line || pv.browse === 'all'
+            ? `<button class="btn btn-ghost" style="font-size:12px" data-act="ui-set" data-path="precons.deck" data-val="">← Back to ${esc(pv.line || 'all decks')}</button>`
+            : `<button class="btn btn-ghost" style="font-size:12px" data-act="ui-set" data-path="precons.line" data-val="${esc(deck.type || '')}" data-also="precons.deck=">← Back to ${esc(deck.type || 'decks')}</button>`}
           ${viewBtn('gallery', '🖼 Gallery')}${viewBtn('table', '📊 Table')}
           ${missing.length ? `<button class="btn btn-ghost" style="font-size:12px" data-act="addPreconMissingToWantList" data-arg="${esc(deck.file)}" title="Add this deck's missing cards to your want list">★ Want ${missing.length} missing</button>` : ''}
           <span style="display:flex;align-items:center;gap:6px;margin-left:8px">${colorPips(deck.colors)}</span>
-          <span style="font-size:12px;color:var(--text-muted)">${esc(deck.type || '')} · ${esc(deck.code || '')} · ${esc(deck.date || '—')}${base ? ` · variant of ${esc(base.name)}` : ''}</span>
+          <span style="font-size:12px;color:var(--text-muted)">${esc(deck.type || '')} · ${esc(preconSetName(deck.code) !== (deck.code || '').toUpperCase() ? `${preconSetName(deck.code)} (${deck.code})` : (deck.code || ''))} ·${esc(deck.date || '—')}${base ? ` · variant of ${esc(base.name)}` : ''}</span>
           ${deck.commander ? `<span style="font-size:12px;color:var(--text-muted)">👑 ${esc(deck.commander)}</span>` : ''}
           <span style="margin-left:auto;font-size:13px;font-weight:700;color:${stats.owned === stats.total && stats.total > 0 ? 'var(--green)' : 'var(--text-muted)'}">
             ${stats.owned} / ${stats.total} cards owned (${pct}%)
@@ -251,75 +432,29 @@ export function renderPreconTab() {
 
   // ── Line view (one product line's decks) ───────────────────────────────────
   if (pv.line) {
-    let decks = preconState.decks.filter(d => d.type === pv.line);
-    const q = (pv.search || '').toLowerCase().trim();
-    if (q) decks = decks.filter(d =>
-      d.name.toLowerCase().includes(q) || (d.commander || '').toLowerCase().includes(q) || (d.code || '').toLowerCase().includes(q));
-    const dir = pv.sort.endsWith('_desc') ? -1 : 1;
-    if (pv.sort.startsWith('name')) decks.sort((a, b) => a.name.localeCompare(b.name) * dir);
-    else if (pv.sort.startsWith('own')) decks.sort((a, b) => {
-      const sa = statsFor(a.file), sb = statsFor(b.file);
-      return ((sb.total ? sb.owned / sb.total : 0) - (sa.total ? sa.owned / sa.total : 0));
-    });
-    else decks.sort((a, b) => ((a.date || '9999').localeCompare(b.date || '9999') || a.name.localeCompare(b.name)) * dir);
-
-    const opts = [['date_desc', 'Date ↓'], ['date_asc', 'Date ↑'], ['name_asc', 'Name A→Z'], ['own_desc', 'Completion ↓']];
-    return refreshBar() + breadcrumb(pv) + `
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
-        <input type="text" id="preconSearchInput" placeholder="Search decks, commanders, or set codes…"
-          value="${esc(pv.search || '')}"
-          data-act="ui-set" data-path="precons.search" data-refocus="preconSearchInput"
-          style="flex:1;min-width:200px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:inherit">
-        ${pv.search ? `<button class="btn btn-ghost" style="font-size:12px;padding:4px 10px" data-act="ui-set" data-path="precons.search" data-val="">✕</button>` : ''}
-        <span style="color:var(--text-muted);font-size:11px;white-space:nowrap">Sort:</span>
-        <select data-act="ui-set" data-path="precons.sort" style="font-size:12px">
-          ${opts.map(([v, l]) => `<option value="${v}"${pv.sort === v ? ' selected' : ''}>${l}</option>`).join('')}
-        </select>
-      </div>
-      ${decks.length === 0
-        ? `<div style="padding:30px;text-align:center;color:var(--text-muted);font-size:13px">No decks match "${esc(pv.search)}".</div>`
-        : `<div class="sl-superdrop-grid">
-          ${decks.map(d => {
-            const s = statsFor(d.file);
-            const pc = s.total ? Math.round(s.owned / s.total * 100) : 0;
-            return `
-              <div class="sl-superdrop-card" data-act="ui-set" data-path="precons.deck" data-val="${esc(d.file)}">
-                <div class="sl-superdrop-name">${esc(d.name)}</div>
-                <div class="sl-superdrop-meta" style="display:flex;align-items:center;gap:6px">
-                  ${colorPips(d.colors)}
-                  <span>${esc(d.code || '')} · ${d.date || '—'} · ${d.cardCount} cards</span>
-                </div>
-                ${d.commander ? `<div class="sl-superdrop-meta" style="margin-top:2px">👑 ${esc(d.commander)}</div>` : ''}
-                <div class="sl-progress-bar"><div class="sl-progress-fill" style="width:${pc}%"></div></div>
-                <div class="sl-superdrop-count" style="color:${s.owned === s.total && s.total > 0 ? 'var(--green)' : 'var(--text-muted)'}">${s.owned} / ${s.total} owned</div>
-              </div>`;
-          }).join('')}
-        </div>`}`;
+    const decks = preconState.decks.filter(d => d.type === pv.line);
+    return refreshBar() + breadcrumb(pv) + deckListView(pv, decks, statsFor, { allLines: false });
   }
 
-  // ── Landing: product-line tiles ────────────────────────────────────────────
   const byType = new Map();
   for (const d of preconState.decks) {
     if (!byType.has(d.type)) byType.set(d.type, []);
     byType.get(d.type).push(d);
   }
   // Jumpstart is 570 half-decks — off by default, revealed by the toggle.
-  const hasJumpstart = byType.has('Jumpstart');
-  let lines = [...byType.keys()].sort((a, b) => {
-    const ia = LINE_ORDER.indexOf(a), ib = LINE_ORDER.indexOf(b);
-    return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib) || a.localeCompare(b);
-  });
+  const jumpstartCount = byType.get('Jumpstart')?.length || 0;
+
+  // ── All decks: every line in one searchable grid ───────────────────────────
+  if (pv.browse === 'all') {
+    const decks = pv.showJumpstart ? preconState.decks : preconState.decks.filter(d => d.type !== 'Jumpstart');
+    return refreshBar() + breadcrumb(pv) + browseBar(pv, jumpstartCount) + deckListView(pv, decks, statsFor, { allLines: true });
+  }
+
+  // ── Landing: product-line tiles ────────────────────────────────────────────
+  let lines = [...byType.keys()].sort((a, b) => lineRank(a) - lineRank(b) || a.localeCompare(b));
   if (!pv.showJumpstart) lines = lines.filter(l => l !== 'Jumpstart');
 
-  const jumpToggle = hasJumpstart ? `
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:6px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
-      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text-muted)">
-        <input type="checkbox" ${pv.showJumpstart ? 'checked' : ''} data-act="ui-set" data-path="precons.showJumpstart">
-        Show Jumpstart (${byType.get('Jumpstart').length} half-decks)
-      </label>
-    </div>` : '';
-
-  return refreshBar() + breadcrumb(pv) + jumpToggle + `
+  return refreshBar() + breadcrumb(pv) + browseBar(pv, jumpstartCount) + `
     <div class="sl-superdrop-grid">
       ${lines.map(line => {
         const decks = byType.get(line);
@@ -329,7 +464,7 @@ export function renderPreconTab() {
         const dates = decks.map(d => (d.date || '').slice(0, 4)).filter(Boolean).sort();
         const range = dates.length ? (dates[0] === dates[dates.length - 1] ? dates[0] : `${dates[0]}–${dates[dates.length - 1]}`) : '—';
         return `
-          <div class="sl-superdrop-card" data-act="ui-set" data-path="precons.line" data-val="${esc(line)}" data-also="precons.search=">
+          <div class="sl-superdrop-card" data-act="ui-set" data-path="precons.line" data-val="${esc(line)}" data-also="precons.search=;precons.setFilter=">
             <div class="sl-superdrop-name">${esc(line)}s</div>
             <div class="sl-superdrop-meta">${range} · ${decks.length} deck${decks.length !== 1 ? 's' : ''}</div>
             <div class="sl-progress-bar"><div class="sl-progress-fill" style="width:${pc}%"></div></div>

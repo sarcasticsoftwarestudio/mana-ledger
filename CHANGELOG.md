@@ -12,6 +12,9 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+### Added
+- **Find any precon faster in the Precon Explorer.** A new **All decks** view lists every preconstructed deck in one searchable grid, so you no longer have to pick a product line first. Both All decks and each product line can now sort **Newest → Oldest**, Oldest → Newest, by name (A→Z or Z→A), by **set**, or by completion. You can also group the grid by set, year, or product line, and narrow it to a single set. Sets appear by name (e.g. “Commander 2021 (C21)”), and search now matches set names and product lines too.
+
 ## [1.7.18] - 2026-09-10
 
 ### Added

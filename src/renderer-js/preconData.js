@@ -107,6 +107,48 @@ export const preconState = {
   pricing: new Set(),  // files being fetched right now
 };
 
+// Set code → display name, from Scryfall's set catalog, so the Explorer can
+// sort, group, and filter by "Commander 2021" rather than a bare "C21". Cached
+// in settings; fetched lazily the first time the deck lists render, and
+// re-fetched (at most daily) only when a deck carries a code the cache lacks.
+const SET_NAMES_KEY = 'precon_set_names';
+const SET_NAMES_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+export const preconSetNames = { map: null, loading: false };
+
+export function preconSetName(code) {
+  const c = (code || '').toUpperCase();
+  return preconSetNames.map?.get(c) || c;
+}
+
+export async function ensurePreconSetNames() {
+  if (preconSetNames.map || preconSetNames.loading) return;
+  preconSetNames.loading = true;
+  let cache = null;
+  try {
+    const raw = await window.api?.settings?.get(SET_NAMES_KEY);
+    if (raw) cache = JSON.parse(raw);
+  } catch { /* corrupt cache — refetch below */ }
+  try {
+    const names = cache?.names || {};
+    const lacksCode = preconState.decks.some(d => d.code && !(d.code.toUpperCase() in names));
+    const stale = !cache?.fetchedAt || Date.now() - Date.parse(cache.fetchedAt) > SET_NAMES_MAX_AGE_MS;
+    if (!cache || (lacksCode && stale)) {
+      const resp = await netFetch('https://api.scryfall.com/sets', { headers: { Accept: 'application/json' } });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status} from Scryfall set catalog`);
+      const payload = await resp.json();
+      const fresh = {};
+      for (const s of (payload?.data || [])) if (s?.code && s?.name) fresh[s.code.toUpperCase()] = s.name;
+      cache = { fetchedAt: new Date().toISOString(), names: fresh };
+      await window.api?.settings?.set(SET_NAMES_KEY, JSON.stringify(cache));
+    }
+  } catch (e) {
+    window.logger?.warn?.('Precon', `set name lookup failed (showing set codes): ${e.message}`);
+  }
+  preconSetNames.map = new Map(Object.entries(cache?.names || {}));
+  preconSetNames.loading = false;
+  render();
+}
+
 // Startup: deck headers only.
 export async function loadPreconHeaders() {
   try {
