@@ -1,5 +1,5 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-10-02 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-10-03 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
 // 111 superdrops/standalones · 394 drops · 2752 printings (2104 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
