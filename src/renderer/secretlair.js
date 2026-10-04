@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-10-03 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-10-04 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 111 superdrops/standalones · 394 drops · 2752 printings (2104 drop-mapped, 106 foil-backfilled)
+// 111 superdrops/standalones · 394 drops · 2753 printings (2105 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -299,7 +299,7 @@ const SL_DROP_CARDS = {
   "Iron Maiden: Eddie Unchained": ["Bruvac the Grandiloquent","Captain N'ghathrod","Iron Maiden","Mindcrank","Nekusar, the Mindrazer","Windfall"],
   "Jaws: Terror of Amity Island": ["Abrade","Descent into Avernus","Jaws, Relentless Predator","Reckless Endeavor","Sneak Attack"],
   "Jim Henson's Labyrinth: Fear Me, Love Me": ["Boggart Shenanigans","Claim the Firstborn","Dance with Calamity","Goblin Rabblemaster","Muxus, Goblin Grandee","Trinisphere"],
-  "Jim Henson's Labyrinth: Should You Need Us": ["Jodah, the Unifier","Kami of the Crescent Moon","Kogla, the Titan Ape","Shigeki, Jukai Visionary","Wort, Boggart Auntie"],
+  "Jim Henson's Labyrinth: Should You Need Us": ["Jodah, the Unifier","Kami of the Crescent Moon","Kogla, the Titan Ape","Lu Xun, Scholar General // Lu Xun, Scholar General","Shigeki, Jukai Visionary","Wort, Boggart Auntie"],
   "Jim Henson's Labyrinth: Through the Labyrinth": ["Chronomantic Escape","Delayed Blast Fireball","Leveler","Rogue's Passage","Tempt with Discovery","Thran Temporal Gateway","Timely Ward"],
   "Jurassic World: Dr. Ian Malcolm": ["Atla Palani, Nest Tender","Laboratory Maniac","Tasha's Hideous Laughter","Tasigur, the Golden Fang"],
   "Jurassic World: Life Breaks Free": ["Etali, Primal Storm","Polyraptor","Rampaging Ferocidon","Regisaur Alpha","Wayward Swordtooth"],
@@ -1583,6 +1583,7 @@ const SL_SCRYFALL_TO_DROPS = {
   "7bb1f7bb-4fc6-41af-950a-759bb64f01cf": ["Furby: The OddBodies"],
   "7bcfc82b-3e8a-4785-a87e-e96b5bfca90f": ["Warhammer 40,000: Orks"],
   "7bf22be9-bf1a-48ec-a825-d19504f9dfcc": ["Black is Magic"],
+  "7c074d4c-7155-44a0-a4a5-b3825cbc36b6": ["Jim Henson's Labyrinth: Should You Need Us"],
   "7c15363a-f27b-4fb5-8658-edfbd67750ca": ["Dogs Are Better Than Cats"],
   "7c36efb0-1a5b-4576-b5d9-c9b966716f65": ["Through the Wormhole"],
   "7c58e69d-1cbd-4d67-8d34-bd66904983c4": ["Marvel's Spider-Man: Villainous Plots"],
@@ -4017,6 +4018,7 @@ const SL_SCRYFALL_TO_NAME = {
   "7bc92a34-a623-49eb-8ea5-6d04d8688567": "Homing Sliver",
   "7bcfc82b-3e8a-4785-a87e-e96b5bfca90f": "Aggravated Assault",
   "7bf22be9-bf1a-48ec-a825-d19504f9dfcc": "Sol Ring",
+  "7c074d4c-7155-44a0-a4a5-b3825cbc36b6": "Lu Xun, Scholar General // Lu Xun, Scholar General",
   "7c15363a-f27b-4fb5-8658-edfbd67750ca": "Escape to the Wilds",
   "7c3271da-cc20-48c2-ac61-b64a8e47f9e5": "Counterspell",
   "7c36efb0-1a5b-4576-b5d9-c9b966716f65": "Command Tower",
@@ -6772,6 +6774,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "7bc92a34-a623-49eb-8ea5-6d04d8688567": "640",
   "7bcfc82b-3e8a-4785-a87e-e96b5bfca90f": "1026",
   "7bf22be9-bf1a-48ec-a825-d19504f9dfcc": "249",
+  "7c074d4c-7155-44a0-a4a5-b3825cbc36b6": "2840",
   "7c15363a-f27b-4fb5-8658-edfbd67750ca": "1921",
   "7c3271da-cc20-48c2-ac61-b64a8e47f9e5": "SCTLR",
   "7c36efb0-1a5b-4576-b5d9-c9b966716f65": "1496★",
