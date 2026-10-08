@@ -36,7 +36,14 @@ export function parseDropSeriesWikitext(wt) {
     return m ? parseFloat(m[1].replace(/,/g, '')) : null;
   };
   const rows = [];
-  for (const block of body.split(/\n\|-/).slice(1)) {
+  let dropCells = 0;                 // rows whose drop cell is an italic link — the coverage denominator
+  for (const raw of body.split(/\n\|-/).slice(1)) {
+    if (/''\[\[/.test(raw)) dropCells++;
+    // mtg.wiki (Oct 2026) swapped {{SLD|X}} for {{series|Secret Lair Drop Series: X}} (and SLC likewise) —
+    // fold the new form back into the old so the matchers below handle both.
+    const block = raw
+      .replace(/\{\{series\|\s*Secret Lair Drop Series:\s*/g, '{{SLD|')
+      .replace(/\{\{series\|\s*Secret Lair Commander Deck:\s*/g, '{{SLC|');
     let superdrop = null, drop = null, m;
     if ((m = block.match(/\{\{SLD\|([^|}]+)\|([^|}]+)\}\}/))) { superdrop = cleanName(m[1]); drop = cleanName(m[2]); }
     else if ((m = block.match(/\{\{SLC\|([^|}]+)\|([^|}]+)\}\}/))) { superdrop = cleanName(m[1]); drop = cleanName(m[2]); }
@@ -61,7 +68,22 @@ export function parseDropSeriesWikitext(wt) {
     }
     rows.push({ seq: seqM ? +seqM[1] : null, drop, superdrop: superdrop || null, date: dateM ? dateM[1] : null, msrpNonfoil, msrpFoil });
   }
+  // Non-enumerable so callers that serialize/iterate rows are unaffected.
+  Object.defineProperty(rows, 'dropCells', { value: dropCells });
   return rows;
+}
+
+// A parse is only trusted if it read nearly every drop row in the table and
+// didn't shrink against the last good sync. A markup change the matchers
+// don't know (as in Oct 2026) silently skips rows rather than failing, so a
+// bare row-count floor isn't enough — a partial parse must never replace a
+// complete one. Returns null when acceptable, else the reason.
+export function rejectWikiParse(rows, prevCount = 0) {
+  if (rows.length < 100) return `parsed only ${rows.length} rows — table layout changed?`;
+  const cells = rows.dropCells || 0;
+  if (cells && rows.length < cells * 0.95) return `parsed ${rows.length} of ${cells} drop rows — wiki markup changed?`;
+  if (prevCount && rows.length < prevCount * 0.9) return `parsed ${rows.length} rows, down from ${prevCount} — keeping last good data`;
+  return null;
 }
 
 // ── runtime state ────────────────────────────────────────────────────────────
@@ -89,7 +111,8 @@ export async function refreshSlWikiData(opts = {}) {
     const j = await resp.json();
     const wt = j?.parse?.wikitext?.['*'] || '';
     const rows = parseDropSeriesWikitext(wt);
-    if (rows.length < 100) throw new Error(`parsed only ${rows.length} rows — table layout changed?`);
+    const rejected = rejectWikiParse(rows, wikiData?.rows?.length || 0);
+    if (rejected) throw new Error(rejected);
     wikiData = { fetchedAt: new Date().toISOString(), rows };
     indexRows();
     await window.api?.settings?.set(SETTINGS_KEY, JSON.stringify(wikiData));
