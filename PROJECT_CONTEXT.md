@@ -10,7 +10,7 @@ full product strategy / feature roadmap reasoning, see **REVIEW_AND_ROADMAP.md**
 
 A **Windows desktop app** for tracking a Magic: The Gathering collection, with a primary focus on Secret Lair (SLD) drops. Built as an **Electron** shell with the renderer split into **ES modules** (`src/renderer-js/`, Vite-bundled) plus a **Svelte** free-form dashboard. Persistent local storage via **SQLite** (`better-sqlite3`).
 
-Lives at: `C:\Users\Akapl\Documents\Secret Lair Tracker Desktop\`
+Lives at: `C:\Users\Akapl\Documents\Mana Ledger\`
 Git: https://github.com/sarcasticsoftwarestudio/mana-ledger (branch: `main`)
 Current version: see `package.json` (release tags are the source of truth)
 
