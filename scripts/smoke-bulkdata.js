@@ -59,6 +59,9 @@ const check = (label, cond, detail) => {
     { id: 'p3', name: 'Squirrel Girl', set: 'oth', set_name: 'Other Set', prices: { usd_foil: '2.50' } },
     { id: 'p4', name: 'No Price Anywhere', set: 'x', set_name: 'X', prices: {} },
   ]));
+  // init() reads meta — a fresh fetchedAt keeps the index trusted.
+  fs.writeFileSync(path.join(tmp, 'bulk', 'meta.json'), JSON.stringify({ fetchedAt: new Date().toISOString(), count: 4 }));
+  bulk.init(tmp);
   const cheap = bulk.cheapestByNames(['Squirrel Girl', 'No Price Anywhere', 'Unknown Card']);
   check('cheapest = lowest across prints & finishes (1.90 @ Marvel Super Heroes)',
     cheap.found['Squirrel Girl'] && Math.abs(cheap.found['Squirrel Girl'].price - 1.90) < 1e-9
@@ -69,6 +72,27 @@ const check = (label, cond, detail) => {
   check('unpriced + unknown names reported missing',
     cheap.missing.length === 2 && cheap.missing.includes('No Price Anywhere') && cheap.missing.includes('Unknown Card'),
     cheap.missing);
+  check('fresh index serves lookups', bulk.lookup(['p2']).found.length === 1 && bulk.status().stale === false, bulk.status());
+
+  // ── a stale index (refresh failing for days) is never trusted ──────────────
+  const fourDaysAgo = new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString();
+  fs.writeFileSync(path.join(tmp, 'bulk', 'meta.json'), JSON.stringify({ fetchedAt: fourDaysAgo, count: 4 }));
+  bulk.init(tmp);
+  const staleHit = bulk.lookup(['p2']);
+  check('stale index → lookup reports all missing', staleHit.found.length === 0 && staleHit.missing.length === 1, staleHit);
+  check('stale index → cheapestByNames reports all missing', Object.keys(bulk.cheapestByNames(['Squirrel Girl']).found).length === 0);
+  check('status flags stale', bulk.status().stale === true, bulk.status());
+
+  // ── gzipped JSON Lines (Scryfall's jsonl_download_uri format) ─────────────
+  const gz = path.join(tmp, 'synthetic.jsonl.gz');
+  fs.writeFileSync(gz, require('zlib').gzipSync([
+    JSON.stringify({ id: 'J1', name: 'Jsonl One', prices: { usd: '3.00' } }),
+    JSON.stringify({ id: 'J2', name: 'Jsonl Two', prices: { usd_foil: '4.00' } }),
+    '',
+  ].join('\n')));
+  const gotGz = [];
+  const gzRes = await bulk.parseBulkFile(gz, c => gotGz.push(c.id));
+  check('parses gzipped JSON Lines', gzRes.parsed === 2 && gotGz.join(',') === 'J1,J2', { gzRes, gotGz });
 
   // ── optional: the real download (also pre-warms nothing — temp dir) ───────
   if (process.argv.includes('--live')) {

@@ -17,9 +17,16 @@ const path = require('path');
 const readline = require('readline');
 const { Readable } = require('stream');
 const { pipeline } = require('stream/promises');
+const zlib = require('zlib');
 
 const UA = 'ManaLedger/1.0 (https://github.com/sarcasticsoftwarestudio/mana-ledger)';
 const MAX_AGE_MS = 20 * 60 * 60 * 1000;   // one refresh per day, aligned with the daily price refresh
+// Past this, lookups stop trusting the index and report everything missing so
+// the renderer's live batch-API fallback answers instead. A refresh that keeps
+// failing (e.g. Scryfall changing its catalog format, as it did in 2026) must
+// never silently serve months-old prices.
+const STALE_LIMIT_MS = 72 * 60 * 60 * 1000;
+const isStale = () => !meta.fetchedAt || (Date.now() - new Date(meta.fetchedAt).getTime()) > STALE_LIMIT_MS;
 
 let dir = null;
 let indexMap = null;                       // Map(id → compact card) once loaded
@@ -74,10 +81,24 @@ function extractCompact(c) {
   };
 }
 
-// Scryfall bulk files put one card object per line inside the JSON array —
-// parse line-by-line so a ~500MB file never becomes one giant heap spike.
+// Scryfall bulk files put one card object per line — the legacy JSON-array
+// file (`download_uri`) and the gzipped JSON Lines file that replaced it
+// (`jsonl_download_uri`) alike. Parse line-by-line so a ~500MB file never
+// becomes one giant heap spike; gzip is sniffed from the magic bytes, so it
+// doesn't matter whether the server or fetch already decompressed it.
+function isGzipFile(filePath) {
+  const fd = fs.openSync(filePath, 'r');
+  try {
+    const head = Buffer.alloc(2);
+    return fs.readSync(fd, head, 0, 2, 0) === 2 && head[0] === 0x1f && head[1] === 0x8b;
+  } finally { fs.closeSync(fd); }
+}
+
 async function parseBulkFile(filePath, onCard) {
-  const rl = readline.createInterface({ input: fs.createReadStream(filePath, { encoding: 'utf8' }), crlfDelay: Infinity });
+  let input = fs.createReadStream(filePath);
+  if (isGzipFile(filePath)) input = input.pipe(zlib.createGunzip());
+  input.setEncoding('utf8');
+  const rl = readline.createInterface({ input, crlfDelay: Infinity });
   let parsed = 0, failed = 0;
   for await (let line of rl) {
     line = line.trim();
@@ -96,11 +117,13 @@ async function downloadAndBuild(log) {
   const catResp = await fetch('https://api.scryfall.com/bulk-data', { headers: { 'User-Agent': UA, Accept: 'application/json' } });
   if (!catResp.ok) throw new Error(`bulk-data catalog HTTP ${catResp.status}`);
   const entry = ((await catResp.json()).data || []).find(d => d.type === 'default_cards');
-  if (!entry || !entry.download_uri) throw new Error('default_cards entry missing from catalog');
+  const url = entry && (entry.jsonl_download_uri || entry.download_uri);
+  if (!url) throw new Error('default_cards entry missing from catalog (no jsonl_download_uri / download_uri)');
 
-  const rawPath = path.join(dir, 'default-cards.raw.json');
-  log(`Downloading default_cards (~${Math.round((entry.size || 0) / 1024 / 1024)} MB) — once a day…`);
-  const dl = await fetch(entry.download_uri, { headers: { 'User-Agent': UA } });
+  const rawPath = path.join(dir, 'default-cards.raw');
+  const mb = Math.round((entry.compressed_size || entry.size || 0) / 1024 / 1024);
+  log(`Downloading default_cards (${mb ? `~${mb} MB` : 'size unknown'}) — once a day…`);
+  const dl = await fetch(url, { headers: { 'User-Agent': UA } });
   if (!dl.ok || !dl.body) throw new Error(`bulk download HTTP ${dl.status}`);
   await pipeline(Readable.fromWeb(dl.body), fs.createWriteStream(rawPath));
 
@@ -145,6 +168,7 @@ async function ensureFresh(force, log = () => {}) {
 // cache — an empty index just reports everything missing and the renderer's
 // network fallback takes over.
 function lookup(ids) {
+  if (isStale()) return { found: [], missing: [...(ids || [])] };
   try { loadIndexIfNeeded(); } catch { /* corrupt index — treat as cold */ }
   const found = [], missing = [];
   for (const id of (ids || [])) {
@@ -185,6 +209,7 @@ function buildCheapestByName() {
 }
 
 function cheapestByNames(names) {
+  if (isStale()) return { found: {}, missing: [...(names || [])] };
   try { loadIndexIfNeeded(); } catch { /* corrupt index — treat as cold */ }
   if (!indexMap) return { found: {}, missing: [...(names || [])] };
   if (!cheapestByNameMap) buildCheapestByName();
@@ -197,7 +222,7 @@ function cheapestByNames(names) {
 }
 
 function status() {
-  return { state, fetchedAt: meta.fetchedAt || null, count: meta.count || 0, loaded: !!indexMap };
+  return { state, fetchedAt: meta.fetchedAt || null, count: meta.count || 0, loaded: !!indexMap, stale: isStale() };
 }
 
 module.exports = { init, ensureFresh, lookup, cheapestByNames, status, parseBulkFile, extractCompact };
