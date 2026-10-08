@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
 // Regenerated 2026-10-08 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 113 superdrops/standalones · 395 drops · 2763 printings (2109 drop-mapped, 106 foil-backfilled)
+// 113 superdrops/standalones · 395 drops · 2764 printings (2110 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -2170,6 +2170,7 @@ const SL_SCRYFALL_TO_DROPS = {
   "c4472b2e-b47a-4bc3-992b-9f8a218594f6": ["sAnS mERcY"],
   "c4531802-d9e1-4374-b9fd-5e5ad52b8d50": ["Gift Wrapped"],
   "c4565ed0-36a1-4d36-987e-cae10e36830f": ["Special Guest: Jen Bartel"],
+  "c4e4bcb1-e9c8-4b45-a780-986f7a38d199": ["Odds and Ends"],
   "c506f57a-e8b9-410f-9b7e-086900e26e46": ["Read the Fine Print"],
   "c5341194-90c3-4554-8c45-f4442ad2eef0": ["Phyrexian Praetors: Compleat Edition"],
   "c5430a1d-a575-4853-93f2-635c327eea15": ["Marvel's Spider-Man: Heroic Deeds"],
@@ -4806,6 +4807,7 @@ const SL_SCRYFALL_TO_NAME = {
   "c48b7f2a-2195-4b1a-a5f2-3d9e99aa1b5a": "Sorin, Vengeful Bloodlord",
   "c4cf8664-a29d-4d64-af14-7c2002488ba2": "Kiora, Behemoth Beckoner",
   "c4e1f39d-b1e4-416d-98a4-3d9755706335": "Cloudshredder Sliver",
+  "c4e4bcb1-e9c8-4b45-a780-986f7a38d199": "Yennett, Cryptic Sovereign",
   "c506f57a-e8b9-410f-9b7e-086900e26e46": "Griselbrand",
   "c5318275-48bb-4fa8-b751-916836970dc4": "Command Tower",
   "c5341194-90c3-4554-8c45-f4442ad2eef0": "Jin-Gitaxias, Core Augur",
@@ -7572,6 +7574,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "c48b7f2a-2195-4b1a-a5f2-3d9e99aa1b5a": "524",
   "c4cf8664-a29d-4d64-af14-7c2002488ba2": "532",
   "c4e1f39d-b1e4-416d-98a4-3d9755706335": "660",
+  "c4e4bcb1-e9c8-4b45-a780-986f7a38d199": "1019",
   "c506f57a-e8b9-410f-9b7e-086900e26e46": "160★",
   "c5318275-48bb-4fa8-b751-916836970dc4": "7097",
   "c5341194-90c3-4554-8c45-f4442ad2eef0": "210",
