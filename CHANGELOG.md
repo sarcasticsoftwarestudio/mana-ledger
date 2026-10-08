@@ -12,6 +12,8 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+## [1.7.22] - 2026-10-08
+
 ### Fixed
 - **Daily card price downloads work again.** Scryfall changed the format of its daily bulk price file, so the app's once-a-day download had been failing. The app now reads the new format. If the downloaded price data is ever more than three days old, the app looks prices up live instead of showing stale ones.
 - **Secret Lair Explorer grouping and MSRPs are back for standalone drops.** A formatting change on mtg.wiki meant “Check for New Cards” skipped about 60 standalone drops, such as Marvel's Deadpool and The Walking Dead. Their real MSRPs were missing from P&L, and new ones landed in Recent Additions. If the wiki changes again, the app now keeps its last complete data instead of saving a partial update.
