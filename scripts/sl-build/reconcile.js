@@ -82,7 +82,12 @@ const wt = fs.readFileSync(path.join(CACHE, 'mtgwiki-dropseries.wikitext'), 'utf
 const body = wt.slice(wt.indexOf('=Drop list='), wt.indexOf('====Artist Series===='));
 const wiki = new Map();
 const wikiRows = [];
-for (const b of body.split(/\n\|-/)) {
+for (const raw of body.split(/\n\|-/)) {
+  // mtg.wiki (Oct 2026) swapped {{SLD|X}} for {{series|Secret Lair Drop Series: X}} (and SLC likewise) —
+  // fold the new form back into the old so the matchers below handle both.
+  const b = raw
+    .replace(/\{\{series\|\s*Secret Lair Drop Series:\s*/g, '{{SLD|')
+    .replace(/\{\{series\|\s*Secret Lair Commander Deck:\s*/g, '{{SLC|');
   let superdrop = null, drop = null;
   let m;
   if ((m = b.match(/\{\{SLD\|([^|}]+)\|([^|}]+)\}\}/))) { superdrop = cleanName(m[1]); drop = cleanName(m[2]); }
