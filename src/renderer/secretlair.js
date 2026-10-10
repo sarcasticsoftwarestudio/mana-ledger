@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-10-09 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-10-10 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 113 superdrops/standalones · 395 drops · 2764 printings (2110 drop-mapped, 106 foil-backfilled)
+// 113 superdrops/standalones · 395 drops · 2765 printings (2110 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -4512,6 +4512,7 @@ const SL_SCRYFALL_TO_NAME = {
   "a8619034-173c-4950-a0b4-1ae1dcfd0bc5": "Balance",
   "a884bda9-a7e2-419f-a729-9244ba39fa1a": "Time Reversal",
   "a890887b-38ed-4794-99d1-f1a574428d2b": "Olivia, Mobilized for War",
+  "a8b41b7b-0fd8-4d19-b07f-a5e4d540dfd8": "Ponder",
   "a8b75fc9-7045-4a87-b459-8d32f6c5402c": "Omnath, Locus of Rage",
   "a8c1b429-1191-4bd3-bf51-1a890cbab825": "Predict",
   "a8f02241-b268-43c8-b69e-bf10c8a9b9ca": "Applejack",
@@ -7279,6 +7280,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "a8619034-173c-4950-a0b4-1ae1dcfd0bc5": "173",
   "a884bda9-a7e2-419f-a729-9244ba39fa1a": "1499★",
   "a890887b-38ed-4794-99d1-f1a574428d2b": "699",
+  "a8b41b7b-0fd8-4d19-b07f-a5e4d540dfd8": "7185",
   "a8b75fc9-7045-4a87-b459-8d32f6c5402c": "1256",
   "a8c1b429-1191-4bd3-bf51-1a890cbab825": "2156",
   "a8f02241-b268-43c8-b69e-bf10c8a9b9ca": "1537",
