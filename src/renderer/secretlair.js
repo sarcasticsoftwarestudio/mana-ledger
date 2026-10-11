@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-10-10 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-10-11 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 113 superdrops/standalones · 395 drops · 2765 printings (2110 drop-mapped, 106 foil-backfilled)
+// 113 superdrops/standalones · 395 drops · 2766 printings (2110 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -3129,6 +3129,7 @@ const SL_SCRYFALL_TO_NAME = {
   "26abf89e-45c9-4c1d-89c5-749eb3c4d301": "Reflecting Pool",
   "26affcc7-e64a-4dc0-8f01-432288161f9d": "Nemesis of Reason",
   "26b6bdac-02d4-4661-b022-103f19232985": "Talisman of Unity",
+  "26d1b781-774b-4e38-8c14-3b10a3931d4b": "Ponder",
   "26fecfd4-40c1-4ed3-bf58-22c7b98699a9": "The Howling Abomination",
   "270c252d-1248-450b-bbc3-3af475a94834": "Breathkeeper Seraph",
   "2714874e-ad9c-4b9a-a91d-16865d29b183": "Heartbeat of Spring",
@@ -5897,6 +5898,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "26abf89e-45c9-4c1d-89c5-749eb3c4d301": "1535",
   "26affcc7-e64a-4dc0-8f01-432288161f9d": "1302",
   "26b6bdac-02d4-4661-b022-103f19232985": "1056",
+  "26d1b781-774b-4e38-8c14-3b10a3931d4b": "7184",
   "26fecfd4-40c1-4ed3-bf58-22c7b98699a9": "431",
   "270c252d-1248-450b-bbc3-3af475a94834": "1345",
   "2714874e-ad9c-4b9a-a91d-16865d29b183": "1010",
