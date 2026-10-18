@@ -16,10 +16,16 @@
 import { ui } from './state.js';
 import { render } from './render.js';
 
-const ACTIONS = {};
+// The registry lives behind a hoisted function so a module evaluated earlier
+// in an import cycle (e.g. deckBuilder.js via render → decks) can register
+// before this module's body has run — a plain `const` would still be in its
+// temporal dead zone then.
+function actionStore() { return actionStore.map || (actionStore.map = {}); }
+const ACTIONS = actionStore();
 
 export function registerActions(obj) {
-  for (const k in obj) ACTIONS[k] = obj[k];
+  const store = actionStore();
+  for (const k in obj) store[k] = obj[k];
 }
 
 // ── nested ui path helpers ───────────────────────────────────────────────────
