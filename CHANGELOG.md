@@ -12,6 +12,8 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-10-18
+
 ### Added
 - **Deck Builder for Commander decks.** Open it from the Decks tab with **🛠 Deck Builder**. Pick a commander, set a budget, and fill the deck by role: Lands, Ramp, Card Draw, Removal, Board Wipes, Protection, Win Conditions and Synergy, each with an editable target count. You can also add your own roles. Cards are sorted into roles automatically, and you can move any card to a different role or give it more than one. Search pulls from Scryfall or your own collection. Results only show Commander-legal cards in your commander's colors that fit the budget you have left, and can be sorted by how often they're played.
 - **Budgets.** Set a budget for the whole deck, or only for the cards you still need to buy. Each card is priced at its cheapest printing by default. A bar shows how much you've spent and how much is left.
