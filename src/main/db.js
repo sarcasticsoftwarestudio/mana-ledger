@@ -61,6 +61,12 @@ function init(dbPath) {
     "ALTER TABLE sl_products ADD COLUMN identifiers_json TEXT DEFAULT '{}'",
     'ALTER TABLE sl_product_cards ADD COLUMN mtgjson_uuid TEXT',
     "ALTER TABLE sl_product_cards ADD COLUMN identifiers_json TEXT DEFAULT '{}'",
+    // Deck Builder (v1.8.0): Commander legality on metadata, builder settings
+    // per deck, role overrides per deck card.
+    'ALTER TABLE card_metadata ADD COLUMN legal_commander TEXT',
+    'ALTER TABLE card_metadata ADD COLUMN game_changer INTEGER',
+    'ALTER TABLE decks ADD COLUMN builder_json TEXT',
+    'ALTER TABLE deck_cards ADD COLUMN roles TEXT',
   ]) {
     try { db.exec(stmt); } catch (e) { /* column already exists */ }
   }
@@ -295,6 +301,7 @@ function listDecks() {
     name: d.name,
     format: d.format || 'commander',
     description: d.description || '',
+    builder: parseJsonOr(d.builder_json, null),
     createdAt: d.created_at,
     cards: cardStmt.all(d.id).map(c => ({
       id: c.id,
@@ -307,8 +314,14 @@ function listDecks() {
       foil: c.foil || 'normal',
       quantity: c.quantity || 1,
       board: c.board || 'main',
+      ...(c.roles ? { roles: c.roles.split(',').filter(Boolean) } : {}),
     })),
   }));
+}
+
+function parseJsonOr(text, fallback) {
+  if (!text) return fallback;
+  try { return JSON.parse(text); } catch { return fallback; }
 }
 
 // Full replace per deck: upsert the deck row, then rewrite its card list.
@@ -316,19 +329,21 @@ function listDecks() {
 // than diffing.
 function upsertDeck(deck) {
   const tx = db.transaction(() => {
-    db.prepare(`INSERT INTO decks (id, name, format, description)
-      VALUES (@id, @name, @format, @description)
+    db.prepare(`INSERT INTO decks (id, name, format, description, builder_json)
+      VALUES (@id, @name, @format, @description, @builder_json)
       ON CONFLICT(id) DO UPDATE SET
         name=excluded.name, format=excluded.format,
-        description=excluded.description, updated_at=datetime('now')`).run({
+        description=excluded.description, builder_json=excluded.builder_json,
+        updated_at=datetime('now')`).run({
       id: deck.id, name: deck.name,
       format: deck.format || 'commander',
       description: deck.description || null,
+      builder_json: deck.builder ? JSON.stringify(deck.builder) : null,
     });
     db.prepare('DELETE FROM deck_cards WHERE deck_id = ?').run(deck.id);
     const stmt = db.prepare(`INSERT INTO deck_cards
-      (id, deck_id, card_id, scryfall_id, name, set_code, set_name, collector_number, foil, quantity, board)
-      VALUES (@id, @deck_id, @card_id, @scryfall_id, @name, @set_code, @set_name, @collector_number, @foil, @quantity, @board)`);
+      (id, deck_id, card_id, scryfall_id, name, set_code, set_name, collector_number, foil, quantity, board, roles)
+      VALUES (@id, @deck_id, @card_id, @scryfall_id, @name, @set_code, @set_name, @collector_number, @foil, @quantity, @board, @roles)`);
     for (const c of deck.cards || []) stmt.run({
       id: c.id,
       deck_id: deck.id,
@@ -341,6 +356,7 @@ function upsertDeck(deck) {
       foil: c.foil || 'normal',
       quantity: c.quantity || 1,
       board: c.board || 'main',
+      roles: Array.isArray(c.roles) && c.roles.length ? c.roles.join(',') : null,
     });
   });
   tx();
@@ -459,13 +475,15 @@ function clearPortfolioSnapshots() {
 // ── Metadata ─────────────────────────────────────────────────────────────────
 function bulkUpsertMetadata(entries) {
   const stmt = db.prepare(`
-    INSERT INTO card_metadata (scryfall_id, colors, color_identity, type_line, cmc, power, toughness, oracle_text)
-    VALUES (@scryfall_id, @colors, @color_identity, @type_line, @cmc, @power, @toughness, @oracle_text)
+    INSERT INTO card_metadata (scryfall_id, colors, color_identity, type_line, cmc, power, toughness, oracle_text, legal_commander, game_changer)
+    VALUES (@scryfall_id, @colors, @color_identity, @type_line, @cmc, @power, @toughness, @oracle_text, @legal_commander, @game_changer)
     ON CONFLICT(scryfall_id) DO UPDATE SET
       colors=excluded.colors, color_identity=excluded.color_identity,
       type_line=excluded.type_line, cmc=excluded.cmc,
       power=excluded.power, toughness=excluded.toughness,
       oracle_text=COALESCE(excluded.oracle_text, card_metadata.oracle_text),
+      legal_commander=COALESCE(excluded.legal_commander, card_metadata.legal_commander),
+      game_changer=COALESCE(excluded.game_changer, card_metadata.game_changer),
       updated_at=datetime('now')
   `);
   const tx = db.transaction((arr) => {
@@ -478,6 +496,8 @@ function bulkUpsertMetadata(entries) {
       power:          e.power ?? null,
       toughness:      e.toughness ?? null,
       oracle_text:    e.oracle_text || null,
+      legal_commander: e.legal_commander || null,
+      game_changer:   e.game_changer == null ? null : (e.game_changer ? 1 : 0),
     });
   });
   tx(entries);
@@ -495,6 +515,8 @@ function getAllMetadata() {
       power:          r.power,
       toughness:      r.toughness,
       oracle_text:    r.oracle_text,
+      ...(r.legal_commander ? { legal_commander: r.legal_commander } : {}),
+      ...(r.game_changer != null ? { game_changer: !!r.game_changer } : {}),
     };
   }
   return out;

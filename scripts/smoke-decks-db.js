@@ -38,6 +38,24 @@ decks = db.listDecks();
 check('upsert replaces card list', decks[0].cards.length === 1 && decks[0].cards[0].name === 'Bolt', decks[0].cards);
 check('upsert updates deck row', decks[0].name === 'Renamed' && decks[0].format === 'modern', decks[0]);
 
+// Deck Builder: builder settings + per-card role overrides round-trip
+db.upsertDeck({ id: 'd1', name: 'Builder', format: 'commander',
+  builder: { budget: 75, budgetMode: 'missing', roleTargets: { land: 36 }, customRoles: [{ id: 'c_x', label: 'Tokens', target: 5 }] },
+  cards: [{ id: 'dc4', name: 'Sol Ring', quantity: 1, board: 'main', roles: ['ramp', 'c_x'] }, { id: 'dc5', name: 'Forest', quantity: 30, board: 'main' }] });
+decks = db.listDecks();
+check('builder settings round-trip', decks[0].builder?.budget === 75 && decks[0].builder.budgetMode === 'missing'
+  && decks[0].builder.roleTargets.land === 36 && decks[0].builder.customRoles[0].label === 'Tokens', decks[0].builder);
+check('card roles round-trip', JSON.stringify(decks[0].cards.find(c => c.id === 'dc4').roles) === '["ramp","c_x"]', decks[0].cards);
+check('no roles key when unset', !('roles' in decks[0].cards.find(c => c.id === 'dc5')), decks[0].cards);
+db.upsertDeck({ id: 'd1', name: 'Plain', format: 'commander', cards: [] });
+check('plain deck has null builder', db.listDecks()[0].builder === null, db.listDecks()[0]);
+
+// Commander legality on metadata; a later write without it must not erase it
+db.bulkUpsertMetadata([{ scryfallId: 'm1', colors: [], color_identity: [], type_line: 'Artifact', cmc: 1, legal_commander: 'banned', game_changer: true }]);
+db.bulkUpsertMetadata([{ scryfallId: 'm1', colors: [], color_identity: [], type_line: 'Artifact', cmc: 1 }]);
+const m1 = db.getAllMetadata().m1;
+check('metadata keeps legal_commander + game_changer', m1.legal_commander === 'banned' && m1.game_changer === true, m1);
+
 // Cascade delete
 db.deleteDeck('d1');
 check('deck deleted', db.listDecks().length === 0);

@@ -1,5 +1,7 @@
 import { TYPE_ORDER, cardMeta, parseMainType } from './analytics.js';
 import { FOIL_LABEL } from './constants.js';
+import { BASIC_LAND_NAMES, validateCommanderDeck } from './deckBuilderCore.js';
+import { openDeckBuilder, renderDeckBuilder } from './deckBuilder.js';
 import { showDeckExportModal } from './deckIO.js';
 import { showGalleryModal } from './gallery.js';
 import { copyToClipboard, hideModal, openCardOnScryfall, promptText, showContextMenu, showModal } from './modals.js';
@@ -46,11 +48,7 @@ export const DECK_FORMATS = {
 export const DECK_FORMAT_ORDER = ['commander', 'standard', 'modern', 'pioneer', 'legacy', 'vintage', 'pauper', 'brawl', 'oathbreaker', 'other'];
 export const DECK_BOARDS = { commander: 'Commander', main: 'Mainboard', side: 'Sideboard', maybe: 'Maybeboard' };
 
-export const BASIC_LAND_NAMES = new Set([
-  'plains', 'island', 'swamp', 'mountain', 'forest', 'wastes',
-  'snow-covered plains', 'snow-covered island', 'snow-covered swamp',
-  'snow-covered mountain', 'snow-covered forest', 'snow-covered wastes',
-]);
+export { BASIC_LAND_NAMES };
 
 export function deckById(id) { return (collection.decks || []).find(d => d.id === id); }
 export function deckFormat(deck) { return DECK_FORMATS[deck.format] || DECK_FORMATS.other; }
@@ -163,6 +161,8 @@ export function copyDeckMissing(deckId) {
 // locally (size, copy limits, commander count, color identity via metadata).
 // Banned/restricted lists and set legality aren't checked.
 export function validateDeck(deck) {
+  // Commander gets the full rule set (eligibility, partners, ban list, …).
+  if (deck.format === 'commander') return validateCommanderDeck(deck, cardMeta);
   const f = deckFormat(deck);
   const issues = [];
   const cards = deck.cards || [];
@@ -318,6 +318,9 @@ export function captureScryfallCard(card) {
       oracle_text:    oracleText,
     };
   }
+  const m = collection.cardMetadata[sid];
+  if (card.legalities?.commander) m.legal_commander = card.legalities.commander;
+  if (card.game_changer != null) m.game_changer = !!card.game_changer;
   const prices = card.prices || {};
   if (prices.usd        != null) storePriceSnapshot(sid, 'normal', parseFloat(prices.usd));
   if (prices.usd_foil   != null) storePriceSnapshot(sid, 'foil',   parseFloat(prices.usd_foil));
@@ -325,7 +328,21 @@ export function captureScryfallCard(card) {
 }
 
 // ── Decks tab rendering ──────────────────────────────────────────────────────
+// Builder decks open straight into the Deck Builder; everything else into the
+// regular deck view.
+export function openDeck(deckId) {
+  const deck = deckById(deckId);
+  if (deck?.builder && deck.format === 'commander') { openDeckBuilder(deckId); return; }
+  ui.decks.deckId = deckId;
+  render();
+}
+
 export function renderDecks() {
+  if (ui.decks.builderId) {
+    const deck = deckById(ui.decks.builderId);
+    if (deck) return renderDeckBuilder(deck);
+    ui.decks.builderId = null;
+  }
   if (ui.decks.deckId) {
     const deck = deckById(ui.decks.deckId);
     if (deck) return renderDeckDetail(deck);
@@ -340,7 +357,8 @@ export function renderDecks() {
       <p>Build a deck from your collection, or import one from Moxfield, Archidekt, or ManaBox.<br>
       Decks track what you <em>play</em> — they never change your collection's value.</p>
       <div style="display:flex;gap:10px;justify-content:center;margin-top:8px">
-        <button class="btn btn-primary" id="deckNewBtn">＋ New Deck</button>
+        <button class="btn btn-primary" data-act="db-new">🛠 Deck Builder</button>
+        <button class="btn" id="deckNewBtn">＋ New Deck</button>
         <button class="btn" id="deckImportBtn">⤒ Import Deck</button>
       </div>
     </div>`;
@@ -357,7 +375,8 @@ export function renderDecks() {
         <input type="text" id="deckSearch" placeholder="Search decks…" value="${esc(ui.decks.search)}" style="flex:1;min-width:200px;max-width:340px">
         <span style="flex:1"></span>
         <button class="btn" id="deckImportBtn">⤒ Import Deck</button>
-        <button class="btn btn-primary" id="deckNewBtn">＋ New Deck</button>
+        <button class="btn" id="deckNewBtn">＋ New Deck</button>
+        <button class="btn btn-primary" data-act="db-new" title="Build a Commander deck to a budget, grouped by role">🛠 Deck Builder</button>
       </div>
       <div class="deck-grid">
         ${shown.map(d => renderDeckTile(d, maps)).join('')
@@ -384,7 +403,7 @@ export function renderDeckTile(deck, maps) {
   return `
     <div class="deck-tile" data-deck-id="${esc(deck.id)}">
       <div class="deck-cover">${coverUrl ? `<img src="${esc(coverUrl)}" alt="" loading="lazy" data-imgerr="remove">` : '<div class="deck-cover-blank">🛡️</div>'}
-        <span class="deck-format-badge">${esc(f.label)}</span>
+        <span class="deck-format-badge">${deck.builder && deck.format === 'commander' ? '🛠 ' : ''}${esc(f.label)}</span>
       </div>
       <div class="deck-tile-body">
         <div class="deck-tile-name" title="${esc(deck.name)}">${legality} ${esc(deck.name)}</div>
@@ -451,6 +470,7 @@ export function renderDeckDetail(deck) {
           ${DECK_FORMAT_ORDER.map(k => `<option value="${k}" ${deck.format === k ? 'selected' : ''}>${DECK_FORMATS[k].label}</option>`).join('')}
         </select>
         <span style="flex:1"></span>
+        ${deck.format === 'commander' ? `<button class="btn" data-act="db-open" data-arg="${esc(deck.id)}" title="Budget, role grouping and guided search">🛠 Deck Builder</button>` : ''}
         <button class="btn btn-primary" id="deckAddCardsBtn">＋ Add Cards</button>
         <button class="btn" id="deckExportBtn" title="Export to Moxfield / Archidekt / ManaBox">⤓ Export</button>
         <button class="btn btn-ghost" id="deckDeleteBtn" title="Delete deck" style="color:var(--red)">🗑</button>
@@ -703,7 +723,8 @@ export function showDeckAddCardModal(deckId) {
 export function showDeckTileContextMenu(x, y, deck) {
   showContextMenu(x, y, [
     { header: deck.name },
-    { icon: '👁', label: 'Open deck', action: () => { ui.decks.deckId = deck.id; render(); } },
+    { icon: '👁', label: 'Open deck', action: () => { ui.decks.builderId = null; ui.decks.deckId = deck.id; render(); } },
+    ...(deck.format === 'commander' ? [{ icon: '🛠', label: 'Open in Deck Builder', action: () => openDeckBuilder(deck.id) }] : []),
     { icon: '✎', label: 'Rename…', action: () => promptText('Rename deck', deck.name, name => { deck.name = name; render(); autoSave(); }) },
     { icon: '⚖', label: 'Change format', sub: DECK_FORMAT_ORDER.map(k => ({
         label: DECK_FORMATS[k].label, icon: deck.format === k ? '✓' : '', disabled: deck.format === k,

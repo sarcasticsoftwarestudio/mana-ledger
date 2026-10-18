@@ -12,6 +12,12 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+### Added
+- **Deck Builder for Commander decks.** Open it from the Decks tab with **🛠 Deck Builder**. Pick a commander, set a budget, and fill the deck by role: Lands, Ramp, Card Draw, Removal, Board Wipes, Protection, Win Conditions and Synergy, each with an editable target count. You can also add your own roles. Cards are sorted into roles automatically, and you can move any card to a different role or give it more than one. Search pulls from Scryfall or your own collection. Results only show Commander-legal cards in your commander's colors that fit the budget you have left, and can be sorted by how often they're played.
+- **Budgets.** Set a budget for the whole deck, or only for the cards you still need to buy. Each card is priced at its cheapest printing by default. A bar shows how much you've spent and how much is left.
+- **Every Commander deck-building rule is checked.** Exactly 100 cards. One copy of each card, except basic lands and cards like Relentless Rats or Seven Dwarves. Every card within your commander's color identity. Valid commanders and partner pairings: Partner, Partner with, Friends forever, Choose a Background and Doctor's companion. The official ban list, and no sideboard. The regular deck view now uses the same checks for Commander decks. The builder also counts your Game Changers, to help you place the deck in a Commander Bracket.
+- **Buy the deck.** **🛒 Buy / Export** opens the whole deck, or only the cards you're missing, in TCGplayer Mass Entry. It can also copy a list ready to paste into Card Kingdom's Deck Builder, and you can save either list as a text file.
+
 ## [1.7.22] - 2026-10-08
 
 ### Fixed

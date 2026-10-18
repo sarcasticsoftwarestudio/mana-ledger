@@ -76,6 +76,8 @@ function extractCompact(c) {
     frame_effects: c.frame_effects || [],
     full_art: !!c.full_art,
     border_color: c.border_color || null,
+    legalities: { commander: c.legalities?.commander || null },
+    game_changer: !!c.game_changer,
     tcgplayer_id: c.tcgplayer_id || null,
     cardmarket_id: c.cardmarket_id || null,
   };

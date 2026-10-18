@@ -43,7 +43,8 @@ export let ui = {
     syncing: false, importing: false, matching: false,
   },
   wantList: { search: '', groupByDrop: false, view: 'table' },
-  decks: { deckId: null, search: '', view: 'list', ownFilter: 'all' },
+  decks: { deckId: null, builderId: null, search: '', view: 'list', ownFilter: 'all',
+    builder: { source: 'scryfall', q: '', role: '', order: 'edhrec', maxPrice: '', fit: true, partner: false } },
   insights: {
     view: 'build',             // 'build' | 'opportunities' | 'reports'
     search: '',

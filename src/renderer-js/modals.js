@@ -1,4 +1,5 @@
 import { showEditScryfallModal } from './cardsTab.js';
+import { showBuilderCardContextMenu } from './deckBuilder.js';
 import { addOwnedCardToDeck, ctxDeckSubmenu, deckById, showDeckCardContextMenu, showDeckTileContextMenu } from './decks.js';
 import { entryRealized } from './analytics.js';
 import { buildOpenedProductCards, buildOwnedCardFromCatalog, catalogFinishOptions, catalogPrice, dropFinishHint } from './acquisition.js';
@@ -889,6 +890,8 @@ document.addEventListener('contextmenu', e => {
     const deck = deckById(deckTileEl.dataset.deckId);
     if (deck) { e.preventDefault(); showDeckTileContextMenu(e.clientX, e.clientY, deck); return; }
   }
+  const builderRowEl = e.target.closest('[data-db-entry]');
+  if (builderRowEl && ui.decks.builderId) { e.preventDefault(); showBuilderCardContextMenu(e.clientX, e.clientY, builderRowEl.dataset.dbEntry); return; }
   const deckRowEl = e.target.closest('[data-deck-entry]');
   if (deckRowEl && ui.decks.deckId) {
     const deck = deckById(ui.decks.deckId);

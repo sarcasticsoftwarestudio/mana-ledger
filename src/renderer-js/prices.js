@@ -504,6 +504,11 @@ export async function refreshPrices() {
     } else if (!collection.cardMetadata[scryfallId].oracle_text && oracleText) {
       collection.cardMetadata[scryfallId].oracle_text = oracleText;
     }
+    // Commander legality + Game Changer flag (Deck Builder) — refreshed every
+    // time, since ban-list updates change them.
+    const m = collection.cardMetadata[scryfallId];
+    if (card.legalities?.commander) m.legal_commander = card.legalities.commander;
+    if (card.game_changer != null) m.game_changer = !!card.game_changer;
   }
 
   // Want-list price fallback: a wanted card stored as 'normal' may be a

@@ -104,6 +104,8 @@ CREATE TABLE IF NOT EXISTS card_metadata (
   power           TEXT,
   toughness       TEXT,
   oracle_text     TEXT,
+  legal_commander TEXT,           -- Scryfall legalities.commander (legal | banned | not_legal)
+  game_changer    INTEGER,        -- Scryfall game_changer flag (Commander brackets)
   updated_at      TEXT DEFAULT (datetime('now'))
 );
 
@@ -182,6 +184,7 @@ CREATE TABLE IF NOT EXISTS decks (
   name        TEXT NOT NULL,
   format      TEXT DEFAULT 'commander',
   description TEXT,
+  builder_json TEXT,              -- Deck Builder settings (budget, role targets, custom roles); NULL = plain deck
   created_at  TEXT DEFAULT (datetime('now')),
   updated_at  TEXT DEFAULT (datetime('now'))
 );
@@ -198,6 +201,7 @@ CREATE TABLE IF NOT EXISTS deck_cards (
   foil             TEXT DEFAULT 'normal',
   quantity         INTEGER NOT NULL DEFAULT 1,
   board            TEXT NOT NULL DEFAULT 'main',  -- main | side | commander
+  roles            TEXT,             -- Deck Builder role overrides, comma-separated (first = group)
   created_at       TEXT DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_deck_cards_deck ON deck_cards(deck_id);

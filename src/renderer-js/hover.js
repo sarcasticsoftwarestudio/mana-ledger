@@ -2,7 +2,8 @@ import { cardCurrentValue } from './analytics.js';
 import { showEditScryfallModal } from './cardsTab.js';
 import { CONDITION_FULL, FOIL_LABEL } from './constants.js';
 import { showDeckExportModal } from './deckIO.js';
-import { deckById, deckFormat, deckOwnedMaps, deleteDeck, renderDeckTile, showDeckAddCardModal, showNewDeckModal } from './decks.js';
+import { attachDeckBuilderListeners } from './deckBuilder.js';
+import { deckById, deckFormat, deckOwnedMaps, deleteDeck, openDeck, renderDeckTile, showDeckAddCardModal, showNewDeckModal } from './decks.js';
 import { showGalleryModal } from './gallery.js';
 import { showImportHub } from './importWizard.js';
 import { promptText, showOpenSecretLairModal, showSellSealedModal, undoSealedSale, undoSecretLairOpen } from './modals.js';
@@ -702,13 +703,14 @@ export function attachContentListeners() {
       grid.innerHTML = shown.map(d => renderDeckTile(d, maps)).join('')
         || '<div style="color:var(--text-dim);padding:30px">No decks match your search</div>';
       grid.querySelectorAll('.deck-tile[data-deck-id]').forEach(tile => {
-        tile.addEventListener('click', () => { ui.decks.deckId = tile.dataset.deckId; render(); });
+        tile.addEventListener('click', () => openDeck(tile.dataset.deckId));
       });
     }
   });
   document.querySelectorAll('.deck-tile[data-deck-id]').forEach(tile => {
-    tile.addEventListener('click', () => { ui.decks.deckId = tile.dataset.deckId; render(); });
+    tile.addEventListener('click', () => openDeck(tile.dataset.deckId));
   });
+  if (ui.activeTab === 'decks' && ui.decks.builderId) attachDeckBuilderListeners(showCardHoverPreview, hideCardHoverPreview);
   const deckBackBtn = document.getElementById('deckBackBtn');
   if (deckBackBtn) deckBackBtn.addEventListener('click', () => { ui.decks.deckId = null; render(); });
   const activeDeck = ui.decks.deckId ? deckById(ui.decks.deckId) : null;

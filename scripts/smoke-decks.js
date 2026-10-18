@@ -109,10 +109,10 @@ const check = (label, cond, detail) => {
 
   check('merge dedupes same printing', v.entries === 4, v.entries);
   const msgs = v.issues.map(i => i.msg).join(' | ');
-  check('size violation flagged (35 < 100)', /35 cards/.test(msgs), msgs);
+  check('size violation flagged (35 < 100)', /35\/100 cards/.test(msgs), msgs);
   check('singleton violation flagged (2x Sol Ring)', /Sol Ring/.test(msgs) && /singleton/.test(msgs), msgs);
   check('color identity violation (Counterspell in Krenko)', /Counterspell/.test(msgs), msgs);
-  check('basic lands exempt from copy limit', !/Mountain/.test(msgs), msgs);
+  check('basic lands exempt from copy limit', !v.issues.some(i => i.code === 'singleton' && /Mountain/.test(i.msg)), msgs);
   check('stats total 35', v.stats.total === 35, v.stats);
   check('owned: 1 Sol Ring + 30 Mountains = 31, missing 4', v.stats.ownedCount === 31 && v.stats.missingCount === 4, v.stats);
   check('deck value = 2*2.50 + 40 = 45', Math.abs(v.stats.value - 45) < 0.001, v.stats);
