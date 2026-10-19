@@ -94,6 +94,8 @@ contextBridge.exposeInMainWorld('api', {
     openExternal:  (url)    => inv('app:openExternal', url),
     version:       ()       => inv('app:version'),
     channel:       ()       => inv('app:channel'),
+    // Same value, synchronously — passed via additionalArguments in main.js.
+    channelName:   (process.argv.find(a => a.startsWith('--sl-channel=')) || '').slice(13) || 'github',
     backupHealth:  ()       => inv('app:backupHealth'),
     platform:      process.platform,
   },

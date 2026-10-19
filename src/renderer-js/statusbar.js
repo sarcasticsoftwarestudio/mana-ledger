@@ -1,3 +1,4 @@
+import { STORE_BUILD } from './channel.js';
 import { totalCardsValue, totalSealedValue } from './analytics.js';
 import { hideModal, showModal } from './modals.js';
 import { sparkline } from './prices.js';
@@ -107,7 +108,7 @@ export function showAbout() {
       SL grouping, MSRP, and bonus catalog via <a href="#" data-act="open-url" data-arg="https://mtg.wiki">mtg.wiki</a> ·
       launch context via <a href="#" data-act="open-url" data-arg="https://magic.wizards.com/en/news/announcements?search=Secret+Lair">Wizards</a> ·
       special-release verification via the <a href="#" data-act="open-url" data-arg="https://secretlair.wizards.com/us/en">official Secret Lair storefront</a> ·
-      sealed prices via TCGCSV and PriceCharting (optional paid token in Settings).
+      sealed prices via TCGCSV${STORE_BUILD ? '' : ' and PriceCharting (optional paid token in Settings)'}.
     </p>
     <p style="font-size:10.5px;color:var(--text-muted);line-height:1.5;margin-bottom:14px">
       Mana Ledger is unofficial Fan Content permitted under the Wizards of the Coast Fan Content
@@ -115,8 +116,8 @@ export function showAbout() {
       Wizards of the Coast. © Wizards of the Coast LLC.
     </p>
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
-      <button class="btn" data-act="open-url" data-arg="https://ko-fi.com/sarcasticsoftware"
-              title="Mana Ledger is free — donations keep it that way">♥ Support Mana Ledger</button>
+      ${STORE_BUILD ? '<span></span>' : `<button class="btn" data-act="open-url" data-arg="https://ko-fi.com/sarcasticsoftware"
+              title="Mana Ledger is free — donations keep it that way">♥ Support Mana Ledger</button>`}
       <button class="btn btn-primary" data-act="hideModal">Close</button>
     </div>`);
   // Fill the real installed version (was a hardcoded, permanently stale string).

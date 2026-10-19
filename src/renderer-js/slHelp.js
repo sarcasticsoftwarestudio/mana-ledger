@@ -1,6 +1,7 @@
 // User-facing Secret Lair data guide (Help -> Secret Lair Data Guide).
 // Keep this aligned with the repository's final data-model document.
 
+import { STORE_BUILD } from './channel.js';
 import { showModal } from './modals.js';
 import { getSlProducts } from './slData.js';
 import { slAnnouncementInfo } from './slAnnouncements.js';
@@ -63,8 +64,8 @@ export function showSlDataGuide() {
             ${row('Scryfall future sets + name lookup', 'Upcoming printing previews', 'Future SLD IDs plus standalone set codes verified against official Secret Lair storefront listings; release dates, collector numbers, finishes and art. Announced names without future IDs use clearly labeled reference printings.', 'With SL sync')}
             ${row('Official Secret Lair storefront', 'Special-release verification', 'Upcoming storefront product titles are conservatively matched to Scryfall set names. A non-SLD set is included only after this official-source match; set galleries never imply fixed booster contents.', 'With SL sync')}
             ${row('MTGJSON AllPrices seed', 'New-install card history', 'A reviewed build-time Secret Lair-only slice of TCGplayer/Card Kingdom USD retail history. The app never downloads the global payload; local/live points win on overlapping dates.', 'Weekly app-data build')}
-            ${row('CardTrader (optional)', 'Cross-market sealed listings', 'Lowest in-stock listings by exact CardTrader blueprint ID, kept in the returned currency. Requires the user’s CardTrader profile API token.', 'On demand')}
-            ${row('PriceCharting (optional)', 'Second sealed estimate', 'Current new/sealed or loose value returned for a user-selected product. Requires the user’s paid API token; it is not historical data.', 'On demand')}
+            ${STORE_BUILD ? '' : row('CardTrader (optional)', 'Cross-market sealed listings', 'Lowest in-stock listings by exact CardTrader blueprint ID, kept in the returned currency. Requires the user’s CardTrader profile API token.', 'On demand')}
+            ${STORE_BUILD ? '' : row('PriceCharting (optional)', 'Second sealed estimate', 'Current new/sealed or loose value returned for a user-selected product. Requires the user’s paid API token; it is not historical data.', 'On demand')}
             ${row('Local SQLite', 'Ownership and intelligence', 'Collection copies, product links, cost basis, daily price snapshots, bundle purchase lots/allocations, observed bonus pulls, watches, market observations, user overrides, and every last-known-good source cache.', 'Continuous')}
           </tbody>
         </table>
@@ -95,7 +96,7 @@ export function showSlDataGuide() {
 
       <div style="padding:10px 12px;border-left:3px solid var(--accent2);background:var(--surface);border-radius:6px;font-size:12px;color:var(--text-dim);line-height:1.55">
         <strong style="color:var(--text)">Pricing meaning:</strong> card values are printing-and-finish specific. Sealed TCGCSV market is the primary product estimate;
-        low/mid/high/direct-low are retained for context. CardTrader, PriceCharting and manual observations remain source/currency labeled. Prices are estimates, not guaranteed sale proceeds; net decision estimates apply the user’s explicit fee/shipping assumptions.
+        low/mid/high/direct-low are retained for context. ${STORE_BUILD ? 'Manual observations remain' : 'CardTrader, PriceCharting and manual observations remain'} source/currency labeled. Prices are estimates, not guaranteed sale proceeds; net decision estimates apply the user’s explicit fee/shipping assumptions.
       </div>
 
       <h3 style="font-size:13px;margin:18px 0 8px">Source health on this computer</h3>
@@ -124,7 +125,7 @@ export function showSlDataGuide() {
         <a href="#" data-act="open-url" data-arg="https://mtgjson.com">MTGJSON</a> ·
         <a href="#" data-act="open-url" data-arg="https://scryfall.com/docs/api">Scryfall</a> ·
         <a href="#" data-act="open-url" data-arg="https://tcgcsv.com">TCGCSV</a> ·
-        <a href="#" data-act="open-url" data-arg="https://www.cardtrader.com/docs/api/full/reference">CardTrader API</a> ·
+        ${STORE_BUILD ? '' : '<a href="#" data-act="open-url" data-arg="https://www.cardtrader.com/docs/api/full/reference">CardTrader API</a> ·'}
         <a href="#" data-act="open-url" data-arg="https://mtg.wiki/page/Secret_Lair/Drop_Series">mtg.wiki</a> ·
         <a href="#" data-act="open-url" data-arg="https://magic.wizards.com/en/news/announcements?search=Secret+Lair">Wizards</a> ·
         <a href="#" data-act="open-url" data-arg="https://secretlair.wizards.com/us/en">Secret Lair storefront</a>.

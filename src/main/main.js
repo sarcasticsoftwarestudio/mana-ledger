@@ -16,6 +16,10 @@ let mainWindow = null;
 // and a self-update would break its file verification.
 const CHANNEL = require('../../package.json').slChannel || 'github';
 const SELF_UPDATES = CHANNEL === 'github';
+// Steam review rejects off-store donation links and optional third-party
+// services the player must sign up for (PriceCharting, CardTrader API). Both stay in the
+// GitHub build; the Steam build ships without them.
+const STORE_BUILD = CHANNEL === 'steam';
 
 // Donations are the sanctioned money path for MTG fan content (WotC Fan
 // Content Policy allows donations/sponsorships; selling is not allowed).
@@ -164,7 +168,7 @@ function buildMenu() {
         { label: 'Secret Lair Data Guide', click: () => sendMenu('slhelp:show') },
         { label: 'Keyboard Shortcuts', click: () => sendMenu('shortcuts:show') },
         { type: 'separator' },
-        { label: '♥ Support Mana Ledger', click: () => shell.openExternal(KOFI_URL) },
+        ...(STORE_BUILD ? [] : [{ label: '♥ Support Mana Ledger', click: () => shell.openExternal(KOFI_URL) }]),
         { label: '💬 Send Feedback…', click: () => sendMenu('feedback:show') },
         { label: 'About Mana Ledger', click: () => sendMenu('about:show') },
       ],
@@ -224,6 +228,8 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      // Read synchronously by the preload so channel-gated UI never flashes.
+      additionalArguments: [`--sl-channel=${CHANNEL}`],
     },
   });
   if (saved && saved.maximized) mainWindow.maximize();
@@ -260,8 +266,8 @@ const ALLOWED_FETCH_HOSTS = new Set([
   'api.scryfall.com',
   'mtgjson.com',
   'tcgcsv.com',
-  'www.pricecharting.com',
-  'api.cardtrader.com',  // optional authenticated cross-market sealed listings
+  // Optional services that need the user's own account/token — not in the Steam build
+  ...(STORE_BUILD ? [] : ['www.pricecharting.com', 'api.cardtrader.com']),
   'mtg.wiki',           // Drop Series table: superdrop grouping + per-drop MSRPs + upcoming drops
   'magic.wizards.com',  // official Magic news, release notes, announcements and Secret Lair context
   'secretlair.wizards.com', // official storefront upcoming products and special set-code verification
@@ -435,6 +441,7 @@ function registerIpc() {
   ipcMain.handle('app:openExternal',   (_e, url) => {
     let parsed;
     try { parsed = new URL(url); } catch { return; }
+    if (STORE_BUILD && /(^|\.)(ko-fi\.com|pricecharting\.com)$/i.test(parsed.hostname)) return;
     if (parsed.protocol === 'http:' || parsed.protocol === 'https:') return shell.openExternal(url);
     // mailto: allowed ONLY to the feedback address — content can't compose
     // arbitrary mail links through this bridge.

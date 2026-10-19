@@ -2,6 +2,7 @@
 // on the finish-aware product spine. Sourced contents remain immutable; bundle
 // costs, observed bonus pulls, watches and secondary quotes live separately.
 
+import { STORE_BUILD } from './channel.js';
 import { ownedCards } from './analytics.js';
 import { hideModal, showModal } from './modals.js';
 import { fetchScryfallBatch } from './prices.js';
@@ -189,7 +190,7 @@ function marketplaceLinks(product) {
 export function marketComparisonForDrop(drop) {
   const product = slProductForDrop(drop);
   const tcg = exactTcgcsvProduct(product);
-  const linked = (collection.sealed || []).find(s => s.dropName === drop && s.pricechartingId);
+  const linked = STORE_BUILD ? null : (collection.sealed || []).find(s => s.dropName === drop && s.pricechartingId);
   const pcLatest = linked?.priceHistory?.length ? linked.priceHistory[linked.priceHistory.length - 1] : null;
   const manual = (collection.slMarketQuotes || []).filter(q => q.dropName === drop || (q.productUuid && q.productUuid === product?.uuid));
   const rows = [];
@@ -200,6 +201,7 @@ export function marketComparisonForDrop(drop) {
 }
 
 export async function refreshSlCardTraderQuote(drop) {
+  if (STORE_BUILD) return; // needs the user's own CardTrader account — not in the Steam build
   const product = slProductForDrop(drop);
   const blueprintId = product?.identifiers?.cardtraderId;
   const token = collection.settings.cardTraderToken;
@@ -260,7 +262,7 @@ export function showSlProductTruth(drop) {
       <div style="overflow:auto;border:1px solid var(--border);border-radius:8px"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:var(--surface2)"><th style="padding:7px 9px;text-align:left">Source</th><th style="padding:7px 9px;text-align:left">Basis</th><th style="padding:7px 9px;text-align:right">Value</th><th style="padding:7px 9px;text-align:left">Context</th><th style="padding:7px 9px;text-align:left">Observed</th></tr></thead><tbody>${marketRows}</tbody></table></div>
       <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px">${product.sourceUrl ? `<a href="#" class="btn btn-ghost" style="font-size:11px" data-act="open-url" data-arg="${esc(product.sourceUrl)}">Official product details ↗</a>` : ''}${market.links.map(x => `<a href="#" class="btn btn-ghost" style="font-size:11px" data-act="open-url" data-arg="${esc(x.url)}">${esc(x.name)}${x.id ? ` · ID ${esc(x.id)}` : ''} ↗</a>`).join('')}</div>
       <details style="margin-top:12px"><summary style="cursor:pointer;font-size:12px;font-weight:700">All preserved identifiers</summary><pre style="font-size:11px;white-space:pre-wrap;color:var(--text-dim)">${esc(JSON.stringify(product.identifiers || {}, null, 2))}</pre></details>
-      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">${product.identifiers?.cardtraderId ? `<button class="btn btn-ghost" data-act="refreshSlCardTraderQuote" data-arg="${esc(drop)}">↻ CardTrader listings</button>` : ''}<button class="btn btn-ghost" data-act="showSlMarketQuoteModal" data-arg="${esc(drop)}">＋ Add market observation</button><button class="btn btn-primary" data-act="hideModal">Close</button></div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">${product.identifiers?.cardtraderId && !STORE_BUILD ? `<button class="btn btn-ghost" data-act="refreshSlCardTraderQuote" data-arg="${esc(drop)}">↻ CardTrader listings</button>` : ''}<button class="btn btn-ghost" data-act="showSlMarketQuoteModal" data-arg="${esc(drop)}">＋ Add market observation</button><button class="btn btn-primary" data-act="hideModal">Close</button></div>
     </div>`, 'xl');
 }
 

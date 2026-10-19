@@ -1,3 +1,4 @@
+import { STORE_BUILD } from './channel.js';
 import { PC_API, TCGCSV_GROUPS } from './constants.js';
 import { collection, tcgcsvCache } from './state.js';
 import { netFetch, toast } from './utils.js';
@@ -324,7 +325,13 @@ export async function searchTcgcsv(query) {
   return results;
 }
 
+// PriceCharting needs the user's own paid token, so it's off in the Steam build.
+export function priceChartingEnabled() {
+  return !STORE_BUILD && !!collection.settings.pricechartingKey;
+}
+
 export async function searchPriceCharting(query) {
+  if (STORE_BUILD) throw new Error('PriceCharting is not available in this edition');
   const key = collection.settings.pricechartingKey;
   if (!key) throw new Error('PriceCharting API token not set — add it in Settings');
   const target = `${PC_API}/products?t=${encodeURIComponent(key)}&q=${encodeURIComponent(query)}`;
@@ -346,6 +353,7 @@ export async function searchPriceCharting(query) {
 }
 
 export async function fetchPriceChartingById(id) {
+  if (STORE_BUILD) throw new Error('PriceCharting is not available in this edition');
   const key = collection.settings.pricechartingKey;
   if (!key) throw new Error('PriceCharting API token not set — add it in Settings');
   const target = `${PC_API}/product?t=${encodeURIComponent(key)}&id=${encodeURIComponent(id)}`;
@@ -364,7 +372,7 @@ export async function searchSealedPrice(query) {
   // Always try TCGCSV (free, no key)
   try { results.push(...await searchTcgcsv(query)); } catch (e) { errs.push('TCGCSV: ' + e.message); }
   // Try PriceCharting if key is configured
-  if (collection.settings.pricechartingKey) {
+  if (priceChartingEnabled()) {
     try { results.push(...await searchPriceCharting(query)); } catch (e) { errs.push('PriceCharting: ' + e.message); }
   }
   if (!results.length && errs.length) throw new Error(errs.join(' | '));

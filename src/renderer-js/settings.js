@@ -1,3 +1,4 @@
+import { STORE_BUILD } from './channel.js';
 import { insightsEnabled, localIntelligenceConfigured, setInsightsEnabled, setLocalIntelligenceEnabled, setUpcomingSecretLairsEnabled, syncFeatureVisibility, upcomingSecretLairsEnabled } from './features.js';
 import { hideModal, showModal } from './modals.js';
 import { clearPendingPriceSnaps } from './prices.js';
@@ -163,7 +164,8 @@ export function showSettings(initialSection = 'general') {
             <div class="settings-panel-title"><span>Pricing</span><h2>Price data and marketplace connections</h2><p>Choose the speed/bandwidth tradeoff and add optional comparison sources.</p></div>
             ${settingCard('Scryfall price engine', 'Bulk data makes full refreshes fast and avoids per-card rate limits.', `
               <label class="settings-check-row"><input type="checkbox" id="cfg-bulk-data" ${collection.settings.useBulkData !== false ? 'checked' : ''}><span><strong>Use Scryfall bulk data for prices</strong><small>Downloads the full price file about once per day (~500 MB). Turn off to use the slower, lower-bandwidth batch API.</small></span></label>`)}
-            ${settingCard('Sealed and marketplace pricing', 'TCGCSV/TCGplayer is built in. The services below are optional comparison sources.', `
+            ${STORE_BUILD ? settingCard('Sealed pricing', 'TCGCSV/TCGplayer sealed prices are built in — no setup needed.', `
+              <div class="settings-source-strip"><span><b>TCGCSV</b> Built in · no key required</span></div>`) : settingCard('Sealed and marketplace pricing', 'TCGCSV/TCGplayer is built in. The services below are optional comparison sources.', `
               <div class="settings-source-strip"><span><b>TCGCSV</b> Built in · no key required</span><span><b>PriceCharting</b> Paid API token</span><span><b>CardTrader</b> Profile API token</span></div>
               <div class="form-group"><label>PriceCharting API token <em>optional</em></label><input type="password" id="cfg-pckey" placeholder="Paste your PriceCharting API token" value="${esc(collection.settings.pricechartingKey || '')}"></div>
               <div class="form-group"><label>CardTrader API token <em>optional</em></label><input type="password" id="cfg-cardtrader-key" placeholder="Enables exact blueprint listing comparisons" value="${esc(collection.settings.cardTraderToken || '')}"><small class="settings-field-help">Sent only to api.cardtrader.com and joined through the product's exact blueprint ID.</small></div>
@@ -195,7 +197,7 @@ export function showSettings(initialSection = 'general') {
             <div class="settings-panel-title"><span>Updates &amp; Support</span><h2>Keep current and stay in touch</h2><p>Manage app updates, read release notes, or send feedback directly.</p></div>
             ${updatesCard()}
             ${settingCard('Support Mana Ledger', 'Mana Ledger is free and local-first. Feedback shapes what gets built next.', `
-              <div class="settings-support-grid"><button class="settings-support-action" data-act="open-url" data-arg="https://ko-fi.com/sarcasticsoftware"><span>♥</span><strong>Buy me a coffee</strong><small>Support ongoing development on Ko-fi</small></button><button class="settings-support-action" data-act="showFeedback"><span>💬</span><strong>Send feedback</strong><small>Report a bug or suggest the next feature</small></button></div>`)}
+              <div class="settings-support-grid">${STORE_BUILD ? '' : '<button class="settings-support-action" data-act="open-url" data-arg="https://ko-fi.com/sarcasticsoftware"><span>♥</span><strong>Buy me a coffee</strong><small>Support ongoing development on Ko-fi</small></button>'}<button class="settings-support-action" data-act="showFeedback"><span>💬</span><strong>Send feedback</strong><small>Report a bug or suggest the next feature</small></button></div>`)}
           </section>
         </div>
       </div>
@@ -238,8 +240,11 @@ export function showSettings(initialSection = 'general') {
 
   document.getElementById('cfg-save')?.addEventListener('click', () => {
     const wasUpcomingEnabled = upcomingSecretLairsEnabled();
-    collection.settings.pricechartingKey = document.getElementById('cfg-pckey')?.value.trim() || '';
-    collection.settings.cardTraderToken = document.getElementById('cfg-cardtrader-key')?.value.trim() || '';
+    // Steam build has no token fields — keep whatever is stored rather than wiping it.
+    const pcKeyInput = document.getElementById('cfg-pckey');
+    if (pcKeyInput) collection.settings.pricechartingKey = pcKeyInput.value.trim();
+    const ctKeyInput = document.getElementById('cfg-cardtrader-key');
+    if (ctKeyInput) collection.settings.cardTraderToken = ctKeyInput.value.trim();
     const pickChips = id => [...document.querySelectorAll(`#${id} .col-chip-on`)].map(b => b.dataset.val);
     collection.settings.ticker = {
       speed: parseInt(document.getElementById('cfg-ticker-speed')?.value, 10) || 4,

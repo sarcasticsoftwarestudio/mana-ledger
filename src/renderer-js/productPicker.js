@@ -1,6 +1,6 @@
 import { hideModal, showModal } from './modals.js';
 import { showAddSealedModal } from './sealedModals.js';
-import { ensureTcgcsvCache, refreshTcgcsvCache, searchPriceCharting } from './sealedPricing.js';
+import { ensureTcgcsvCache, priceChartingEnabled, refreshTcgcsvCache, searchPriceCharting } from './sealedPricing.js';
 import { collection, tcgcsvCache } from './state.js';
 import { esc, fmt, netFetch, toast } from './utils.js';
 
@@ -38,7 +38,7 @@ export function showProductPicker(opts = {}) {
     <div class="pp-foot">
       <span class="pp-status" id="pp-status"></span>
       <span style="flex:1"></span>
-      ${collection.settings.pricechartingKey ? '<button class="btn btn-sm" id="pp-pc-btn">+ PriceCharting</button>' : ''}
+      ${priceChartingEnabled() ? '<button class="btn btn-sm" id="pp-pc-btn">+ PriceCharting</button>' : ''}
       <button class="btn" id="pp-manual">✎ Enter manually</button>
       <button class="btn btn-ghost" id="pp-cancel">Cancel</button>
     </div>`, 'xl');

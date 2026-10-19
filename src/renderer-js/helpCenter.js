@@ -1,6 +1,7 @@
 // Searchable, end-user documentation for Mana Ledger (Help -> Mana Ledger Guide).
 // Keep the language practical: this is a handbook for collectors, not a technical reference.
 
+import { STORE_BUILD } from './channel.js';
 import { showModal } from './modals.js';
 import { esc } from './utils.js';
 
@@ -377,7 +378,7 @@ export const HELP_GUIDES = [
         <p><b>Use Scryfall bulk data</b> is on by default. It downloads a large price catalog—about 500 MB—roughly once per day, then makes a large collection refresh faster and less likely to hit request limits. Turn it off in <b>Settings → Pricing</b> for a slower, lower-bandwidth method that asks for cards in smaller groups.</p>
       </section>
       <section class="help-section"><h3>Optional sealed comparisons</h3>
-        <p>TCGCSV is built in and requires no key. A paid PriceCharting token can add another current product estimate. A CardTrader profile token can add exact marketplace listings when the product has a matching blueprint. Tokens are optional; without them the rest of Mana Ledger continues to work.</p>
+        <p>TCGCSV is built in and requires no key.${STORE_BUILD ? '' : ' A paid PriceCharting token can add another current product estimate. A CardTrader profile token can add exact marketplace listings when the product has a matching blueprint. Tokens are optional; without them the rest of Mana Ledger continues to work.'}</p>
       </section>
       <section class="help-section"><h3>Why a value can be missing</h3>
         <p>The exact printing may have no current USD price, the finish may not be listed, the ID may be stale, a sealed product may not have an exact catalog match, or a source refresh may have failed. Check Failed Lookups and the Activity Log. Never assume that a fallback or missing price means the item has no value.</p>
@@ -410,7 +411,7 @@ export const HELP_GUIDES = [
         <p><b>Insights</b> adds build readiness, opportunity review, and saved reports. <b>Local Intelligence</b> is an experimental offline section inside Insights. <b>Upcoming Secret Lairs</b> is an experimental preview view inside Secret Lair Explorer. Optional features are off by default. Turning one off hides it without deleting its reports, collection records, or saved preview cache.</p>
       </section>
       <section class="help-section"><h3>Pricing</h3>
-        <p>Choose the large, faster Scryfall bulk catalog or the slower lower-bandwidth method. TCGCSV sealed pricing works without a key. PriceCharting and CardTrader fields are optional connections for people who already have those tokens.</p>
+        <p>Choose the large, faster Scryfall bulk catalog or the slower lower-bandwidth method. TCGCSV sealed pricing works without a key.${STORE_BUILD ? '' : ' PriceCharting and CardTrader fields are optional connections for people who already have those tokens.'}</p>
       </section>
       <section class="help-section"><h3>Secret Lair</h3>
         <p>Open the detailed source guide or change fallback nonfoil and foil MSRP. Those amounts are used only when a drop has neither a linked owned sealed cost nor a known drop-specific MSRP. They do not rewrite your collection purchases.</p>
@@ -419,7 +420,7 @@ export const HELP_GUIDES = [
         <p>Create and restore backups, open their folder, or clear only cards, sealed products, or price history. Reset Entire Database wipes all app data after two warnings. Read the recovery guide before using cleanup controls.</p>
       </section>
       <section class="help-section"><h3>Updates & Support</h3>
-        <p>GitHub editions can check release notes, download an update, and restart to install. Steam editions are managed by Steam. This section also contains Ko-fi support and the feedback form. Most settings take effect only after you select <b>Save Settings</b>; Cancel leaves them unchanged.</p>
+        <p>GitHub editions can check release notes, download an update, and restart to install. Steam editions are managed by Steam. This section also contains ${STORE_BUILD ? '' : 'Ko-fi support and '}the feedback form. Most settings take effect only after you select <b>Save Settings</b>; Cancel leaves them unchanged.</p>
       </section>`,
     related: ['insights', 'local-intelligence', 'upcoming', 'backups'],
   },

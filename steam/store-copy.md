@@ -43,7 +43,7 @@ purchase price and a knowable value — so it answers the questions collectors a
 [list]
 [*][b]Local-first.[/b] Everything lives in a single database file on your PC. No account, no cloud, no telemetry.
 [*][b]Verified daily backups[/b] with one-click restore, built in.
-[*][b]Free, forever.[/b] Mana Ledger is fan content — it can't be sold, and we wouldn't want to. If it earns a place in your toolbox, there's a Ko-fi link inside.
+[*][b]Free, forever.[/b] Mana Ledger is fan content — it can't be sold, and we wouldn't want to.
 [/list]
 
 [i]An internet connection is needed to refresh prices and card data (Scryfall, MTGJSON, TCGCSV); the app runs offline with its last-known data.[/i]

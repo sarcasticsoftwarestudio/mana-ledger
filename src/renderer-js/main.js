@@ -1,3 +1,4 @@
+import { STORE_BUILD } from './channel.js';
 import * as NS_constants from './constants.js';
 import * as NS_state from './state.js';
 import * as NS_logger from './logger.js';
@@ -114,6 +115,9 @@ async function init() {
 
   // Top-bar update pill (shown when the main process reports a new version)
   NS_updaterUI.wireUpdateBadge();
+
+  // Steam build: no off-store donation link (static rail button in index.html)
+  if (STORE_BUILD) document.querySelector('.rail-kofi')?.remove();
 
   // Activity log panel — status-bar button + close + clear
   const sbLogs = document.getElementById('sb-logs');

@@ -2,7 +2,7 @@ import { PRODUCT_TYPES } from './constants.js';
 import { hideModal, showModal } from './modals.js';
 import { showProductPicker } from './productPicker.js';
 import { render } from './render.js';
-import { fetchPriceChartingById, searchSealedPrice } from './sealedPricing.js';
+import { fetchPriceChartingById, priceChartingEnabled, searchSealedPrice } from './sealedPricing.js';
 import { collection } from './state.js';
 import { autoSave } from './storage.js';
 import { esc, fmt, toast, today, uid } from './utils.js';
@@ -349,7 +349,7 @@ export function showUpdatePriceModal(id) {
       <label>New Market Price (USD)</label>
       <input type="number" id="up-price" step="0.01" min="0" placeholder="0.00">
     </div>
-    ${item.pricechartingId ? `
+    ${item.pricechartingId && priceChartingEnabled() ? `
     <div class="form-group">
       <button class="btn" id="up-fetch" style="width:100%">↻ Fetch Current Market Price</button>
     </div>` : ''}
@@ -381,7 +381,7 @@ export function showUpdatePriceModal(id) {
 
   let _upSelectedPcId = item.pricechartingId || null;
 
-  if (item.pricechartingId) {
+  if (item.pricechartingId && priceChartingEnabled()) {
     document.getElementById('up-fetch').addEventListener('click', async () => {
       const btn = document.getElementById('up-fetch');
       btn.textContent = 'Fetching…'; btn.disabled = true;
