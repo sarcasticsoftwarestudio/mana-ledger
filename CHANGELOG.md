@@ -12,6 +12,10 @@ user-facing: what changed, not how.
 
 ## [Unreleased]
 
+### Fixed
+- **Cards added from the Secret Lair Explorer showed as "Unknown card".** Promos and other printings missing from the built-in Secret Lair card list (for example SLP #20, Swords to Plowshares) were saved with no name or collector number and the wrong set. They now get their real name, set, number and rarity from Scryfall as soon as you add them. Entries already saved this way are repaired automatically when the app opens and on every price refresh.
+- **Steam build:** the Ko-fi donation link, PriceCharting and the CardTrader API settings are hidden, as Steam requires.
+
 ## [1.8.0] - 2026-10-18
 
 ### Added
