@@ -134,6 +134,61 @@ export function bulkDataEnabled() {
   return collection.settings?.useBulkData !== false;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// CARD IDENTITY BACKFILL
+// ─────────────────────────────────────────────────────────────────────────────
+// Entries added straight from a Scryfall id (SL Explorer "Add to collection")
+// start with whatever the baked SL maps know — promos and non-SLD printings
+// aren't in them, so they land as "Unknown card" with no collector number.
+// These fill in the real printing identity from Scryfall.
+export const PLACEHOLDER_CARD_NAME = 'Unknown card';
+
+export function cardNeedsIdentity(c) {
+  return !!c?.scryfallId && (!c.name || c.name === PLACEHOLDER_CARD_NAME || !c.collectorNumber);
+}
+
+// Copy name/set/number/rarity from a Scryfall card object onto a placeholder
+// entry. Leaves fully-identified entries alone. Returns true if anything changed.
+export function applyScryfallIdentity(c, sc) {
+  if (!sc || !cardNeedsIdentity(c)) return false;
+  const before = `${c.name}|${c.setCode}|${c.setName}|${c.collectorNumber}|${c.rarity}`;
+  if (sc.name && (!c.name || c.name === PLACEHOLDER_CARD_NAME)) c.name = sc.name;
+  if (sc.collector_number) {
+    // Placeholder entries had their set guessed too — trust the printing.
+    if (sc.set) c.setCode = String(sc.set).toLowerCase();
+    if (sc.set_name) c.setName = sc.set_name;
+    if (sc.rarity) c.rarity = String(sc.rarity).toLowerCase();
+    c.collectorNumber = String(sc.collector_number);
+  }
+  return before !== `${c.name}|${c.setCode}|${c.setName}|${c.collectorNumber}|${c.rarity}`;
+}
+
+// Look up every placeholder entry (or just `ids`) on Scryfall and backfill it.
+// Returns the number of entries fixed; saves + re-renders when any were.
+export async function repairCardIdentities(ids = null) {
+  const want = ids ? new Set(ids.map(id => String(id).toLowerCase())) : null;
+  const targets = collection.cards.filter(c => cardNeedsIdentity(c)
+    && (!want || want.has(c.scryfallId.toLowerCase())));
+  const uniq = [...new Set(targets.map(c => c.scryfallId.toLowerCase()))];
+  if (!uniq.length) return 0;
+  const byId = new Map();
+  for (let i = 0; i < uniq.length; i += 75) {
+    try {
+      const data = await fetchScryfallBatch(uniq.slice(i, i + 75));
+      for (const sc of (data.data || [])) byId.set(sc.id.toLowerCase(), sc);
+    } catch (err) {
+      window.logger?.warn('Price', `Card name backfill failed: ${err.message}`);
+    }
+  }
+  let fixed = 0;
+  for (const c of targets) if (applyScryfallIdentity(c, byId.get(c.scryfallId.toLowerCase()))) fixed++;
+  if (fixed) {
+    window.logger?.info('Price', `Filled in name/set/number for ${fixed} card entr${fixed === 1 ? 'y' : 'ies'} from Scryfall`);
+    render(); autoSave();
+  }
+  return fixed;
+}
+
 // Fetch one batch from Scryfall — the local bulk index first (instant, no
 // rate limits; see src/main/bulkData.js), the network only for ids the index
 // doesn't know. Network path retries on 429 with 2s/4s/8s backoff.
@@ -509,6 +564,12 @@ export async function refreshPrices() {
     const m = collection.cardMetadata[scryfallId];
     if (card.legalities?.commander) m.legal_commander = card.legalities.commander;
     if (card.game_changer != null) m.game_changer = !!card.game_changer;
+  }
+
+  // Placeholder entries (added by Scryfall id alone) pick up their real
+  // name/set/number from the data this refresh already fetched.
+  for (const c of collection.cards) {
+    if (c.scryfallId) applyScryfallIdentity(c, scryfallCache.get(c.scryfallId.toLowerCase()));
   }
 
   // Want-list price fallback: a wanted card stored as 'normal' may be a

@@ -275,6 +275,13 @@ async function init() {
     }, 500);
   }
 
+  // Entries saved before their printing was known ("Unknown card", no
+  // collector number) self-heal from Scryfall — the bulk index makes this
+  // near-instant, and it's a no-op once everything is identified.
+  if (collection.cards.some(NS_prices.cardNeedsIdentity)) {
+    setTimeout(() => { NS_prices.repairCardIdentities(); }, 300);
+  }
+
   // First-run welcome — only on a genuinely empty, fresh install.
   await NS_firstRun.maybeShowFirstRun();
 

@@ -6,7 +6,7 @@ import { buildOpenedProductCards, buildOwnedCardFromCatalog, catalogFinishOption
 import { FOIL_LABEL } from './constants.js';
 import { showGalleryModal } from './gallery.js';
 import { hideCardHoverPreview } from './hover.js';
-import { fetchScryfallBatch, getCurrentPrice, storePriceSnapshot } from './prices.js';
+import { PLACEHOLDER_CARD_NAME, fetchScryfallBatch, getCurrentPrice, repairCardIdentities, storePriceSnapshot } from './prices.js';
 import { showProductPicker } from './productPicker.js';
 import { render } from './render.js';
 import { openSetTab } from './search.js';
@@ -534,7 +534,10 @@ export function showCardContextMenu(x, y, card) {
 
 // ── Secret Lair explorer actions ─────────────────────────────────────────────
 export function addSlCardToCollection(scryfallId, binder, opts = {}) {
-  const name = (typeof SL_SCRYFALL_TO_NAME !== 'undefined' && SL_SCRYFALL_TO_NAME[scryfallId]) || 'Unknown card';
+  // The baked SL name map gives an instant name; set, number and rarity (and
+  // the name for promos the map doesn't know) are backfilled from Scryfall
+  // right after the push — see repairCardIdentities.
+  const name = (typeof SL_SCRYFALL_TO_NAME !== 'undefined' && SL_SCRYFALL_TO_NAME[scryfallId]) || PLACEHOLDER_CARD_NAME;
   collection.cards.push({
     id: uid(),
     scryfallId,
@@ -560,7 +563,8 @@ export function addSlCardToCollection(scryfallId, binder, opts = {}) {
   if (wanted) collection.wantList = collection.wantList.filter(w => w.id !== wanted.id);
   if (!opts.silent) {
     render(); autoSave();
-    toast(`${name} added to ${binder} — prices fill in on next refresh`, 'success');
+    toast(`${name === PLACEHOLDER_CARD_NAME ? 'Card' : name} added to ${binder} — prices fill in on next refresh`, 'success');
+    repairCardIdentities([scryfallId]);
   }
   return name;
 }
@@ -589,6 +593,7 @@ export function addDropCardsToBinder(drop, ids, binder) {
   for (const sid of ids) addSlCardToCollection(sid, binder, { silent: true });
   render(); autoSave();
   toast(`Added ${ids.length} cards from “${drop}” to ${binder} — prices fill in on next refresh`, 'success');
+  repairCardIdentities(ids);
 }
 
 export function addDropToSealed(drop) {
