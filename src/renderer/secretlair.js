@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-10-23 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-10-24 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 114 superdrops/standalones · 397 drops · 2775 printings (2119 drop-mapped, 106 foil-backfilled)
+// 114 superdrops/standalones · 397 drops · 2776 printings (2119 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -4538,6 +4538,7 @@ const SL_SCRYFALL_TO_NAME = {
   "a905ed56-16cd-455f-8bba-8daef06a07da": "Beloved Princess",
   "a90a9691-b131-44e9-b39a-c68ef10b18d3": "Wilhelt, the Rotcleaver",
   "a92394e2-00d3-4106-86ff-e9823e346a97": "Arcane Denial",
+  "a93fe85f-638c-4cfb-a7b7-7e85bf7ca726": "Notion Thief",
   "a940a241-4efd-42f7-a670-2c4fed4755bb": "Forest",
   "a956ab72-6abd-48f5-863d-7f8b39caf8fd": "Aura Shards",
   "a9817714-70b2-4e36-ae56-14052a9c12a1": "Black Market",
@@ -7316,6 +7317,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "a905ed56-16cd-455f-8bba-8daef06a07da": "804",
   "a90a9691-b131-44e9-b39a-c68ef10b18d3": "2593",
   "a92394e2-00d3-4106-86ff-e9823e346a97": "2489",
+  "a93fe85f-638c-4cfb-a7b7-7e85bf7ca726": "7156",
   "a940a241-4efd-42f7-a670-2c4fed4755bb": "452",
   "a956ab72-6abd-48f5-863d-7f8b39caf8fd": "1644",
   "a9817714-70b2-4e36-ae56-14052a9c12a1": "1577",
