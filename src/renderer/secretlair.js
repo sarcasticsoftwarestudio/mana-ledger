@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-10-24 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-10-25 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 114 superdrops/standalones · 397 drops · 2776 printings (2119 drop-mapped, 106 foil-backfilled)
+// 114 superdrops/standalones · 397 drops · 2779 printings (2119 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -117,8 +117,8 @@ const SL_SUPERDROPS = [
   { superdrop: "Odds and Ends", date: "2026-09", drops: ["Odds and Ends"] },
   { superdrop: "The Most Powerful Superdrop in the Universe", date: "2026-09", drops: ["Masters of the Universe: Allies and Enemies of Eternia","Masters of the Universe: By the Power of Grayskull!","Masters of the Universe: Nyah-ha-ha!","Masters of the Universe: She-Ra, Princess of Power","Masters of the Universe: Sold Separately"] },
   { superdrop: "Atlanta", date: "2026-10", drops: ["Atlanta"] },
+  { superdrop: "Chaos Vault: Reality Fracture", date: "2026-10", drops: ["Duality Distorted","怪異学校 — Strange School"] },
   { superdrop: "Corn Maze Superdrop", date: "2026-10", drops: ["Artist Series: Veronique Meignaud","Jim Henson's Labyrinth: Fear Me, Love Me","Jim Henson's Labyrinth: Should You Need Us","Jim Henson's Labyrinth: Through the Labyrinth","KPop Demon Hunters: How It's Done","Manufactured Grounds by See Machine","Marvel: Zombies","Peace, Love, & Treefolk"] },
-  { superdrop: "Chaos Vault: Reality Fracture", date: "2026-12", drops: ["Duality Distorted","怪異学校 — Strange School"] },
 ];
 
 // ── Drop → cards mapping (MTGJSON SLD v5.3) ──────────────────────────────────
@@ -3798,6 +3798,7 @@ const SL_SCRYFALL_TO_NAME = {
   "66581b3b-4e5b-4580-8fec-9684f0168cdb": "Xenagos, God of Revels",
   "665a61c9-ffdf-4e60-9a35-2176279d8b3c": "Tarrian's Soulcleaver",
   "6674c7f7-8022-4457-9a8a-6b87ff3348b0": "Gishath, Sun's Avatar",
+  "667fa97d-325c-4833-865d-d35535a44214": "Stubborn Denial",
   "66a0347e-8ec6-463e-aef5-33f7d62899e2": "Bruna, the Fading Light // Brisela, Voice of Nightmares",
   "66f1953d-e12c-4192-a4f1-930eb489f681": "Mountain",
   "6710a1e4-299c-4ce1-afda-265d27097061": "Narset, Parter of Veils",
@@ -4548,6 +4549,7 @@ const SL_SCRYFALL_TO_NAME = {
   "a9e3a7c2-12fb-4f23-a0d1-a79df048201b": "Daretti, Ingenious Iconoclast",
   "aa1c4ada-a218-4701-a293-ae6cbbe5c4d8": "Kediss, Emberclaw Familiar",
   "aa32c5e9-a299-4f20-85ae-3d4f2919b6a8": "Wheel of Misfortune",
+  "aa54f607-8735-4082-93cd-519509a744c2": "Cathar Commando",
   "aa6d3b2d-5698-4cdf-b3fe-359185849217": "Resculpt",
   "aab03d01-ec92-473d-b983-18cf5f06ff39": "Goblin Rabblemaster",
   "aab08460-3043-4de7-b8ae-92f238318844": "Garruk, Caller of Beasts",
@@ -5023,6 +5025,7 @@ const SL_SCRYFALL_TO_NAME = {
   "d79f7ecc-c43b-48de-9d90-1085cf2bce5d": "Realmwalker",
   "d7a28148-7f9a-4a96-a878-fc15476c5820": "Unmask",
   "d7ed714e-28df-4bf3-9752-112a6e9e3609": "Tiamat",
+  "d7fe9333-bcb4-4897-a537-3fa237ebc06c": "Knight of the Reliquary",
   "d80f6c3d-5eda-41a6-b9b2-4de6844af179": "Expedition Map",
   "d81bce60-78f6-4f42-9fcd-383f66f85de5": "Arbor Elf",
   "d8599310-6b83-46a8-a38b-c48775d9c92f": "Blinding Angel",
@@ -6577,6 +6580,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "66581b3b-4e5b-4580-8fec-9684f0168cdb": "2061",
   "665a61c9-ffdf-4e60-9a35-2176279d8b3c": "2224",
   "6674c7f7-8022-4457-9a8a-6b87ff3348b0": "320",
+  "667fa97d-325c-4833-865d-d35535a44214": "8500",
   "66a0347e-8ec6-463e-aef5-33f7d62899e2": "1336",
   "66f1953d-e12c-4192-a4f1-930eb489f681": "1948",
   "6710a1e4-299c-4ce1-afda-265d27097061": "508",
@@ -7327,6 +7331,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "a9e3a7c2-12fb-4f23-a0d1-a79df048201b": "1422★",
   "aa1c4ada-a218-4701-a293-ae6cbbe5c4d8": "2364",
   "aa32c5e9-a299-4f20-85ae-3d4f2919b6a8": "1959",
+  "aa54f607-8735-4082-93cd-519509a744c2": "7132",
   "aa6d3b2d-5698-4cdf-b3fe-359185849217": "7024",
   "aab03d01-ec92-473d-b983-18cf5f06ff39": "215",
   "aab08460-3043-4de7-b8ae-92f238318844": "9995",
@@ -7802,6 +7807,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "d79f7ecc-c43b-48de-9d90-1085cf2bce5d": "1724",
   "d7a28148-7f9a-4a96-a878-fc15476c5820": "413",
   "d7ed714e-28df-4bf3-9752-112a6e9e3609": "1017",
+  "d7fe9333-bcb4-4897-a537-3fa237ebc06c": "7154",
   "d80f6c3d-5eda-41a6-b9b2-4de6844af179": "7053",
   "d81bce60-78f6-4f42-9fcd-383f66f85de5": "1317",
   "d8599310-6b83-46a8-a38b-c48775d9c92f": "1379",
