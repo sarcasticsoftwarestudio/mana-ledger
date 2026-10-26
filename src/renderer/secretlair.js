@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-10-25 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-10-26 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 114 superdrops/standalones · 397 drops · 2779 printings (2119 drop-mapped, 106 foil-backfilled)
+// 114 superdrops/standalones · 397 drops · 2780 printings (2119 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -4186,6 +4186,7 @@ const SL_SCRYFALL_TO_NAME = {
   "881ed685-bf7c-4ba3-8401-2ead8c24ca0f": "Squirrel Wrangler",
   "88269739-8a38-4f75-a53e-4b4ce70f2aef": "Protean Hulk",
   "882d3475-4fb9-49ad-bc19-e6331428701b": "Shalai, Voice of Plenty",
+  "8832ab43-317f-46a8-b391-2c6c42d342cc": "Stalwart Shield-Bearers",
   "883840b7-32db-4bda-8e02-0f6ba844fd34": "Mitotic Slime",
   "888fbfaf-dbf9-4045-a79e-d436ef75b3cf": "Delver of Secrets // Insectile Aberration",
   "88b074f3-13fc-44df-84e1-e557b045fb4f": "Tempered Sliver",
@@ -6968,6 +6969,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "881ed685-bf7c-4ba3-8401-2ead8c24ca0f": "198",
   "88269739-8a38-4f75-a53e-4b4ce70f2aef": "319",
   "882d3475-4fb9-49ad-bc19-e6331428701b": "244",
+  "8832ab43-317f-46a8-b391-2c6c42d342cc": "7148",
   "883840b7-32db-4bda-8e02-0f6ba844fd34": "2815",
   "888fbfaf-dbf9-4045-a79e-d436ef75b3cf": "722",
   "88b074f3-13fc-44df-84e1-e557b045fb4f": "657",
