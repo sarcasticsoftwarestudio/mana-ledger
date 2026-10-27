@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-10-26 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-10-27 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 114 superdrops/standalones · 397 drops · 2780 printings (2119 drop-mapped, 106 foil-backfilled)
+// 114 superdrops/standalones · 397 drops · 2781 printings (2119 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -4199,6 +4199,7 @@ const SL_SCRYFALL_TO_NAME = {
   "89b84af6-8fa6-4224-9f51-0edf48358dcd": "Swamp",
   "89c162b4-2284-4eb6-a8a3-ebc345d176dd": "Solve the Equation",
   "89c327b8-0b21-425b-87d8-3d04397becfe": "Patron Wizard",
+  "89c84eca-f9e5-4b20-bee0-70baac2638d2": "Calix, Guided by Fate",
   "89dda260-836d-44e7-9540-13c352a1526c": "Bloodletter of Aclazotz",
   "89e2d714-2070-434a-9a81-276e72594e06": "Giada, Font of Hope",
   "89f2f6fa-80b0-45c8-92f3-b0c2826ffb06": "Boros Charm",
@@ -6982,6 +6983,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "89b84af6-8fa6-4224-9f51-0edf48358dcd": "2511",
   "89c162b4-2284-4eb6-a8a3-ebc345d176dd": "2570",
   "89c327b8-0b21-425b-87d8-3d04397becfe": "1002",
+  "89c84eca-f9e5-4b20-bee0-70baac2638d2": "7151",
   "89dda260-836d-44e7-9540-13c352a1526c": "2502",
   "89e2d714-2070-434a-9a81-276e72594e06": "1586",
   "89f2f6fa-80b0-45c8-92f3-b0c2826ffb06": "1771",
