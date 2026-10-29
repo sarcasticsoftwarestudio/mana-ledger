@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-10-28 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-10-29 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 114 superdrops/standalones · 397 drops · 2797 printings (2119 drop-mapped, 106 foil-backfilled)
+// 114 superdrops/standalones · 397 drops · 2798 printings (2119 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -4360,6 +4360,7 @@ const SL_SCRYFALL_TO_NAME = {
   "98a229f0-3cca-4c2a-8cb5-064040eece72": "Sliver Legion",
   "98e44ae7-3363-45e9-970e-5789e7721305": "Deafening Silence",
   "9904ef62-3328-4474-a3b4-21428fb9d911": "Mycosynth Lattice",
+  "9909f625-93fc-40e0-afcd-9c231a473d5b": "Return of the Wildspeaker",
   "99182657-e5b5-4594-92d8-f9228e9c4c3a": "Mesmeric Sliver",
   "99285945-0d97-4e29-9be2-2d2cfd9bac4e": "Ugin, the Ineffable",
   "992b2dd3-87e7-48a4-bd8d-84973ff0ee1f": "Rin and Seri, Inseparable",
@@ -7160,6 +7161,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "98a229f0-3cca-4c2a-8cb5-064040eece72": "1149",
   "98e44ae7-3363-45e9-970e-5789e7721305": "1219",
   "9904ef62-3328-4474-a3b4-21428fb9d911": "1434",
+  "9909f625-93fc-40e0-afcd-9c231a473d5b": "921",
   "99182657-e5b5-4594-92d8-f9228e9c4c3a": "620",
   "99285945-0d97-4e29-9be2-2d2cfd9bac4e": "1243",
   "992b2dd3-87e7-48a4-bd8d-84973ff0ee1f": "1910",
