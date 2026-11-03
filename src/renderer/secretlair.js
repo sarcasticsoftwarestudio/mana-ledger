@@ -1,5 +1,5 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-11-02 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-11-03 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
 // 114 superdrops/standalones · 397 drops · 2798 printings (2119 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
@@ -116,9 +116,9 @@ const SL_SUPERDROPS = [
   { superdrop: "A Perfectly Normal Superdrop", date: "2026-08", drops: ["Artist Series: Ian Miller","Cosmic Chill by Robin Eisenberg","Featuring: Gene Luen Yang","Lofi Girl: Beats to Cast To 💫","Marvel: Dan Hipp","Marvel: Earth's Mightiest Pets","Marvel: Hulk Smash!","Marvel: True Believers in Love"] },
   { superdrop: "Odds and Ends", date: "2026-09", drops: ["Odds and Ends"] },
   { superdrop: "The Most Powerful Superdrop in the Universe", date: "2026-09", drops: ["Masters of the Universe: Allies and Enemies of Eternia","Masters of the Universe: By the Power of Grayskull!","Masters of the Universe: Nyah-ha-ha!","Masters of the Universe: She-Ra, Princess of Power","Masters of the Universe: Sold Separately"] },
-  { superdrop: "Atlanta", date: "2026-10", drops: ["Atlanta"] },
   { superdrop: "Chaos Vault: Reality Fracture", date: "2026-10", drops: ["Duality Distorted","怪異学校 — Strange School"] },
   { superdrop: "Corn Maze Superdrop", date: "2026-10", drops: ["Artist Series: Veronique Meignaud","Jim Henson's Labyrinth: Fear Me, Love Me","Jim Henson's Labyrinth: Should You Need Us","Jim Henson's Labyrinth: Through the Labyrinth","KPop Demon Hunters: How It's Done","Manufactured Grounds by See Machine","Marvel: Zombies","Peace, Love, & Treefolk"] },
+  { superdrop: "Unknown 2026-10", date: "2026-10", drops: ["Atlanta"] },
 ];
 
 // ── Drop → cards mapping (MTGJSON SLD v5.3) ──────────────────────────────────
