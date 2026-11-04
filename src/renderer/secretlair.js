@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-11-03 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-11-04 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 114 superdrops/standalones · 397 drops · 2798 printings (2119 drop-mapped, 106 foil-backfilled)
+// 114 superdrops/standalones · 397 drops · 2802 printings (2119 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -118,7 +118,7 @@ const SL_SUPERDROPS = [
   { superdrop: "The Most Powerful Superdrop in the Universe", date: "2026-09", drops: ["Masters of the Universe: Allies and Enemies of Eternia","Masters of the Universe: By the Power of Grayskull!","Masters of the Universe: Nyah-ha-ha!","Masters of the Universe: She-Ra, Princess of Power","Masters of the Universe: Sold Separately"] },
   { superdrop: "Chaos Vault: Reality Fracture", date: "2026-10", drops: ["Duality Distorted","怪異学校 — Strange School"] },
   { superdrop: "Corn Maze Superdrop", date: "2026-10", drops: ["Artist Series: Veronique Meignaud","Jim Henson's Labyrinth: Fear Me, Love Me","Jim Henson's Labyrinth: Should You Need Us","Jim Henson's Labyrinth: Through the Labyrinth","KPop Demon Hunters: How It's Done","Manufactured Grounds by See Machine","Marvel: Zombies","Peace, Love, & Treefolk"] },
-  { superdrop: "Unknown 2026-10", date: "2026-10", drops: ["Atlanta"] },
+  { superdrop: "Secret Gallery: Atlanta", date: "2026-10", drops: ["Secret Gallery: Atlanta"] },
 ];
 
 // ── Drop → cards mapping (MTGJSON SLD v5.3) ──────────────────────────────────
@@ -165,7 +165,6 @@ const SL_DROP_CARDS = {
   "Artist Series: Wayne Reynolds": ["Balthor the Defiled","Depala, Pilot Exemplar","Sram, Senior Edificer","Torbran, Thane of Red Fell"],
   "Assassin's Creed: Da Vinci's Designs": ["Blade of Selves","Conqueror's Flail","Darksteel Plate","Deathrender","Whispersilk Cloak"],
   "Assassin's Creed: Lethal Legends": ["Admiral Beckett Brass","Kelsien, the Plague","Najeela, the Blade-Blossom","Queen Marchesa","Ramses, Assassin Lord"],
-  "Atlanta": ["Assassin's Trophy","Parallax Tide","Regrowth","Viridian Revel"],
   "Avatar: The Last Airbender: A Lot to Learn": ["Cryptolith Rite","Kodama's Reach","Ponder","Serra Ascendant"],
   "Avatar: The Last Airbender: Everything Changed": ["Blood Moon","Dramatic Entrance","Lightning Bolt","Torment of Hailfire"],
   "Avatar: The Last Airbender: My Cabbages!": ["Anguished Unmaking","Chain of Vapor","Meltdown","Nature's Claim","Putrefy"],
@@ -408,6 +407,7 @@ const SL_DROP_CARDS = {
   "Return to the Mystical Archive": ["Abrade","Duty Beyond Death","Shared Roots","Spell Pierce","Zombify"],
   "Rule the Room": ["Arcanis the Omnipotent","Brimaz, King of Oreskos","Queen Marchesa","Savra, Queen of the Golgari"],
   "Saturday Morning D&D": ["Commander's Sphere","Hero's Downfall","Impact Tremors","Primal Vigor","Unbreakable Formation","Whir of Invention"],
+  "Secret Gallery: Atlanta": ["Assassin's Trophy","Parallax Tide","Regrowth","Viridian Revel"],
   "Secret Lair High: Class of '87": ["Aesi, Tyrant of Gyre Strait // Aesi, Tyrant of Gyre Strait","Anje Falkenrath // Anje Falkenrath","Chulane, Teller of Tales // Chulane, Teller of Tales","Radha, Heart of Keld // Radha, Heart of Keld"],
   "Seeing Visions": ["Serum Visions"],
   "Shades Not Included": ["Forest","Island","Mountain","Plains","Swamp"],
@@ -933,7 +933,7 @@ const SL_SCRYFALL_TO_DROPS = {
   "2a82c31b-4b8c-45b8-8e44-a8c201954052": ["Sonic: Chasing Adventure"],
   "2a8b2dd7-fabd-4b2a-a9e7-5a02bba89e10": ["Goblin & Squabblin'"],
   "2a9e6cdc-f92f-497c-8cd9-b69586098512": ["The Unfathomable Crushing Brutality of Basic Lands"],
-  "2abd0f98-129d-4719-94c5-47648ef77344": ["Atlanta"],
+  "2abd0f98-129d-4719-94c5-47648ef77344": ["Secret Gallery: Atlanta"],
   "2af98a7e-6335-4040-a831-d0911ab89dc5": ["Dungeons & Dragons: Black Lights & Dark Dungeons"],
   "2b141f71-63b3-45ac-b93a-01a68be5d2b6": ["City Styles II: Dressed to Kill"],
   "2b1d2e44-fdf6-456c-93a2-eb3e898380d9": ["Marvel: Zombies"],
@@ -1978,7 +1978,7 @@ const SL_SCRYFALL_TO_DROPS = {
   "abb424b6-741e-40ef-937f-e01536cf7479": ["Uncharted"],
   "abcd2c01-fb77-4079-b5cf-bcde816386c9": ["International Women's Day"],
   "abd2e842-d953-4e97-b95a-2b1af51173a9": ["Angels: They're Just Like Us but Cooler and with Wings"],
-  "abd61b58-78d0-4e0c-aedd-d34feeaebe91": ["Atlanta"],
+  "abd61b58-78d0-4e0c-aedd-d34feeaebe91": ["Secret Gallery: Atlanta"],
   "ac1fe16c-93c3-43a3-80b9-112e82a7321e": ["Dungeons & Dragons: Karlach's Rage"],
   "ac2a2178-8e1f-4d64-9711-5b7264632200": ["Valentine's Day 2021"],
   "ac5d49b5-cf4d-48a4-b21d-0a3b7e6320a4": ["Garfield: As Intended"],
@@ -1991,7 +1991,7 @@ const SL_SCRYFALL_TO_DROPS = {
   "aca0a5b7-fbb3-48fb-bc0a-b03b10329178": ["So Salty"],
   "acb6a9c1-fdc5-4148-9798-c48f7fa8bdd7": ["Dandân Deck"],
   "acdb72e2-c000-4b92-b5ea-73115969020f": ["Magic: The Baseballing"],
-  "ace2d2c9-6af0-4728-9265-36730df50e83": ["Atlanta"],
+  "ace2d2c9-6af0-4728-9265-36730df50e83": ["Secret Gallery: Atlanta"],
   "acf037a6-9004-49a3-b4a2-2c814fc63d1c": ["Math is for Blockers"],
   "acf375d1-6355-458c-bae2-3ae3770da53b": ["Secret Lair High: Class of '87"],
   "ad253c0d-c64a-4748-824b-3a999e6d5ae3": ["Dungeons & Dragons: Astarion's Thirst"],
@@ -2466,7 +2466,7 @@ const SL_SCRYFALL_TO_DROPS = {
   "e960ff2c-1863-40cb-9ebf-49e2ea5480dc": ["The Office: Dwight's Destiny"],
   "e973462f-589d-4c53-81d7-075ec1d5a9b4": ["The Last of Us Part I"],
   "e9b431fd-7a4b-4cba-b5cb-554d7813b1f5": ["Pictures of the Floating World"],
-  "e9ba4783-a756-4579-ba5c-a6ab3aaacbd3": ["Atlanta"],
+  "e9ba4783-a756-4579-ba5c-a6ab3aaacbd3": ["Secret Gallery: Atlanta"],
   "e9c3a74f-6b39-42f6-a144-592f83846d9b": ["Teenage Mutant Ninja Turtles: The Mighty Mutanimals"],
   "e9ca6518-aa90-4614-86aa-b972f60cce49": ["My Little Pony: The Lands of Equestria"],
   "e9d43c53-6206-441e-b3d1-ce785ef2e03f": ["Dungeons & Dragons: Gale's Ambition"],
@@ -4105,6 +4105,7 @@ const SL_SCRYFALL_TO_NAME = {
   "802ace56-18ec-47d8-bfeb-5680912b2ec5": "Swords to Plowshares",
   "802d126d-f56c-4990-ba85-9ecbe41f5c9a": "Jace, Wielder of Mysteries",
   "8039b4f8-3a0e-403c-af52-76d677af7353": "Reconnaissance Mission",
+  "805d68e6-3f52-4288-9b0a-8be506cc619e": "Balefire Dragon",
   "80784e7c-2939-4233-9953-87370f85a3ae": "Island",
   "809c68af-b213-45c7-a419-1244dc86af89": "Lotus Petal",
   "80a94f62-2060-494b-924a-792b728dcf99": "Alela, Artful Provocateur",
@@ -4148,6 +4149,7 @@ const SL_SCRYFALL_TO_NAME = {
   "83f4d580-0a3c-4f4f-9700-4a2afed4ded0": "Wall of Omens",
   "8418acd5-ca4b-4fe8-a1f9-44b16e6dcda7": "Mountain",
   "8421ad46-dc7f-4b66-800b-e41c30835300": "Okaun, Eye of Chaos // Okaun, Eye of Chaos",
+  "843795d1-8f12-43af-bac6-319fbdaa0b18": "Big Score",
   "844f3807-9258-452c-80cc-ad8ef6b6863f": "Azusa, Lost but Seeking",
   "84505a4e-5715-4731-9831-0107ff79ae05": "Sidewinder Sliver",
   "84590fb7-a79e-4708-bce4-bb16b1b0dd7e": "Cleansing Nova",
@@ -4561,6 +4563,7 @@ const SL_SCRYFALL_TO_NAME = {
   "a99e2ed7-8a6c-49cf-81ae-690a8636d5f6": "Command Tower",
   "a9dd9868-f0c5-452c-9619-a8f3bbf5ea69": "Pathbreaker Ibex",
   "a9e3a7c2-12fb-4f23-a0d1-a79df048201b": "Daretti, Ingenious Iconoclast",
+  "a9ea2959-27c3-46d4-875f-1605acefa082": "Sword of Truth and Justice",
   "aa1c4ada-a218-4701-a293-ae6cbbe5c4d8": "Kediss, Emberclaw Familiar",
   "aa32c5e9-a299-4f20-85ae-3d4f2919b6a8": "Wheel of Misfortune",
   "aa54f607-8735-4082-93cd-519509a744c2": "Cathar Commando",
@@ -4754,6 +4757,7 @@ const SL_SCRYFALL_TO_NAME = {
   "bbd79be1-3e84-41a3-89ae-b1132cb31ed9": "Anguished Unmaking",
   "bc483f3e-4edc-4042-b41c-d5755956d0dc": "Kalamax, the Stormsire",
   "bc6c0c64-e65e-4b7b-8134-39067cff53b4": "Iroas, God of Victory",
+  "bc846a79-9ff9-41ca-8c5b-07509e9b1047": "Young Pyromancer",
   "bc9f3d1b-bb3a-4a78-9031-ed439212a48b": "Forest",
   "bcb4e64b-e978-49ba-8e3e-4792f975fb61": "Kessig Wolf Run",
   "bcc1aa91-ec97-4fe8-b4b1-a213f050f956": "Aether Gust",
@@ -6906,6 +6910,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "802ace56-18ec-47d8-bfeb-5680912b2ec5": "1627★",
   "802d126d-f56c-4990-ba85-9ecbe41f5c9a": "506",
   "8039b4f8-3a0e-403c-af52-76d677af7353": "2535",
+  "805d68e6-3f52-4288-9b0a-8be506cc619e": "2902",
   "80784e7c-2939-4233-9953-87370f85a3ae": "2077",
   "809c68af-b213-45c7-a419-1244dc86af89": "7033",
   "80a94f62-2060-494b-924a-792b728dcf99": "1630★",
@@ -6949,6 +6954,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "83f4d580-0a3c-4f4f-9700-4a2afed4ded0": "1518",
   "8418acd5-ca4b-4fe8-a1f9-44b16e6dcda7": "7126",
   "8421ad46-dc7f-4b66-800b-e41c30835300": "380★",
+  "843795d1-8f12-43af-bac6-319fbdaa0b18": "2903",
   "844f3807-9258-452c-80cc-ad8ef6b6863f": "1597★",
   "84505a4e-5715-4731-9831-0107ff79ae05": "615",
   "84590fb7-a79e-4708-bce4-bb16b1b0dd7e": "730",
@@ -7362,6 +7368,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "a99e2ed7-8a6c-49cf-81ae-690a8636d5f6": "1989",
   "a9dd9868-f0c5-452c-9619-a8f3bbf5ea69": "307",
   "a9e3a7c2-12fb-4f23-a0d1-a79df048201b": "1422★",
+  "a9ea2959-27c3-46d4-875f-1605acefa082": "2905",
   "aa1c4ada-a218-4701-a293-ae6cbbe5c4d8": "2364",
   "aa32c5e9-a299-4f20-85ae-3d4f2919b6a8": "1959",
   "aa54f607-8735-4082-93cd-519509a744c2": "7132",
@@ -7555,6 +7562,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "bbd79be1-3e84-41a3-89ae-b1132cb31ed9": "138",
   "bc483f3e-4edc-4042-b41c-d5755956d0dc": "2252",
   "bc6c0c64-e65e-4b7b-8134-39067cff53b4": "2215",
+  "bc846a79-9ff9-41ca-8c5b-07509e9b1047": "2904",
   "bc9f3d1b-bb3a-4a78-9031-ed439212a48b": "2544",
   "bcb4e64b-e978-49ba-8e3e-4792f975fb61": "355",
   "bcc1aa91-ec97-4fe8-b4b1-a213f050f956": "330",
