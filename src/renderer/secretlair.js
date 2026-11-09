@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-11-08 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-11-09 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 114 superdrops/standalones · 397 drops · 2811 printings (2119 drop-mapped, 106 foil-backfilled)
+// 114 superdrops/standalones · 397 drops · 2812 printings (2119 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -3270,6 +3270,7 @@ const SL_SCRYFALL_TO_NAME = {
   "3396f676-d990-42ea-b40a-7da6548cca0a": "Growing Ranks",
   "33a931b6-607c-4cbb-ad1e-14e2cad14947": "Birds of Paradise",
   "33ac93d2-80dd-4e2a-93b6-3e85526c7372": "Sublime Archangel",
+  "33b23695-acfb-4315-ab41-074894168228": "Command Tower",
   "33c248ce-d101-4a26-a8ed-7f98b39b357e": "Karrthus, Tyrant of Jund",
   "33ccc950-9bea-49d1-b992-98eebfbc9aa8": "Wood Elves",
   "33da3281-1cf1-41ac-841a-e01521642779": "Temporal Extortion",
@@ -6084,6 +6085,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "3396f676-d990-42ea-b40a-7da6548cca0a": "2444",
   "33a931b6-607c-4cbb-ad1e-14e2cad14947": "1148",
   "33ac93d2-80dd-4e2a-93b6-3e85526c7372": "1381",
+  "33b23695-acfb-4315-ab41-074894168228": "7179",
   "33c248ce-d101-4a26-a8ed-7f98b39b357e": "1250",
   "33ccc950-9bea-49d1-b992-98eebfbc9aa8": "2280",
   "33da3281-1cf1-41ac-841a-e01521642779": "1859",
