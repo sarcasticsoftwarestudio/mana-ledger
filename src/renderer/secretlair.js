@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-11-09 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-11-10 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 114 superdrops/standalones · 397 drops · 2812 printings (2119 drop-mapped, 106 foil-backfilled)
+// 114 superdrops/standalones · 397 drops · 2817 printings (2119 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -3206,6 +3206,7 @@ const SL_SCRYFALL_TO_NAME = {
   "2cc0a11c-99f0-439d-a372-4fd77e007df4": "Talisman of Creativity",
   "2ccc7cf2-c9ed-4505-9341-7b8dcf10590f": "Forest",
   "2d0f36c8-8d91-4246-9cb4-c623f6124493": "Rift Bolt",
+  "2d2426be-f50f-4ebc-b341-10397a173e10": "K'rrik, Son of Yawgmoth",
   "2d256283-be94-4a34-805e-fc17503c7fbd": "Delay",
   "2d612018-b41f-4ae4-bd8e-9acc972b2154": "Jace's Archivist",
   "2d82cf3e-b29f-4eb1-a58f-dadddc6d7ec2": "Gideon Blackblade",
@@ -3350,6 +3351,7 @@ const SL_SCRYFALL_TO_NAME = {
   "3a1e8139-3690-4d4b-80b4-c733b4bbe786": "Diabolic Intent",
   "3a509149-9864-4622-8122-21a723defaa8": "Howling Mine",
   "3a51438f-d3fc-4e55-9866-fe2d19eadb54": "Fatal Push",
+  "3a7491e3-e5c1-4835-af19-7e81ee6b60f8": "Elas il-Kor, Sadistic Pilgrim",
   "3a8acace-57fb-4759-b15e-f4a8be1d13eb": "Mistbind Clique",
   "3a93a12d-6913-4d9e-8e9c-8067147e37f2": "Black Panther, Wakandan King",
   "3a971066-5e32-4582-b392-880919d11388": "Peregrine Drake",
@@ -4207,6 +4209,7 @@ const SL_SCRYFALL_TO_NAME = {
   "88ca3c93-ac49-4976-aa77-ee308b1c59bd": "Enchanted Evening",
   "88f5cfdd-9c48-405d-bfd7-1e20558bbd5a": "Magus of the Moon",
   "8933ec5c-dd73-4c10-aafe-ad14520cda10": "Lava Dart",
+  "896212fe-98ed-4981-8305-915c793bef8c": "Gix, Yawgmoth Praetor",
   "8993e4d0-d306-4993-b5a7-dbba754d479e": "Mountain",
   "899ed197-e434-4f01-a71f-053ae3820d6c": "Life from the Loam",
   "89b0dc6c-c5d3-458a-b596-414d51f13d03": "Samut, Voice of Dissent",
@@ -5212,6 +5215,7 @@ const SL_SCRYFALL_TO_NAME = {
   "e6a16012-702d-4cf3-81cc-5390f45807c1": "Arcane Heist",
   "e6a1b96a-ff75-4b4c-aea7-b41d9f9ac710": "Crystalline Sliver",
   "e6a2e7e0-9948-4c08-ad74-9a0c5cf054f3": "Silence",
+  "e6a5103d-104c-45d0-a726-faad354934c4": "Hive Mind",
   "e6ec1f39-08e0-45ce-b4ec-c25d64bd3461": "Plains",
   "e6fe0942-a5c9-4821-9992-19467e3a1176": "Sunpetal Grove",
   "e71df56a-c27f-4983-a2c7-c2412a0345b0": "Bloodline Keeper // Lord of Lineage",
@@ -5277,6 +5281,7 @@ const SL_SCRYFALL_TO_NAME = {
   "ebbaf2e2-b4af-4a84-ab27-d8a6b40c9552": "Island",
   "ebbfc1b2-2407-4079-a847-6bb6b9a2c9de": "Ajani, Mentor of Heroes",
   "ebca1926-6809-4924-a80c-f322266ac38e": "Massacre Girl",
+  "ebcb7b63-dc3a-4b3a-867c-cdb23e6f43ca": "Suture Priest",
   "ebd20adc-4fb5-47aa-abdf-4278752581a3": "Tocasia's Welcome",
   "ebe83332-195e-4ac1-878f-f52eef62ce6a": "Wolverine, Best There Is",
   "ebf6550a-b01e-45b0-807c-5593ed419bac": "Collector Ouphe",
@@ -6021,6 +6026,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "2cc0a11c-99f0-439d-a372-4fd77e007df4": "1058",
   "2ccc7cf2-c9ed-4505-9341-7b8dcf10590f": "2080",
   "2d0f36c8-8d91-4246-9cb4-c623f6124493": "2055",
+  "2d2426be-f50f-4ebc-b341-10397a173e10": "2732",
   "2d256283-be94-4a34-805e-fc17503c7fbd": "1788",
   "2d612018-b41f-4ae4-bd8e-9acc972b2154": "2515",
   "2d82cf3e-b29f-4eb1-a58f-dadddc6d7ec2": "503",
@@ -6165,6 +6171,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "3a1e8139-3690-4d4b-80b4-c733b4bbe786": "2563",
   "3a509149-9864-4622-8122-21a723defaa8": "177",
   "3a51438f-d3fc-4e55-9866-fe2d19eadb54": "7017",
+  "3a7491e3-e5c1-4835-af19-7e81ee6b60f8": "2733",
   "3a8acace-57fb-4759-b15e-f4a8be1d13eb": "116",
   "3a93a12d-6913-4d9e-8e9c-8067147e37f2": "1747",
   "3a971066-5e32-4582-b392-880919d11388": "1488★",
@@ -7022,6 +7029,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "88ca3c93-ac49-4976-aa77-ee308b1c59bd": "122",
   "88f5cfdd-9c48-405d-bfd7-1e20558bbd5a": "1761",
   "8933ec5c-dd73-4c10-aafe-ad14520cda10": "2037",
+  "896212fe-98ed-4981-8305-915c793bef8c": "2731",
   "8993e4d0-d306-4993-b5a7-dbba754d479e": "674",
   "899ed197-e434-4f01-a71f-053ae3820d6c": "8",
   "89b0dc6c-c5d3-458a-b596-414d51f13d03": "2788",
@@ -8027,6 +8035,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "e6a16012-702d-4cf3-81cc-5390f45807c1": "2567",
   "e6a1b96a-ff75-4b4c-aea7-b41d9f9ac710": "661",
   "e6a2e7e0-9948-4c08-ad74-9a0c5cf054f3": "1816",
+  "e6a5103d-104c-45d0-a726-faad354934c4": "2730",
   "e6ec1f39-08e0-45ce-b4ec-c25d64bd3461": "547",
   "e6fe0942-a5c9-4821-9992-19467e3a1176": "460",
   "e71df56a-c27f-4983-a2c7-c2412a0345b0": "1210",
@@ -8092,6 +8101,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "ebbaf2e2-b4af-4a84-ab27-d8a6b40c9552": "240",
   "ebbfc1b2-2407-4079-a847-6bb6b9a2c9de": "397",
   "ebca1926-6809-4924-a80c-f322266ac38e": "1233",
+  "ebcb7b63-dc3a-4b3a-867c-cdb23e6f43ca": "2729",
   "ebd20adc-4fb5-47aa-abdf-4278752581a3": "2553",
   "ebe83332-195e-4ac1-878f-f52eef62ce6a": "1737",
   "ebf6550a-b01e-45b0-807c-5593ed419bac": "1077",
