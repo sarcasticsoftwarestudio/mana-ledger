@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-11-14 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-11-15 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 115 superdrops/standalones · 403 drops · 2817 printings (2149 drop-mapped, 106 foil-backfilled)
+// 115 superdrops/standalones · 403 drops · 2818 printings (2149 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -5235,6 +5235,7 @@ const SL_SCRYFALL_TO_NAME = {
   "e547e0fe-b274-4609-a596-d64c9dc46c1c": "Warstorm Surge // Warstorm Surge",
   "e549057e-fb55-4752-903c-41355f9a0589": "Ephara, God of the Polis",
   "e54e310c-060c-40a9-a0e3-d35de672ef13": "Sisay, Weatherlight Captain",
+  "e564a5b3-92f3-4ca4-b9c3-4adf7264f752": "Path of the Pyromancer",
   "e571614b-cef1-4e44-bfe4-0029db9694eb": "Treasure Vault",
   "e59f4627-58ab-45c8-b31b-eaa52dad33fc": "Teferi's Protection",
   "e5ba7703-97ef-40b0-87d6-2d79342086eb": "Master of Cruelties",
@@ -8055,6 +8056,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "e547e0fe-b274-4609-a596-d64c9dc46c1c": "2738",
   "e549057e-fb55-4752-903c-41355f9a0589": "72",
   "e54e310c-060c-40a9-a0e3-d35de672ef13": "1444",
+  "e564a5b3-92f3-4ca4-b9c3-4adf7264f752": "7207",
   "e571614b-cef1-4e44-bfe4-0029db9694eb": "2818",
   "e59f4627-58ab-45c8-b31b-eaa52dad33fc": "164",
   "e5ba7703-97ef-40b0-87d6-2d79342086eb": "1565",
