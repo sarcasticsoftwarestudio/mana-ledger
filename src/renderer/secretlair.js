@@ -1,7 +1,7 @@
 // secretlair.js — Static Secret Lair dataset (GENERATED — do not hand-edit the data blocks)
-// Regenerated 2026-11-19 by scripts/sl-build/emit-secretlair.js
+// Regenerated 2026-11-20 by scripts/sl-build/emit-secretlair.js
 // Sources: MTGJSON SLD.json (drop↔cards) · Scryfall set:sld (dates) · mtg.wiki Drop Series (grouping)
-// 115 superdrops/standalones · 403 drops · 2837 printings (2149 drop-mapped, 106 foil-backfilled)
+// 115 superdrops/standalones · 403 drops · 2838 printings (2149 drop-mapped, 106 foil-backfilled)
 // Runtime code below the data blocks is hand-maintained.
 
 const SL_SUPERDROPS = [
@@ -2747,6 +2747,7 @@ const SL_SCRYFALL_TO_NAME = {
   "01550676-3659-47d7-9a47-67c31438ec09": "Mountain",
   "01842079-5c70-4e87-a1c5-c814a44ba0f5": "Blighted Agent",
   "018830b2-dff9-45f3-9cc2-dc5b2eec0e54": "Jinnie Fay, Jetmir's Second // Jinnie Fay, Jetmir's Second",
+  "0196e010-71e1-4066-bec8-194830961916": "Ornithopter",
   "01acd1c1-86b2-4423-9ba7-5b9725c0514f": "Drown in the Loch",
   "01ba6f40-baef-432c-aec7-bffc41e879ef": "Silence",
   "021f3a8e-5ce2-4edf-827d-b748d146e6f3": "Plains",
@@ -5587,6 +5588,7 @@ const SL_SCRYFALL_TO_NUMBER = {
   "01550676-3659-47d7-9a47-67c31438ec09": "1471",
   "01842079-5c70-4e87-a1c5-c814a44ba0f5": "1203",
   "018830b2-dff9-45f3-9cc2-dc5b2eec0e54": "1556",
+  "0196e010-71e1-4066-bec8-194830961916": "7212",
   "01acd1c1-86b2-4423-9ba7-5b9725c0514f": "270",
   "01ba6f40-baef-432c-aec7-bffc41e879ef": "2300",
   "021f3a8e-5ce2-4edf-827d-b748d146e6f3": "1950",
